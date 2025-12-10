@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.text import slugify
+from channels.db import database_sync_to_async
 
 class Room(models.Model):
     name = models.CharField(max_length=255)

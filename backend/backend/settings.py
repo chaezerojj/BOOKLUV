@@ -47,7 +47,7 @@ INSTALLED_APPS = [
 ]
 
 ASGI_APPLICATION = "backend.asgi.application"
-
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
