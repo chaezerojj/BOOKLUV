@@ -6,5 +6,7 @@ class User(models.Model):
     password = models.CharField(max_length=128)  # 해시 저장용
     email = models.EmailField(default="example@example.com")
     created_at = models.DateTimeField(auto_now_add=True)
+    # status = 회원 상태 / 0 = 가입 중 / 1 = 탈퇴 
+    status = models.IntegerField(default = 0)
     def __str__(self):
         return self.nickname
