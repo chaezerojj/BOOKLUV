@@ -16,9 +16,11 @@ class Book(models.Model):
     description = models.TextField(blank=True)
     
 class Meeting(models.Model):
-    leader_id = models.ForeignKey(User, on_delete = models.CASCADE)
+    leader_id = models.ForeignKey(User, on_delete=models.CASCADE)
     book_id = models.ForeignKey(Book, on_delete = models.CASCADE)
     title = models.CharField(max_length=50, default="함께 책 읽고 소통해요")
+    description = models.TextField(blank=True, default="책을 읽고 함께 이야기를 나눌 분들을 찾습니다.")
+    views = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     started_at = models.DateTimeField(auto_now=True)
     finished_at = models.DateTimeField(auto_now=True)

@@ -80,50 +80,11 @@
     {
         "model": "klub_talk.book",
         "fields": {
-            "aladin_id": 377892566,
-            "title": "나나 올리브에게",
-            "author_id": 7,
-            "publisher": "문학동네",
-            "category_id": 4,
-            "pub_date": "2025-11-20",
-            "cover_url": "https://image.aladin.co.kr/product/37789/25/cover200/k392033660_1.jpg",
-            "description": "지구상의 마지막 하나가 된 흰바위코뿔소 노든과 버려진 알에서 태어난 어린 펭귄의 이야기 『긴긴밤』으로 60만 독자의 마음을 움직인 루리 작가가 또 한 번 마음을 흔드는 이야기로 우리를 찾아왔다."
-        }
-    },
-    {
-        "model": "klub_talk.book",
-        "fields": {
-            "aladin_id": 379389382,
-            "title": "흔한남매 21",
-            "author_id": 8,
-            "publisher": "미래엔아이세움",
-            "category_id": 4,
-            "pub_date": "2025-12-17",
-            "cover_url": "https://image.aladin.co.kr/product/37938/93/cover200/k232033352_2.jpg",
-            "description": "으뜸이와 에이미의 전생 스토리, 지구에 또 찾아온 외계인, 이불 속에서 오래 버티기 대결, 크리스마스라서 안 좋은 점, 에어프라이어 요리 시간, 인공 지능과 사랑에 빠진 으뜸이 등 지구를 넘어 우주까지 웃음을 퍼트리는 흔한남매를 만나 보자."
-        }
-    },
-    {
-        "model": "klub_talk.book",
-        "fields": {
-            "aladin_id": 379454044,
-            "title": "학생회에도 구멍은 있다! 공식 풀컬러판 : 《생구멍 셀렉션!》 - S코믹스",
-            "author_id": 9,
-            "publisher": "㈜소미미디어",
-            "category_id": 5,
-            "pub_date": "2025-12-10",
-            "cover_url": "https://image.aladin.co.kr/product/37945/40/cover200/k692033457_1.jpg",
-            "description": "&lt;학생회에도 구멍은 있다!&gt; 본편에서 에로한 내용만으로 15화 분량을 모아 풀컬러화하였다. 회장과의 혼욕편도, 다같이 온천편도, 전라대폭주편도 풀컬러로 즐길 수 있다. 이외에도 엄선한 막간 일러스트의 컬러판이나, 무치마로 작가가 새로 그린 일러스트 2매도 수록하였다."
-        }
-    },
-    {
-        "model": "klub_talk.book",
-        "fields": {
             "aladin_id": 371447935,
             "title": "트렌드 코리아 2026 - 2026 대한민국 소비트렌드 전망",
-            "author_id": 10,
+            "author_id": 7,
             "publisher": "미래의창",
-            "category_id": 6,
+            "category_id": 4,
             "pub_date": "2025-09-25",
             "cover_url": "https://image.aladin.co.kr/product/37144/79/cover200/k442031479_3.jpg",
             "description": "세상은 작용과 반작용, 치열한 정반합(正反合)의 소용돌이가 거세게 휘몰아치고 있다. 방향을 잡기 어려울 정도로 속도가 빠르고 정신이 없다. 그렇다면 우리의 방향타는 어디에 있는가? 거센 풍랑과 어디서 불어올지 모르는 태풍을 피하기 위해 우리는 어디에 닻을 내리고 있어야 하는가?"
@@ -134,9 +95,9 @@
         "fields": {
             "aladin_id": 379721322,
             "title": "박곰희 연금 부자 수업 (10만 부 기념 스페셜 에디션) - 4개의 통장으로 월 300만 원 만들기",
-            "author_id": 11,
+            "author_id": 8,
             "publisher": "인플루엔셜(주)",
-            "category_id": 6,
+            "category_id": 4,
             "pub_date": "2025-06-25",
             "cover_url": "https://image.aladin.co.kr/product/37972/13/cover200/k492034866_1.jpg",
             "description": "출간 직후 전 서점 베스트셀러에 등극한 《박곰희 연금 부자 수업》이 6개월 만에 누적 10만 부 돌파를 기념하며 스페셜 에디션을 선보인다. 노후 자산 설계에 대한 전 국민의 관심 속에 ‘연금 투자 입문서’로 자리 잡은 이 책은 ‘개인파산 신청자 86%가 50대 이상’ ‘성인 4명 중 1명 노후 준비 포기’라는 현실적 위기 속에서 누구나 적용할 수 있는 가장 현실적인 대안으로 주목받고 있다."
@@ -145,35 +106,9 @@
     {
         "model": "klub_talk.book",
         "fields": {
-            "aladin_id": 379515213,
-            "title": "야마다 군과 Lv999의 사랑을 하다 4~6 특별판 세트 - 전3권 - 띠지 + 특별판 아크릴 북스탠드 + 특별판 아크릴 블록 + 특별판 양면 책갈피 + 일반판 일러스트 카드 3종 + 일반판 폴라로이드 카드 3종",
-            "author_id": 12,
-            "publisher": "디앤씨미디어(주)(D&C미디어)",
-            "category_id": 5,
-            "pub_date": "2025-12-30",
-            "cover_url": "https://image.aladin.co.kr/product/37951/52/cover200/k282033659_1.jpg",
-            "description": "온라인 게임을 통해 알게 된 아카네와 야마다. 아카네는 밤늦게까지 자신의 간병을 해준 야마다를 향한 마음을 조금씩 깨닫는다. 친구 모모와 길드마스터 에이타에게 조언을 듣고 야마다에게 고백할 것을 결심한 아카네. 한편, 야마다의 반 친구인 츠바키 또한 그를 향한 감정을 전하려고 하는데……?"
-        }
-    },
-    {
-        "model": "klub_talk.book",
-        "fields": {
-            "aladin_id": 379795065,
-            "title": "괴수 8호 16 (더블 특전판) - 완결, '카프카' 캐릭터 카드 + 스페셜 일러스트 카드 2종",
-            "author_id": 13,
-            "publisher": "서울미디어코믹스(서울문화사)",
-            "category_id": 5,
-            "pub_date": "2025-12-10",
-            "cover_url": "https://image.aladin.co.kr/product/37979/50/cover200/k142034874_1.jpg",
-            "description": "나루미와 호시나 두 사람이 온 힘을 쥐어짜 카프카에게 넘겨준 마음. 그리고 다시는 사람으로 돌아가지 못해도 상관없다는 각오와 어린 시절의 마음을 가슴에 품고, 역사적인 대재해 「메이레키의 대괴수」 앞에 서는데..."
-        }
-    },
-    {
-        "model": "klub_talk.book",
-        "fields": {
             "aladin_id": 359025448,
             "title": "위버멘쉬 - 누구의 시선도 아닌, 내 의지대로 살겠다는 선언",
-            "author_id": 14,
+            "author_id": 9,
             "publisher": "RISE(떠오름)",
             "category_id": 1,
             "pub_date": "2025-03-14",
@@ -186,7 +121,7 @@
         "fields": {
             "aladin_id": 370152807,
             "title": "말뚝들 - 제30회 한겨레문학상 수상작",
-            "author_id": 15,
+            "author_id": 10,
             "publisher": "한겨레출판",
             "category_id": 2,
             "pub_date": "2025-08-30",
@@ -199,7 +134,7 @@
         "fields": {
             "aladin_id": 377106135,
             "title": "기차의 꿈",
-            "author_id": 16,
+            "author_id": 11,
             "publisher": "다산책방",
             "category_id": 2,
             "pub_date": "2025-12-10",
@@ -212,7 +147,7 @@
         "fields": {
             "aladin_id": 371723601,
             "title": "절창",
-            "author_id": 17,
+            "author_id": 12,
             "publisher": "문학동네",
             "category_id": 2,
             "pub_date": "2025-09-17",
@@ -223,22 +158,9 @@
     {
         "model": "klub_talk.book",
         "fields": {
-            "aladin_id": 378969369,
-            "title": "2026 큰별쌤 최태성의 별★별한국사 한국사능력검정시험 심화(1, 2, 3급) 상 - 한국사능력검정시험 심화(1,2,3급)에 대비한 맞춤 기본서",
-            "author_id": 1,
-            "publisher": "이투스북",
-            "category_id": 7,
-            "pub_date": "2025-12-09",
-            "cover_url": "https://image.aladin.co.kr/product/37896/93/cover200/k062033624_1.jpg",
-            "description": "큰별쌤 최태성이 핵심만을 모아 아트 판서로 정리한 한능검 심화 대비서다. 사료·사진·지도 해설, 기출 선택지 기반 문제, 최신 기출 해설, 연표·지역사 지도까지 담아 흐름과 실전을 모두 잡을 수 있도록 구성했다."
-        }
-    },
-    {
-        "model": "klub_talk.book",
-        "fields": {
             "aladin_id": 25843736,
             "title": "모순 - 개정판",
-            "author_id": 18,
+            "author_id": 13,
             "publisher": "쓰다",
             "category_id": 2,
             "pub_date": "2013-04-01",
@@ -249,37 +171,11 @@
     {
         "model": "klub_talk.book",
         "fields": {
-            "aladin_id": 379793157,
-            "title": "괴수 8호 16 (아크릴 굿즈 한정판) - &lt;괴수 8호&gt; 16권 더블 특전판 (‘카프카’ 캐릭터 카드, 스페셜 일러스트 카드 2종) + ‘최강’ 아크릴 블록 + 일러스트 아크릴 플레이트 + 제3부대 렌티큘러 카드, 완결",
-            "author_id": 13,
-            "publisher": "서울미디어코믹스(서울문화사)",
-            "category_id": 5,
-            "pub_date": "2025-12-10",
-            "cover_url": "https://image.aladin.co.kr/product/37979/31/cover200/k022034870_1.jpg",
-            "description": "지금을 살아가며, 미래를 열어라, 초 괴수담, 완결."
-        }
-    },
-    {
-        "model": "klub_talk.book",
-        "fields": {
-            "aladin_id": 378969617,
-            "title": "2026 큰별쌤 최태성의 별★별한국사 한국사능력검정시험 심화(1, 2, 3급) 하 - 한국사능력검정시험 심화(1,2,3급)에 대비한 맞춤 기본서",
-            "author_id": 1,
-            "publisher": "이투스북",
-            "category_id": 7,
-            "pub_date": "2025-12-09",
-            "cover_url": "https://image.aladin.co.kr/product/37896/96/cover200/k082033624_2.jpg",
-            "description": "700만 수험생이 선택한 한국사 실력 UP 시스템이다. 아트 판서로 흐름을 잡고 사진·도표·사료로 개념을 보완하며 최신 기출과 해설로 실전을 대비한다. 기출 모의고사와 한국사 연표, 단권화 노트까지 제공하고 전 강의는 유튜브와 홈페이지에서 무료로 볼 수 있다."
-        }
-    },
-    {
-        "model": "klub_talk.book",
-        "fields": {
             "aladin_id": 379265046,
             "title": "평생 부자 머니 플랜 - 20대부터 노후까지 ‘돈 걱정 ZERO’ 로드맵",
-            "author_id": 19,
+            "author_id": 14,
             "publisher": "비즈니스북스",
-            "category_id": 6,
+            "category_id": 4,
             "pub_date": "2025-12-01",
             "cover_url": "https://image.aladin.co.kr/product/37926/50/cover200/k202033036_1.jpg",
             "description": "재무설계사인 저자 세 명이 주식, 부동산, 세무 등 각자의 전문 분야를 살려 함께 쓴 현실형 자산관리 가이드다. 이 책은 단순히 돈을 많이 버는 법이 아니라, 지금 가진 돈부터 어떻게 다루고, 지키고, 흐름을 만들어낼 것인가, 다시 말해 ‘돈의 구조’를 설계하는 데 집중한다."
@@ -290,9 +186,9 @@
         "fields": {
             "aladin_id": 378047231,
             "title": "탁! 깨달음의 대화 - 탁! 한마디로 마음이 열린다",
-            "author_id": 20,
+            "author_id": 15,
             "publisher": "정토출판",
-            "category_id": 8,
+            "category_id": 5,
             "pub_date": "2025-11-20",
             "cover_url": "https://image.aladin.co.kr/product/37804/72/cover200/k292033395_1.jpg",
             "description": "어떤 질문이든 가장 짧고 정확한 답을 들려주는 법륜 스님의 즉문즉설. 그 수많은 대화 중에서도 마음의 핵심을 찌르는 문장들을 모아 선문답 형식으로 더 간결하게, 더 명료하게 재구성한 책이 나왔다."
@@ -303,7 +199,7 @@
         "fields": {
             "aladin_id": 372980631,
             "title": "손자병법 - 이겨놓고 싸우는 인생의 지혜",
-            "author_id": 21,
+            "author_id": 16,
             "publisher": "현대지성",
             "category_id": 1,
             "pub_date": "2025-10-14",
@@ -316,7 +212,7 @@
         "fields": {
             "aladin_id": 377011437,
             "title": "길을 찾는 책 도덕경",
-            "author_id": 22,
+            "author_id": 17,
             "publisher": "윌북",
             "category_id": 1,
             "pub_date": "2025-11-24",
@@ -329,7 +225,7 @@
         "fields": {
             "aladin_id": 377154795,
             "title": "비밀 속의 비밀 1",
-            "author_id": 23,
+            "author_id": 18,
             "publisher": "문학수첩",
             "category_id": 2,
             "pub_date": "2025-11-27",
@@ -342,7 +238,7 @@
         "fields": {
             "aladin_id": 365665217,
             "title": "안녕이라 그랬어",
-            "author_id": 24,
+            "author_id": 19,
             "publisher": "문학동네",
             "category_id": 2,
             "pub_date": "2025-06-20",
@@ -355,7 +251,7 @@
         "fields": {
             "aladin_id": 307692409,
             "title": "급류",
-            "author_id": 25,
+            "author_id": 20,
             "publisher": "민음사",
             "category_id": 2,
             "pub_date": "2022-12-22",
@@ -368,7 +264,7 @@
         "fields": {
             "aladin_id": 379451772,
             "title": "변신·단식 광대 (먼슬리 클래식)",
-            "author_id": 26,
+            "author_id": 21,
             "publisher": "문학동네",
             "category_id": 2,
             "pub_date": "2025-12-10",
@@ -381,7 +277,7 @@
         "fields": {
             "aladin_id": 379410204,
             "title": "피크 코리아 - 도약과 추락의 갈림길에 선 한국을 리디자인할 국가 대개조 개념설계",
-            "author_id": 27,
+            "author_id": 22,
             "publisher": "현암사",
             "category_id": 3,
             "pub_date": "2025-12-15",
@@ -392,22 +288,9 @@
     {
         "model": "klub_talk.book",
         "fields": {
-            "aladin_id": 379389299,
-            "title": "흔한남매 21 (특별 한정판) - 흔한남매 탄생 10주년X1천만 부 판매 돌파 기념",
-            "author_id": 8,
-            "publisher": "미래엔아이세움",
-            "category_id": 4,
-            "pub_date": "2025-12-17",
-            "cover_url": "https://image.aladin.co.kr/product/37938/92/cover200/k292033352_2.jpg",
-            "description": "흔한남매 탄생 10주년과 미래엔 아이세움의 ‘흔한남매 시리즈’ 1천만 부 판매 돌파를 기념하여 특별 한정판이 출간되었다. 오리지널 코믹북 시리즈 《흔한남매 21》과 사랑과 귀여움, 웃음과 행복이 가득 담긴 굿즈들을 만나 보자."
-        }
-    },
-    {
-        "model": "klub_talk.book",
-        "fields": {
             "aladin_id": 379545890,
             "title": "디즈니 주토피아 2 소설",
-            "author_id": 28,
+            "author_id": 23,
             "publisher": "아르누보",
             "category_id": 2,
             "pub_date": "2026-01-07",
@@ -418,22 +301,9 @@
     {
         "model": "klub_talk.book",
         "fields": {
-            "aladin_id": 379061063,
-            "title": "흔한남매 과학 탐험대 16 : 힘과 운동",
-            "author_id": 8,
-            "publisher": "주니어김영사",
-            "category_id": 4,
-            "pub_date": "2025-12-05",
-            "cover_url": "https://image.aladin.co.kr/product/37906/10/cover200/k712033833_1.jpg",
-            "description": "《흔한남매 과학 탐험대》 시리즈는 과학을 처음 접하는 아이들이 과학의 주요 내용을 미리 맛볼 수 있는 초등 과학 입문서이다. 흔한남매가 최고의 과학 전문가들과 함께 우주, 지구와 달, 우리 몸 등을 여행하며 쉽고 재미있게 과학 지식을 배운다."
-        }
-    },
-    {
-        "model": "klub_talk.book",
-        "fields": {
             "aladin_id": 40869703,
             "title": "소년이 온다 - 2024 노벨문학상 수상작가",
-            "author_id": 29,
+            "author_id": 24,
             "publisher": "창비",
             "category_id": 2,
             "pub_date": "2014-05-19",
@@ -446,7 +316,7 @@
         "fields": {
             "aladin_id": 362755853,
             "title": "첫 여름, 완주",
-            "author_id": 30,
+            "author_id": 25,
             "publisher": "무제",
             "category_id": 2,
             "pub_date": "2025-05-08",
@@ -459,9 +329,9 @@
         "fields": {
             "aladin_id": 377956629,
             "title": "늙지 않는 뇌 - 최신 신경과학이 밝힌 평생 또렷한 정신으로 사는 방법",
-            "author_id": 31,
+            "author_id": 26,
             "publisher": "심심",
-            "category_id": 9,
+            "category_id": 6,
             "pub_date": "2025-11-19",
             "cover_url": "https://image.aladin.co.kr/product/37795/66/cover200/k442033798_1.jpg",
             "description": "치매는 기대수명 증가 시대에 가장 두려운 질병이지만 많은 이들이 작은 징조를 대수롭지 않게 넘긴다. 50년 넘게 신경퇴행질환을 연구한 세계적 권위자 데일 브레드슨은 뉴욕타임스·아마존 베스트셀러 《늙지 않는 뇌》에서 “나이가 들어 인지 능력이 떨어진다”는 통념을 최신 연구로 반박하며 알츠하이머병은 발병 전 예방이 가능하고 진행된 후에도 회복할 수 있다고 설명한다."
@@ -470,22 +340,9 @@
     {
         "model": "klub_talk.book",
         "fields": {
-            "aladin_id": 330109498,
-            "title": "ETS 토익 정기시험 기출문제집 1000 Vol. 4 Reading (리딩) - 토익 기출문제 독점출간/ ALL NEW 최신기출 10회 수록/ 문제집+해설집+무료 동영상 강의+기출어휘 단어장(PDF)+APP 모바일 학습",
-            "author_id": 32,
-            "publisher": "(주)YBM(와이비엠)",
-            "category_id": 10,
-            "pub_date": "2023-12-18",
-            "cover_url": "https://image.aladin.co.kr/product/33010/94/cover200/8917239501_2.jpg",
-            "description": "정기시험 최신 기출문제 10세트가 수록되어 있다. 시험에 나온 최신 기출문제로 실전 감각을 키워 시험에 확실하게 대비할 수 있다. 교재 내 QR코드는 해당 회차의 무료 동영상 강의로 연결된다. 오답률 높은 고난도 문항을 친절한 해설 강의와 함께 수록하였다."
-        }
-    },
-    {
-        "model": "klub_talk.book",
-        "fields": {
             "aladin_id": 368083714,
             "title": "자몽살구클럽",
-            "author_id": 33,
+            "author_id": 27,
             "publisher": "어센틱",
             "category_id": 2,
             "pub_date": "2025-07-25",
@@ -498,7 +355,7 @@
         "fields": {
             "aladin_id": 377156316,
             "title": "비밀 속의 비밀 2",
-            "author_id": 23,
+            "author_id": 18,
             "publisher": "문학수첩",
             "category_id": 2,
             "pub_date": "2025-12-05",
@@ -509,24 +366,11 @@
     {
         "model": "klub_talk.book",
         "fields": {
-            "aladin_id": 379452899,
-            "title": "찍히지 않습니다 4 (초판) - S코믹스",
-            "author_id": 34,
-            "publisher": "㈜소미미디어",
-            "category_id": 5,
-            "pub_date": "2025-12-10",
-            "cover_url": "https://image.aladin.co.kr/product/37945/28/cover200/k072033457_1.jpg",
-            "description": "모금 등 기행을 반복하는 쿠사카를 구출하기 위해 공포의 저택에 발을 들인 쿠로키리와 타치바나. 악령에 홀려 때를 놓친 모습에 압도되는 두 사람이지만… 수수께끼의 엑소시스트 편, 황당한 결말?!"
-        }
-    },
-    {
-        "model": "klub_talk.book",
-        "fields": {
             "aladin_id": 379505925,
             "title": "[단한권] CCM 일렉기타 예배반주법 : 트라이어드와 락킹주법",
-            "author_id": 35,
+            "author_id": 28,
             "publisher": "토닉(Tonic)",
-            "category_id": 11,
+            "category_id": 7,
             "pub_date": "2025-12-01",
             "cover_url": "https://image.aladin.co.kr/product/37950/59/cover200/8998820242_1.jpg",
             "description": "예배 반주에 필요한 트라이어드, 파워코드, 기본 보이싱부터 대표적인 발라드·리듬곡 반주 테크닉까지 실전에서 바로 사용할 수 있는 내용을 한 권에 담았다. 찬양팀 연주자라면 누구나 처음 겪는 고민들을 실제 예배자의 시선에서 하나씩 해결해 주는 책이다."
@@ -537,9 +381,9 @@
         "fields": {
             "aladin_id": 376860060,
             "title": "나이 오십에 청소노동자 - 중년의 불안을 쓸고 닦는 법",
-            "author_id": 36,
+            "author_id": 29,
             "publisher": "시프",
-            "category_id": 8,
+            "category_id": 5,
             "pub_date": "2025-12-31",
             "cover_url": "https://image.aladin.co.kr/product/37686/0/cover200/k712032440_2.jpg",
             "description": "평생 전업주부와 파트타임 강사로 살아온 한 중년 여성이 아들의 독립과 함께 인생의 낯선 페이지를 열었다. 전직 인터넷서점 직원에서 학원 강사를 거쳐, 50대에 접어들어 병원 청소노동자가 되기까지의 유쾌하고 솔직한 여정을 담은 에세이 『나이 오십에 청소노동자』가 출간되었다."
@@ -550,9 +394,9 @@
         "fields": {
             "aladin_id": 350636272,
             "title": "어른의 행복은 조용하다",
-            "author_id": 37,
+            "author_id": 30,
             "publisher": "페이지2(page2)",
-            "category_id": 8,
+            "category_id": 5,
             "pub_date": "2024-11-04",
             "cover_url": "https://image.aladin.co.kr/product/35063/62/cover200/k532934196_2.jpg",
             "description": "요란한 세상에서도 흔들리지 않고 내 삶을 사는 현명한 행복에 관하여. 행복을 찾는 방법이 아니라 불행에 대한 수비력을 길러주는 58가지 인생 이야기를 담은 책이다."
@@ -563,7 +407,7 @@
         "fields": {
             "aladin_id": 270454373,
             "title": "프로젝트 헤일메리",
-            "author_id": 38,
+            "author_id": 31,
             "publisher": "알에이치코리아(RHK)",
             "category_id": 2,
             "pub_date": "2021-05-04",
@@ -576,7 +420,7 @@
         "fields": {
             "aladin_id": 374258051,
             "title": "아무도 오지 않는 곳에서",
-            "author_id": 39,
+            "author_id": 32,
             "publisher": "허블",
             "category_id": 2,
             "pub_date": "2025-10-27",
@@ -587,37 +431,11 @@
     {
         "model": "klub_talk.book",
         "fields": {
-            "aladin_id": 176021392,
-            "title": "해커스 토익 기출 VOCA (보카) - 주제별 연상암기로 토익 영단어 30일 완성! RC/LC 필수 토익 보카 [최신 기출 어휘+출제포인트 수록ㅣ단어암기 어플 제공]",
-            "author_id": 40,
-            "publisher": "해커스어학연구소(Hackers)",
-            "category_id": 10,
-            "pub_date": "2024-08-19",
-            "cover_url": "https://image.aladin.co.kr/product/17602/13/cover200/s632030676_2.jpg",
-            "description": "토익 기초 단어부터 고난도 어휘까지 모든 난이도의 단어를 수록했다. 토익 빈출?주제 30개에 맞춰?단어를 수록하여 주제별로 묶어서 쉽게 암기가 가능하다. 단어 MP3를 바로 들을 수 있는 QR코드를 각 Day 시작 페이지에 삽입하여 편리하게 학습이 가능하다."
-        }
-    },
-    {
-        "model": "klub_talk.book",
-        "fields": {
-            "aladin_id": 330109271,
-            "title": "ETS 토익 정기시험 기출문제집 1000 Vol. 4 Listening (리스닝) - 토익 기출문제 독점출간/ ALL NEW 최신기출 10회 수록/ 문제집+해설집+무료 정기시험 성우 MP3+무료 동영상 강의+기출어휘 단어장(PDF)+APP 모바일 학습",
-            "author_id": 32,
-            "publisher": "(주)YBM(와이비엠)",
-            "category_id": 10,
-            "pub_date": "2023-12-18",
-            "cover_url": "https://image.aladin.co.kr/product/33010/92/cover200/8917239498_2.jpg",
-            "description": "정기시험 최신 기출문제 10세트가 수록되어 있다. 시험에 나온 기출문제로 실전 감각을 키워 시험에 확실하게 대비하자! 수록된 10세트의 LC 음원은 모두 정기시험 성우의 음원이다. 시험장에서 듣게 될 음성으로 공부하면 까다로운 영국식, 호주식 발음도 걱정 없다."
-        }
-    },
-    {
-        "model": "klub_talk.book",
-        "fields": {
             "aladin_id": 371178617,
             "title": "저소비 생활",
-            "author_id": 41,
+            "author_id": 33,
             "publisher": "알에이치코리아(RHK)",
-            "category_id": 12,
+            "category_id": 8,
             "pub_date": "2025-09-17",
             "cover_url": "https://image.aladin.co.kr/product/37117/86/cover200/8925573229_1.jpg",
             "description": "늘지 않는 월급과 줄지 않는 카드값 사이에서 결단이 필요한 모두에게 제안하는 ‘저소비 생활’. 《저소비 생활》의 저자가 월세 포함 70만 원으로 한 달을 보내며 얻은 것은 단지 ‘돈’이 아니었다. 경제적 불안에서 해방되는 것은 물론 돈을 쉽게 쓰며 잃었던 작은 기쁨과 취향을 되찾을 수 있었다."
@@ -628,9 +446,9 @@
         "fields": {
             "aladin_id": 368941145,
             "title": "ETF 투자의 모든 것 - 배당수익과 주가수익 다 잡는 제2의 소득 파이프라인",
-            "author_id": 42,
+            "author_id": 34,
             "publisher": "매일경제신문사",
-            "category_id": 6,
+            "category_id": 4,
             "pub_date": "2025-08-11",
             "cover_url": "https://image.aladin.co.kr/product/36894/11/cover200/k322030913_1.jpg",
             "description": "ETF는 분산투자의 장점을 살린 안전하면서도 수익률 높은 재테크다. 증권전문기자의 정보와 경험을 바탕으로, 본격적인 시작점에 있는 사람들이 당장 맞닥뜨리는 ETF 투자의 A부터 Z까지 조목조목 담아낸 책이 나왔다."
@@ -641,9 +459,9 @@
         "fields": {
             "aladin_id": 375356292,
             "title": "기분이 태도가 되지 않게 (헬로키티 에디션) - 기분 따라 행동하다 손해 보는 당신을 위한 심리 수업",
-            "author_id": 43,
+            "author_id": 35,
             "publisher": "갤리온",
-            "category_id": 8,
+            "category_id": 5,
             "pub_date": "2025-11-12",
             "cover_url": "https://image.aladin.co.kr/product/37535/62/cover200/8901297841_1.jpg",
             "description": "30만 베스트셀러 『기분이 태도가 되지 않게』와 세상에서 가장 귀여운 ‘헬로키티’가 만났다. 전 세계 다양한 세대에게 꾸준히 사랑받은 헬로키티는 국내외 여러 유명 브랜드와 컬래버레이션을 진행했다. 이번에는 2020년 출간 이후 독자들에게 꾸준히 사랑받아온 『기분이 태도가 되지 않게』와 함께한다."

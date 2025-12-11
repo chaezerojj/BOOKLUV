@@ -24,61 +24,33 @@
         "model": "klub_talk.category",
         "pk": 4,
         "fields": {
-            "name": "어린이"
+            "name": "경제경영"
         }
     },
     {
         "model": "klub_talk.category",
         "pk": 5,
         "fields": {
-            "name": "만화"
+            "name": "에세이"
         }
     },
     {
         "model": "klub_talk.category",
         "pk": 6,
         "fields": {
-            "name": "경제경영"
+            "name": "과학"
         }
     },
     {
         "model": "klub_talk.category",
         "pk": 7,
         "fields": {
-            "name": "수험서/자격증"
-        }
-    },
-    {
-        "model": "klub_talk.category",
-        "pk": 8,
-        "fields": {
-            "name": "에세이"
-        }
-    },
-    {
-        "model": "klub_talk.category",
-        "pk": 9,
-        "fields": {
-            "name": "과학"
-        }
-    },
-    {
-        "model": "klub_talk.category",
-        "pk": 10,
-        "fields": {
-            "name": "외국어"
-        }
-    },
-    {
-        "model": "klub_talk.category",
-        "pk": 11,
-        "fields": {
             "name": "예술/대중문화"
         }
     },
     {
         "model": "klub_talk.category",
-        "pk": 12,
+        "pk": 8,
         "fields": {
             "name": "자기계발"
         }

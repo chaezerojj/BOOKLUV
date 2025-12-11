@@ -41,7 +41,6 @@ auth_pk = 1
 for item in items:
     # Category 처리 (중분류만 사용)
     raw_category = item.get("categoryName", "")
-    # '>' 기준으로 분리하고 두 번째 요소(중분류)만 사용
     cat_name = "기타"
     if raw_category:
         parts = raw_category.split(">")
@@ -50,6 +49,11 @@ for item in items:
         else:
             cat_name = parts[0].strip()
 
+    # 제외할 카테고리 필터링
+    if cat_name in ["어린이", "수험서/자격증", "만화", "외국어"]:
+        continue  # 제외 카테고리는 건너뜀
+
+    # Category 추가
     if cat_name not in category_set:
         category_set.add(cat_name)
         category_map[cat_name] = cat_pk
@@ -62,10 +66,8 @@ for item in items:
 
     # Author 처리 (지은이만)
     raw_author = item.get("author", "미상")
-    # '(', ')'를 기준으로 지은이만 추출
     if "(" in raw_author:
         raw_author = raw_author.split("(")[0].strip()
-
     auth_name = raw_author
     if auth_name not in author_set:
         author_set.add(auth_name)
