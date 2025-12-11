@@ -1,7 +1,7 @@
 import requests
 import json
 
-API_KEY = "ttbzziruregi1043001"  # 여기에 TTBKey 입력
+API_KEY = ""  # 여기에 TTBKey 입력
 URL = "http://www.aladin.co.kr/ttb/api/ItemList.aspx"
 
 params = {
