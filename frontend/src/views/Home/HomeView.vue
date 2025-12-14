@@ -25,8 +25,9 @@ import { useRoute } from 'vue-router'
 import GlobalSearchBar from '@/components/search/GlobalSearchBar.vue'
 import SearchResultsPanel from '@/components/search/results/SearchResultsPanel.vue'
 
-import HomeHeroSection from '@/components/home/sections/HomeHeroSection.vue'
-import HomeCardsSection from '@/components/home/sections/HomeCardsSection.vue'
+import HomeCardsSection from '@/components/home/HomeCardsSection.vue'
+import HomeHeroSection from '@/components/home/HomeHeroSection.vue'
+
 
 const route = useRoute()
 const hasQuery = computed(() => !!route.query.q && !!route.query.type)
