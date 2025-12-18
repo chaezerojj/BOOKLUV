@@ -1,6 +1,6 @@
 <template>
   <div>
-    <p>알림 아이콘 (로그인 시)</p>
+    <p>회원정보 수정</p>
   </div>
 </template>
 
