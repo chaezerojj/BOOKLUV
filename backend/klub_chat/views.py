@@ -24,7 +24,7 @@ import redis.asyncio as redis
 from django.shortcuts import render
 from .models import Room
 
-REDIS_URL = "redis://localhost:6379/0"
+REDIS_URL = "redis://redis:6379/0"
 
 @sync_to_async
 def get_room(room_name):

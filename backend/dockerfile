@@ -17,5 +17,3 @@ COPY . .
 # 장고 기본 포트
 EXPOSE 8000
 
-# 기본 실행 명령
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

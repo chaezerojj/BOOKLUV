@@ -32,6 +32,7 @@ class Meeting(models.Model):
     started_at = models.DateTimeField(auto_now=True)
     finished_at = models.DateTimeField(auto_now=True)
     
+# 모임 - 퀴즈 정보
 class Quiz(models.Model):
     meeting_id = models.ForeignKey(Meeting, on_delete=models.CASCADE)
     question = models.CharField(max_length=50, default="절창의 남자 주인공 이름은?")
