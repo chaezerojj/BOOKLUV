@@ -5,5 +5,5 @@ app_name = "klub_talk"
 
 urlpatterns = [
     path('', views.aladin_api, name="books"),
-    path('meetings', views.meeting_list, name="meetings")
+    path('books/', views.book_list, name="search_book")
 ]
