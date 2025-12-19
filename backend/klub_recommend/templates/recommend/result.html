@@ -1,0 +1,30 @@
+<div class="container" style="max-width: 800px; margin: 40px auto; font-family: 'Pretendard', sans-serif;">
+    
+    <div style="background: #f8faff; border-radius: 16px; padding: 30px; border: 1px solid #e0e8f5; margin-bottom: 50px;">
+        <h3 style="color: #2a52be; margin-top: 0;">🎯 맞춤 성향 분석 리포트</h3>
+        <p style="line-height: 1.8; color: #444; font-size: 1.1em; word-break: keep-all;">
+            {{ ai_reason }}
+        </p>
+    </div>
+
+    <h2 style="margin-bottom: 30px;">📚 추천 도서 목록</h2>
+
+    {% for book in results %}
+    <div style="display: flex; gap: 25px; background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <img src="{{ book.cover_url }}" style="width: 130px; height: 190px; object-fit: cover; border-radius: 8px;">
+        
+        <div style="flex: 1;">
+            <h3 style="margin: 0 0 10px 0; color: #1a1a1a;">{{ book.title }}</h3>
+            <p style="font-size: 0.9em; color: #777; margin-bottom: 15px;">
+                {{ book.author_id.name }} | {{ book.publisher }} | {{ book.category_id.name }}
+            </p>
+            
+            <div style="background: #fdf6ec; padding: 12px 15px; border-radius: 8px; border-left: 4px solid #f39c12;">
+                <p style="margin: 0; font-size: 0.95em; color: #856404; line-height: 1.5;">
+                    <strong>추천 포인트:</strong> {{ book.temp_reason|default:"사용자님의 독서 성향에 부합하는 도서입니다." }}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>

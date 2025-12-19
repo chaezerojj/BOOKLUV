@@ -10,3 +10,6 @@ def index(request):
 def aladin_api(request):
     books = Book.objects.all()
     return render(request, 'talk/book_list.html', {'books': books})
+
+def meeting_list():
+    pass

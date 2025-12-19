@@ -1,7 +1,8 @@
 
-
+requests
 Django>=4.2,<4.3
 django-extensions==4.1
+python-dotenv
 aioredis==2.0.1
 asgiref==3.11.0
 async-timeout==5.0.1
