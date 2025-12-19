@@ -1,13 +1,13 @@
 import requests
 import json
 
-API_KEY = ""  # 여기에 TTBKey 입력
+API_KEY = "ttbzziruregi1043001"  # 여기에 TTBKey 입력
 URL = "http://www.aladin.co.kr/ttb/api/ItemList.aspx"
 
 params = {
     "ttbkey": API_KEY,
     "QueryType": "Bestseller",
-    "MaxResults": 50,
+    "MaxResults": 100,
     "Start": 1,
     "SearchTarget": "Book",
     "Output": "JS",
@@ -50,7 +50,7 @@ for item in items:
             cat_name = parts[0].strip()
 
     # 제외할 카테고리 필터링
-    if cat_name in ["어린이", "수험서/자격증", "만화", "외국어"]:
+    if cat_name in ["어린이", "수험서/자격증", "만화", "외국어", "유아"]:
         continue  # 제외 카테고리는 건너뜀
 
     # Category 추가
