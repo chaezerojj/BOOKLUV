@@ -3,6 +3,8 @@ import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "@/views/Home/HomeView.vue";
 
 import AiRecommendView from "@/views/AI/AiRecommendView.vue";
+import AiTestView from "@/views/AI/AiTestView.vue";
+import AiTestResultView from "@/views/AI/AiTestResultView.vue";
 
 import LoginView from "@/views/Auth/LoginView.vue";
 import SignUpView from "@/views/Auth/SignUpView.vue";
@@ -29,6 +31,16 @@ const router = createRouter({
       path: "/ai",
       name: "ai",
       component: AiRecommendView,
+    },
+    {
+      path: "/ai/test",
+      name: 'ai-test',
+      component: AiTestView,
+    },
+    {
+      path: "/ai/result",
+      name: 'ai-result',
+      component: AiTestResultView,
     },
     {
       path: "/signup",

@@ -24,6 +24,8 @@ import TheHeader from '@/components/navigation/TheHeader.vue'
 
 /* 페이지가 바뀌는 영역 */
 .app-main {
+  width: 1300px;
+  margin: 0 auto;
   min-height: calc(100vh - var(--header-height, 72px));
 }
 
