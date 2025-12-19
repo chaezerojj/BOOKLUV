@@ -58,13 +58,15 @@
 ## 프로젝트 폴더 구조
 ### Frontend - Vue.js
 ### Backend - Django
-``` backend/
+```
+backend/
 ├── klub_alarm/ # 알림 기능 관련 앱
 ├── klub_chat/ # 채팅 기능 관련 앱
 ├── klub_talk/ # 도서 관련 기능 앱
 ├── klub_user/ # 사용자 관리 기능 앱
 ├── klub_recommend/ # 추천 시스템 관련 앱
-└── manage.py # Django 관리 명령어 실행을 위한 파일 ```
+└── manage.py # Django 관리 명령어 실행을 위한 파일
+```
 
 
 ## ERD
