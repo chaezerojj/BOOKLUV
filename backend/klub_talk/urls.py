@@ -3,6 +3,5 @@ from . import views
 
 
 urlpatterns = [
-    path('', views.index),
-    path('test', views.aladin_api)
+    path('', views.aladin_api)
 ]
