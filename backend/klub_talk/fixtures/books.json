@@ -1,0 +1,470 @@
+[
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 377732124,
+            "title": "최소한의 삼국지 - 최태성의 삼국지 고전 특강",
+            "author_id": 1,
+            "publisher": "프런트페이지",
+            "category_id": 1,
+            "pub_date": "2025-11-18",
+            "cover_url": "https://image.aladin.co.kr/product/37773/21/cover200/k002033562_2.jpg",
+            "description": "인생의 필독서로 손꼽히는 ‘삼국지’를 단 한 권으로 정리한 삼국지 입문서. 동양 최고의 고전에 담긴 지혜와 통찰을 쉽고 재미있게 전하기 위해 누적 수강생 700만 명의 명강사 최태성이 나섰다. 방대한 분량과 수많은 등장인물 때문에 시작을 망설였던 사람들을 위해 꼭 알아야 할 핵심 사건과 인물만을 한 권에 담아, 누구나 단숨에 이해할 수 있는 《최소한의 삼국지》를 완성했다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 376339551,
+            "title": "해석에 반하여",
+            "author_id": 2,
+            "publisher": "윌북",
+            "category_id": 1,
+            "pub_date": "2025-12-25",
+            "cover_url": "https://image.aladin.co.kr/product/37633/95/cover200/k962032248_2.jpg",
+            "description": "손택의 대표작이자 첫 번째 에세이집인 『해석에 반하여』는 예술과 세계를 바라보는 완전히 새로운 관점을 제시한 현대 비평의 혁명적 고전이다. 출간 당시 서른세 살이던 수전 손택은 이 책으로 20세기 지성계를 뒤흔들며 등장해 ‘뉴욕 지성계의 아이콘’, ‘새로운 감수성의 사제’로 자리매김했다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 376765918,
+            "title": "괴테는 모든 것을 말했다 - 제172회 아쿠타가와상 수상작",
+            "author_id": 3,
+            "publisher": "리프",
+            "category_id": 2,
+            "pub_date": "2025-11-18",
+            "cover_url": "https://image.aladin.co.kr/product/37676/59/cover200/k212032349_2.jpg",
+            "description": "23세 대학원생 스즈키 유이의 첫 장편소설로, 제172회 아쿠타가와상을 수상했다. 일본 언론은 그를 움베르토 에코, 칼비노, 보르헤스에 견주며 “일본 문학의 샛별”이라 극찬했다. 스무 살 남짓한 청년이 쓴 이 작품에서는 고전문학의 풍부한 깊이와 신인만의 참신함이 동시에 느껴진다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 376341190,
+            "title": "독립언론, 함께 홀로서기",
+            "author_id": 4,
+            "publisher": "뉴스타파",
+            "category_id": 3,
+            "pub_date": "2025-12-12",
+            "cover_url": "https://image.aladin.co.kr/product/37634/11/cover200/k472034762_2.jpg",
+            "description": "네트워크 구성원들이 뉴스쿨을 통해 어떤 과정을 거쳤고, 어떤 시행착오를 겪어 매체를 창간했는지, 네트워크의 강점은 무엇이고, 어떤 준비가 필요한지를 경험을 토대로 상세히 기록한 책이다. 또 한국 언론 생태계에 비영리 독립언론이 왜 필요한지, 독립언론의 역할과 존재 이유도 자세히 설명한다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 361016676,
+            "title": "혼모노",
+            "author_id": 5,
+            "publisher": "창비",
+            "category_id": 2,
+            "pub_date": "2025-03-28",
+            "cover_url": "https://image.aladin.co.kr/product/36101/66/cover200/k152033655_2.jpg",
+            "description": "작품마다 치밀한 취재와 정교한 구성을 바탕으로 한 개성적인 캐릭터와 강렬하고도 서늘한 서사로 평단과 독자의 주목을 고루 받으며 새로운 세대의 리얼리즘을 열어가고 있다 평가받는 작가 성해나가 두번째 소설집 『혼모노』를 선보인다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 379665189,
+            "title": "할매",
+            "author_id": 6,
+            "publisher": "창비",
+            "category_id": 2,
+            "pub_date": "2025-12-12",
+            "cover_url": "https://image.aladin.co.kr/product/37966/51/cover200/893643988x_1.jpg",
+            "description": "한국문학의 가장 높은 산, 만해문학상·대산문학상·에밀 기메 아시아문학상 수상에 빛나는 황석영이 장편소설 『할매』로 돌아왔다. 인터내셔널 부커상 최종후보에 오르며 전세계를 열광시킨 『철도원 삼대』(창비 2020) 이후 5년 만의 신작이다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 371447935,
+            "title": "트렌드 코리아 2026 - 2026 대한민국 소비트렌드 전망",
+            "author_id": 7,
+            "publisher": "미래의창",
+            "category_id": 4,
+            "pub_date": "2025-09-25",
+            "cover_url": "https://image.aladin.co.kr/product/37144/79/cover200/k442031479_3.jpg",
+            "description": "세상은 작용과 반작용, 치열한 정반합(正反合)의 소용돌이가 거세게 휘몰아치고 있다. 방향을 잡기 어려울 정도로 속도가 빠르고 정신이 없다. 그렇다면 우리의 방향타는 어디에 있는가? 거센 풍랑과 어디서 불어올지 모르는 태풍을 피하기 위해 우리는 어디에 닻을 내리고 있어야 하는가?"
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 379721322,
+            "title": "박곰희 연금 부자 수업 (10만 부 기념 스페셜 에디션) - 4개의 통장으로 월 300만 원 만들기",
+            "author_id": 8,
+            "publisher": "인플루엔셜(주)",
+            "category_id": 4,
+            "pub_date": "2025-06-25",
+            "cover_url": "https://image.aladin.co.kr/product/37972/13/cover200/k492034866_1.jpg",
+            "description": "출간 직후 전 서점 베스트셀러에 등극한 《박곰희 연금 부자 수업》이 6개월 만에 누적 10만 부 돌파를 기념하며 스페셜 에디션을 선보인다. 노후 자산 설계에 대한 전 국민의 관심 속에 ‘연금 투자 입문서’로 자리 잡은 이 책은 ‘개인파산 신청자 86%가 50대 이상’ ‘성인 4명 중 1명 노후 준비 포기’라는 현실적 위기 속에서 누구나 적용할 수 있는 가장 현실적인 대안으로 주목받고 있다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 359025448,
+            "title": "위버멘쉬 - 누구의 시선도 아닌, 내 의지대로 살겠다는 선언",
+            "author_id": 9,
+            "publisher": "RISE(떠오름)",
+            "category_id": 1,
+            "pub_date": "2025-03-14",
+            "cover_url": "https://image.aladin.co.kr/product/35902/54/cover200/k962037084_2.jpg",
+            "description": "니체가 주장한 ‘초인(&#220;bermensch)’의 철학을 현대적으로 풀어낸 책이다. 위버멘쉬란 기존의 도덕과 사회적 관습을 그대로 따르는 대신, 자신의 의지로 새로운 가치를 창조하며 스스로의 삶을 개척하는 존재를 의미한다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 370152807,
+            "title": "말뚝들 - 제30회 한겨레문학상 수상작",
+            "author_id": 10,
+            "publisher": "한겨레출판",
+            "category_id": 2,
+            "pub_date": "2025-08-30",
+            "cover_url": "https://image.aladin.co.kr/product/37015/28/cover200/k262030327_1.jpg",
+            "description": "2025년 제30회 한겨레문학상 수상작. 서른 해를 기념해 5천만 원으로 상향한 고료로 공모한 한겨레문학상은 전년보다 110편이 증가한 총 응모작 349편 가운데 김홍 작가의 《말뚝들》을 올해의 수상작으로 선정했다. 8인의 심사위원은 “재미, 거침없는 문장, 계엄 사태를 놀라운 속도로 반영한 시의성, 설교 없는 서사” 등을 당선작 선정 사유로 꼽았다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 377106135,
+            "title": "기차의 꿈",
+            "author_id": 11,
+            "publisher": "다산책방",
+            "category_id": 2,
+            "pub_date": "2025-12-10",
+            "cover_url": "https://image.aladin.co.kr/product/37710/61/cover200/k402033169_3.jpg",
+            "description": "1917년 여름, 한순간의 산불로 사랑하는 모든 것을 잃어버린 한 사람을 조명한다. 그는 문명과 사회에서 떨어진 채 홀로 살아간다. 세상은 빠르게 변하지만, 그의 삶은 천천히 흐른다. 거기에는 특별한 사건도, 극적인 구원도 없다. 단 한 줄의 허세도 없이, 생의 숭고함을 그린 조용한 걸작이다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 371723601,
+            "title": "절창",
+            "author_id": 12,
+            "publisher": "문학동네",
+            "category_id": 2,
+            "pub_date": "2025-09-17",
+            "cover_url": "https://image.aladin.co.kr/product/37172/36/cover200/k662031678_3.jpg",
+            "description": "더이상의 수식이 필요치 않은 작가, 그 이름이 하나의 브랜드가 된 구병모의 장편소설 『절창』. 누구보다 드넓은 문학적 영토를 지닌 구병모의 그 어떤 작품을 좋아하는 독자라도 만족시킬 작품이라 할 만하다. 제목인 ‘절창切創’은 ‘베인 상처’라는 뜻으로, 상처에 접촉하는 것으로 상대의 마음을 읽는 한 여성의 이야기를 담고 있다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 25843736,
+            "title": "모순 - 개정판",
+            "author_id": 13,
+            "publisher": "쓰다",
+            "category_id": 2,
+            "pub_date": "2013-04-01",
+            "cover_url": "https://image.aladin.co.kr/product/2584/37/cover200/8998441012_3.jpg",
+            "description": "작가 양귀자가 1998년 펴낸 세 번째 장편소설로, 책이 나온 지 한 달 만에 무서운 속도로 베스트셀러 1위에 진입, 출판계를 놀라게 하고 그해 최고의 베스트셀러로 자리 잡으면서 ‘양귀자 소설의 힘’을 다시 한 번 유감없이 보여준 소설이다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 379265046,
+            "title": "평생 부자 머니 플랜 - 20대부터 노후까지 ‘돈 걱정 ZERO’ 로드맵",
+            "author_id": 14,
+            "publisher": "비즈니스북스",
+            "category_id": 4,
+            "pub_date": "2025-12-01",
+            "cover_url": "https://image.aladin.co.kr/product/37926/50/cover200/k202033036_1.jpg",
+            "description": "재무설계사인 저자 세 명이 주식, 부동산, 세무 등 각자의 전문 분야를 살려 함께 쓴 현실형 자산관리 가이드다. 이 책은 단순히 돈을 많이 버는 법이 아니라, 지금 가진 돈부터 어떻게 다루고, 지키고, 흐름을 만들어낼 것인가, 다시 말해 ‘돈의 구조’를 설계하는 데 집중한다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 378047231,
+            "title": "탁! 깨달음의 대화 - 탁! 한마디로 마음이 열린다",
+            "author_id": 15,
+            "publisher": "정토출판",
+            "category_id": 5,
+            "pub_date": "2025-11-20",
+            "cover_url": "https://image.aladin.co.kr/product/37804/72/cover200/k292033395_1.jpg",
+            "description": "어떤 질문이든 가장 짧고 정확한 답을 들려주는 법륜 스님의 즉문즉설. 그 수많은 대화 중에서도 마음의 핵심을 찌르는 문장들을 모아 선문답 형식으로 더 간결하게, 더 명료하게 재구성한 책이 나왔다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 372980631,
+            "title": "손자병법 - 이겨놓고 싸우는 인생의 지혜",
+            "author_id": 16,
+            "publisher": "현대지성",
+            "category_id": 1,
+            "pub_date": "2025-10-14",
+            "cover_url": "https://image.aladin.co.kr/product/37298/6/cover200/k292031545_1.jpg",
+            "description": "『손자병법』은 왜 2,500년 동안 고전의 자리를 지켜왔을까? 그 이유는 단순하다. 이 책이 말하는 승리의 본질은 단순히 “어떻게 이길 것인가”가 아니라 “어떻게 위태롭지 않게 살 것인가”이기 때문이다. 싸워서 이길 수도 있고 질 수도 있지만, 지더라도 위태로워지지 않는 상태, 다시 탈탈 털고 일어설 수 있는 수천 년의 검증을 견뎌낸 지혜를 전하기 때문이다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 377011437,
+            "title": "길을 찾는 책 도덕경",
+            "author_id": 17,
+            "publisher": "윌북",
+            "category_id": 1,
+            "pub_date": "2025-11-24",
+            "cover_url": "https://image.aladin.co.kr/product/37701/14/cover200/k242033063_1.jpg",
+            "description": "불안의 시대를 관통하는 2500년의 고전, 노자 ‘도덕경’을 세계적인 소설가 켄 리우가 새롭게 풀어낸다. 인생의 막다른 길에서 도덕경을 읽고 쓰며 다시 살아갈 힘을 얻었다고 고백하는 저자는, 누구나 노자 철학의 위안을 누릴 수 있도록 가장 편안하고 명료한 언어로 고전을 새로이 옮겼다. 노자 사상에 대한 깊은 이해와 감동적인 스토리텔링이 어우러져, 한 편의 문학작품 같은 깊은 울림을 남긴다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 377154795,
+            "title": "비밀 속의 비밀 1",
+            "author_id": 18,
+            "publisher": "문학수첩",
+            "category_id": 2,
+            "pub_date": "2025-11-27",
+            "cover_url": "https://image.aladin.co.kr/product/37715/47/cover200/k212033164_1.jpg",
+            "description": "‘지적 스릴러의 거장’이라 불리는 세계적 베스트셀러 작가 댄 브라운이 8년 만에 내놓는 최고의 복귀작. 과학, 종교, 예술 분야의 전문적인 주제를 대중적인 눈높이에서 박진감 넘치고 흥미로운 스토리로 접목시키는 댄 브라운만의 매력은 《비밀 속의 비밀》에서도 유감없이 발휘된다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 365665217,
+            "title": "안녕이라 그랬어",
+            "author_id": 19,
+            "publisher": "문학동네",
+            "category_id": 2,
+            "pub_date": "2025-06-20",
+            "cover_url": "https://image.aladin.co.kr/product/36566/52/cover200/k462039240_2.jpg",
+            "description": "소설가 김애란이 『바깥은 여름』 이후 팔 년 만에 새 소설집으로 돌아왔다. 2022 김승옥문학상 우수상을 수상한 「홈 파티」와 2022 오영수문학상 수상작인 「좋은 이웃」을 비롯해 총 일곱 편의 단편이 수록되어 있다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 307692409,
+            "title": "급류",
+            "author_id": 20,
+            "publisher": "민음사",
+            "category_id": 2,
+            "pub_date": "2022-12-22",
+            "cover_url": "https://image.aladin.co.kr/product/30769/24/cover200/8937473402_1.jpg",
+            "description": "2020년 《한경신춘문예》에 장편소설 &lt;GV 빌런 고태경&gt;이 당선되어 작품 활동을 시작한 소설가 정대건의 두 번째 장편소설 &lt;급류&gt;가 오늘의 젊은 작가 시리즈 40번으로 출간되었다. &lt;급류&gt;는 저수지와 계곡이 유명한 지방도시 ‘진평’을 배경으로, 열일곱 살 동갑내기인 ‘도담’과 ‘해솔’의 만남과 사랑을 그린 소설이다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 379451772,
+            "title": "변신·단식 광대 (먼슬리 클래식)",
+            "author_id": 21,
+            "publisher": "문학동네",
+            "category_id": 2,
+            "pub_date": "2025-12-10",
+            "cover_url": "https://image.aladin.co.kr/product/37945/17/cover200/k322033456_1.jpg",
+            "description": "‘먼슬리 클래식’ 12번째 권은 카프카의 『변신·단식 광대』로, 「선고」에서 「단식 광대」까지 작가의 처음과 마지막을 한 권에 담아 현대문학의 원천이 된 주제와 미학을 조망한다. 세계문학 100선·SAT 추천도서로 사랑받아온 고전의 가치를 새롭게 만날 수 있다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 379410204,
+            "title": "피크 코리아 - 도약과 추락의 갈림길에 선 한국을 리디자인할 국가 대개조 개념설계",
+            "author_id": 22,
+            "publisher": "현암사",
+            "category_id": 3,
+            "pub_date": "2025-12-15",
+            "cover_url": "https://image.aladin.co.kr/product/37941/2/cover200/8932324581_1.jpg",
+            "description": "2020년대 중후반 한국 국력 성장의 한계, 정체, 하락 현상을 국내 4개 영역(정치체제, 국가사회 구조, 경제산업, 국방군사) 중심으로 분석, 평가하고 이를 타개할 대책과 대안, 다시 말해 새로운 개념설계 방향성을 제시한다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 379545890,
+            "title": "디즈니 주토피아 2 소설",
+            "author_id": 23,
+            "publisher": "아르누보",
+            "category_id": 2,
+            "pub_date": "2026-01-07",
+            "cover_url": "https://image.aladin.co.kr/product/37954/58/cover200/k352033656_1.jpg",
+            "description": "〈주토피아〉는 다양한 동물이 공존하는 도시에서 편견과 차별을 극복하는 이야기를 그려내며, 전 세계 관객의 마음을 사로잡은 디즈니 애니메이션이다. 이번 〈주토피아2〉에서는 정식 파트너가 된 주디와 닉의 새로운 여정이 본격적으로 펼쳐진다. 《디즈니 주토피아 2 소설》은 영화의 서사를 더욱 밀도 있게 담아낸 작품이다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 40869703,
+            "title": "소년이 온다 - 2024 노벨문학상 수상작가",
+            "author_id": 24,
+            "publisher": "창비",
+            "category_id": 2,
+            "pub_date": "2014-05-19",
+            "cover_url": "https://image.aladin.co.kr/product/4086/97/cover200/8936434128_2.jpg",
+            "description": "섬세한 감수성과 치밀한 문장으로 인간 존재의 본질을 탐구해온 작가 한강의 여섯번째 장편소설. '상처의 구조에 대한 투시와 천착의 서사'를 통해 한강만이 풀어낼 수 있는 방식으로 1980년 5월을 새롭게 조명한다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 362755853,
+            "title": "첫 여름, 완주",
+            "author_id": 25,
+            "publisher": "무제",
+            "category_id": 2,
+            "pub_date": "2025-05-08",
+            "cover_url": "https://image.aladin.co.kr/product/36275/58/cover200/k692038832_3.jpg",
+            "description": "세심한 온정의 세계를 빚어내는 우리 시대의 작가 김금희의 장편소설. 돈을 갚지 않고 사라진 선배 고수미의 고향 완주 마을을 찾은 성우 손열매는 그곳에서 합동 장의사 겸 매점을 운영하는 수미 어머니의 집에 머물게 된다. 오갈 데 없는 처지에 목소리에까지 이상이 생긴 열매는 수미 어머니의 매점을 지키며 각양각색의 동네 사람들을 만난다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 377956629,
+            "title": "늙지 않는 뇌 - 최신 신경과학이 밝힌 평생 또렷한 정신으로 사는 방법",
+            "author_id": 26,
+            "publisher": "심심",
+            "category_id": 6,
+            "pub_date": "2025-11-19",
+            "cover_url": "https://image.aladin.co.kr/product/37795/66/cover200/k442033798_1.jpg",
+            "description": "치매는 기대수명 증가 시대에 가장 두려운 질병이지만 많은 이들이 작은 징조를 대수롭지 않게 넘긴다. 50년 넘게 신경퇴행질환을 연구한 세계적 권위자 데일 브레드슨은 뉴욕타임스·아마존 베스트셀러 《늙지 않는 뇌》에서 “나이가 들어 인지 능력이 떨어진다”는 통념을 최신 연구로 반박하며 알츠하이머병은 발병 전 예방이 가능하고 진행된 후에도 회복할 수 있다고 설명한다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 368083714,
+            "title": "자몽살구클럽",
+            "author_id": 27,
+            "publisher": "어센틱",
+            "category_id": 2,
+            "pub_date": "2025-07-25",
+            "cover_url": "https://image.aladin.co.kr/product/36808/37/cover200/k082030009_1.jpg",
+            "description": "싱어송라이터 한로로가 발매할 세 번째 EP 음악 앨범과 연결된 동명의 소설이다. 죽고 싶은 네명의 아이들이 비밀 클럽 '자몽살구클럽'에서 만나 서로를 살리기로 한다. 각자의 모진 삶을 견디기 힘들어 모인 '소하', '태수', '유민', '보현'의 에피소드는 생존이라는 목표 아래 처절하게 전개된다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 377156316,
+            "title": "비밀 속의 비밀 2",
+            "author_id": 18,
+            "publisher": "문학수첩",
+            "category_id": 2,
+            "pub_date": "2025-12-05",
+            "cover_url": "https://image.aladin.co.kr/product/37715/63/cover200/k562033164_1.jpg",
+            "description": "‘지적 스릴러의 거장’이라 불리는 세계적 베스트셀러 작가 댄 브라운이 8년 만에 내놓는 최고의 복귀작. 과학, 종교, 예술 분야의 전문적인 주제를 대중적인 눈높이에서 박진감 넘치고 흥미로운 스토리로 접목시키는 댄 브라운만의 매력은 《비밀 속의 비밀》에서도 유감없이 발휘된다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 379505925,
+            "title": "[단한권] CCM 일렉기타 예배반주법 : 트라이어드와 락킹주법",
+            "author_id": 28,
+            "publisher": "토닉(Tonic)",
+            "category_id": 7,
+            "pub_date": "2025-12-01",
+            "cover_url": "https://image.aladin.co.kr/product/37950/59/cover200/8998820242_1.jpg",
+            "description": "예배 반주에 필요한 트라이어드, 파워코드, 기본 보이싱부터 대표적인 발라드·리듬곡 반주 테크닉까지 실전에서 바로 사용할 수 있는 내용을 한 권에 담았다. 찬양팀 연주자라면 누구나 처음 겪는 고민들을 실제 예배자의 시선에서 하나씩 해결해 주는 책이다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 376860060,
+            "title": "나이 오십에 청소노동자 - 중년의 불안을 쓸고 닦는 법",
+            "author_id": 29,
+            "publisher": "시프",
+            "category_id": 5,
+            "pub_date": "2025-12-31",
+            "cover_url": "https://image.aladin.co.kr/product/37686/0/cover200/k712032440_2.jpg",
+            "description": "평생 전업주부와 파트타임 강사로 살아온 한 중년 여성이 아들의 독립과 함께 인생의 낯선 페이지를 열었다. 전직 인터넷서점 직원에서 학원 강사를 거쳐, 50대에 접어들어 병원 청소노동자가 되기까지의 유쾌하고 솔직한 여정을 담은 에세이 『나이 오십에 청소노동자』가 출간되었다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 350636272,
+            "title": "어른의 행복은 조용하다",
+            "author_id": 30,
+            "publisher": "페이지2(page2)",
+            "category_id": 5,
+            "pub_date": "2024-11-04",
+            "cover_url": "https://image.aladin.co.kr/product/35063/62/cover200/k532934196_2.jpg",
+            "description": "요란한 세상에서도 흔들리지 않고 내 삶을 사는 현명한 행복에 관하여. 행복을 찾는 방법이 아니라 불행에 대한 수비력을 길러주는 58가지 인생 이야기를 담은 책이다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 270454373,
+            "title": "프로젝트 헤일메리",
+            "author_id": 31,
+            "publisher": "알에이치코리아(RHK)",
+            "category_id": 2,
+            "pub_date": "2021-05-04",
+            "cover_url": "https://image.aladin.co.kr/product/27045/43/cover200/8925588730_2.jpg",
+            "description": "데뷔작 《마션》과 후속작 《아르테미스》가 연달아 대성공을 거두며 뉴욕 타임스와 아마존 베스트셀러에 이름을 올린 명실상부 최고의 SF 작가, 앤디 위어의 신작. 지구를 구하기 위해서 정작 스스로는 지구로 돌아오지 못할 헤일메리호에 오른 ‘좋은 사람’인 주인공의 이야기가 펼쳐진다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 374258051,
+            "title": "아무도 오지 않는 곳에서",
+            "author_id": 32,
+            "publisher": "허블",
+            "category_id": 2,
+            "pub_date": "2025-10-27",
+            "cover_url": "https://image.aladin.co.kr/product/37425/80/cover200/k242032998_2.jpg",
+            "description": "이제는 세계가 주목하는 작가로 자리매김한 천선란의 두 번째 연작소설. 천선란은 인간과 비인간, 상실과 생존, 구원과 돌봄의 윤리를 꾸준히 탐구해 왔다. 『아무도 오지 않는 곳에서』는 그 여정의 연장선에 있으며, 그가 오랫동안 사랑해 온 ‘좀비 아포칼립스’라는 무대 위에서 그 정서와 감각을 가장 극단까지 밀어붙인 작품이다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 371178617,
+            "title": "저소비 생활",
+            "author_id": 33,
+            "publisher": "알에이치코리아(RHK)",
+            "category_id": 8,
+            "pub_date": "2025-09-17",
+            "cover_url": "https://image.aladin.co.kr/product/37117/86/cover200/8925573229_1.jpg",
+            "description": "늘지 않는 월급과 줄지 않는 카드값 사이에서 결단이 필요한 모두에게 제안하는 ‘저소비 생활’. 《저소비 생활》의 저자가 월세 포함 70만 원으로 한 달을 보내며 얻은 것은 단지 ‘돈’이 아니었다. 경제적 불안에서 해방되는 것은 물론 돈을 쉽게 쓰며 잃었던 작은 기쁨과 취향을 되찾을 수 있었다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 368941145,
+            "title": "ETF 투자의 모든 것 - 배당수익과 주가수익 다 잡는 제2의 소득 파이프라인",
+            "author_id": 34,
+            "publisher": "매일경제신문사",
+            "category_id": 4,
+            "pub_date": "2025-08-11",
+            "cover_url": "https://image.aladin.co.kr/product/36894/11/cover200/k322030913_1.jpg",
+            "description": "ETF는 분산투자의 장점을 살린 안전하면서도 수익률 높은 재테크다. 증권전문기자의 정보와 경험을 바탕으로, 본격적인 시작점에 있는 사람들이 당장 맞닥뜨리는 ETF 투자의 A부터 Z까지 조목조목 담아낸 책이 나왔다."
+        }
+    },
+    {
+        "model": "klub_talk.book",
+        "fields": {
+            "aladin_id": 375356292,
+            "title": "기분이 태도가 되지 않게 (헬로키티 에디션) - 기분 따라 행동하다 손해 보는 당신을 위한 심리 수업",
+            "author_id": 35,
+            "publisher": "갤리온",
+            "category_id": 5,
+            "pub_date": "2025-11-12",
+            "cover_url": "https://image.aladin.co.kr/product/37535/62/cover200/8901297841_1.jpg",
+            "description": "30만 베스트셀러 『기분이 태도가 되지 않게』와 세상에서 가장 귀여운 ‘헬로키티’가 만났다. 전 세계 다양한 세대에게 꾸준히 사랑받은 헬로키티는 국내외 여러 유명 브랜드와 컬래버레이션을 진행했다. 이번에는 2020년 출간 이후 독자들에게 꾸준히 사랑받아온 『기분이 태도가 되지 않게』와 함께한다."
+        }
+    }
+]

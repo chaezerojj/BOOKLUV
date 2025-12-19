@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ room.name }} 채팅방</title>
+</head>
+<body>
+<h1>{{ room.name }} 채팅방</h1>
+<p>닉네임: {{ nickname }}</p>
+
+<!-- chat-log는 한 번만 존재해야 함 -->
+<div id="chat-log" style="border:1px solid #000; height:300px; overflow:auto;">
+    {% for msg in messages %}
+        <p><b>{{ msg.nickname }}:</b> {{ msg.message }}</p>
+    {% endfor %}
+</div>
+
+<input type="text" id="chat-message-input" placeholder="메시지 입력">
+<button id="chat-message-submit">전송</button>
+
+<script>
+const nickname = "{{ nickname }}";
+const roomName = "{{ room.slug }}";  
+
+const chatSocket = new WebSocket(
+    'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+);
+
+chatSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    const chatLog = document.getElementById('chat-log');
+    chatLog.innerHTML += '<p><b>' + data.nickname + ':</b> ' + data.message + '</p>';
+    chatLog.scrollTop = chatLog.scrollHeight; // 항상 최신 메시지 보이도록 스크롤
+};
+
+chatSocket.onclose = function(e) {
+    console.error('Chat socket closed unexpectedly');
+};
+
+document.getElementById('chat-message-submit').onclick = function(e) {
+    const messageInputDom = document.getElementById('chat-message-input');
+    const message = messageInputDom.value;
+    if (message.trim() !== '') {  // 빈 메시지 전송 방지
+        chatSocket.send(JSON.stringify({
+            'nickname': nickname,
+            'message': message
+        }));
+        messageInputDom.value = '';
+    }
+};
+</script>
+</body>
+</html>

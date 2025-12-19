@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>방 목록</title>
+</head>
+<body>
+<h1>채팅방 목록</h1>
+
+<form method="POST" action="">
+    {% csrf_token %}
+    <input type="text" name="room_name" placeholder="방 이름">
+    <button type="submit">방 만들기</button>
+</form>
+
+<ul>
+    {% for room in rooms %}
+<li>
+    {{ room.name }}
+    {% if room.slug %}
+    <a href="{% url 'chat:room_detail' room.slug %}?nickname=익명">참여</a>
+    {% else %}
+    (참여 불가)
+    {% endif %}
+</li>
+{% endfor %}
+
+</ul>
+</body>
+</html>
