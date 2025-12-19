@@ -5,13 +5,12 @@
     </button>
 
     <div class="menu" :class="{ open }" role="menu">
-      <RouterLink :to="{name: 'mypage-info'}" class="item">마이페이지</RouterLink>
-      <RouterLink :to="{name: 'mypage-mykluv'}" class="item">나의 모임</RouterLink>
+      <RouterLink :to="{name: 'mypage-info'}" class="item" @click="close">마이페이지</RouterLink>
+      <RouterLink :to="{name: 'mypage-mykluv'}" class="item" @click="close">나의 모임</RouterLink>
       <button class="item" type="button" @mousedown.prevent="onLogout">로그아웃</button>
     </div>
   </div>
 </template>
-
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
@@ -39,7 +38,6 @@ onMounted(() => document.addEventListener('mousedown', onClickOutside))
 onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
 
 </script>
-
 
 <style scoped>
 .user-menu {
@@ -91,7 +89,9 @@ button {
   height: 40px;
   font-size: 15px;
   color: #1f2328;
-  display: block;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   text-decoration: none;
   font-weight: 500;
   text-align: center;
