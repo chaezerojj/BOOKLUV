@@ -18,6 +18,7 @@ import BoardCreateView from "@/views/Board/BoardCreateView.vue";
 import BoardDetailView from "@/views/Board/BoardDetailView.vue";
 import BookDetailView from "@/views/Books/BookDetailView.vue";
 import Notification from "@/views/MyPage/Notification.vue";
+import BoardUpdateView from "@/views/Board/BoardUpdateView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -88,6 +89,11 @@ const router = createRouter({
       name: "board-detail",
       component: BoardDetailView,
       props: true,
+    },
+    {
+      path: "/board/:id",
+      name: "board-update",
+      component: BoardUpdateView,
     },
     {
       path: "/books/:id",
