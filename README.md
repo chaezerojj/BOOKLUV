@@ -58,16 +58,13 @@
 ## 프로젝트 폴더 구조
 ### Frontend - Vue.js
 ### Backend - Django
-
-### 각 앱 설명
-
-- **klub_alarm**: 알림 관련 기능을 처리하는 앱
-- **klub_chat**: 채팅 서비스 기능을 처리하는 앱
-- **klub_talk**: 도서 및 모임 관리 기능을 처리하는 앱
-- **klub_user**: 사용자 인증 및 관리 기능을 처리하는 앱
-- **klub_recommend**: 도서 추천 시스템 기능을 처리하는 앱
-
-이와 같은 파일 구조로 프로젝트를 구성하고 있습니다. 각 앱은 독립적인 기능을 담당하며, Django 프레임워크를 기반으로 구축되었습니다.
+``` backend/
+├── klub_alarm/ # 알림 기능 관련 앱
+├── klub_chat/ # 채팅 기능 관련 앱
+├── klub_talk/ # 도서 관련 기능 앱
+├── klub_user/ # 사용자 관리 기능 앱
+├── klub_recommend/ # 추천 시스템 관련 앱
+└── manage.py # Django 관리 명령어 실행을 위한 파일 ```
 
 
 ## ERD
