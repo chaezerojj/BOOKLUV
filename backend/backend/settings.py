@@ -31,6 +31,14 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "django_extensions",
+    'corsheaders',
+    'channels',
+    'daphne',
+    'klub_chat',
+    'klub_talk',
+    'klub_user',
+    'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,6 +46,18 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 ]
+
+ASGI_APPLICATION = "backend.asgi.application"
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379)],  # <- 'localhost'가 아닌 서비스 이름
+        },
+    },
+}
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
