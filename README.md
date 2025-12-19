@@ -56,6 +56,15 @@
 - docker compose 2.40.3
 
 ## 프로젝트 폴더 구조
+### Frontend - Vue.js
+### Backend - Django
+backend
+├─klub_alarm
+├─klub_chat
+├─klub_talk
+├─klub_user
+├─klub_recommend
+└─klub_recommend
 
 ## ERD
 
