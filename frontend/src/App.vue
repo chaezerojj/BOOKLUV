@@ -19,6 +19,7 @@ import TheHeader from '@/components/navigation/TheHeader.vue'
   margin: 0 auto;
   padding: 0px;
   font-family: Pretendard;
+  color:  #1f2328;
   background-image: linear-gradient(#FDF4DC, #ffffff);
 }
 
