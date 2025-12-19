@@ -42,16 +42,27 @@
 ### Tools
 <img src="https://img.shields.io/badge/notion-000000?style=for-the-badge&logo=notion&logoColor=white"> <img src="https://img.shields.io/badge/vscode-0078d4?style=for-the-badge&logo=visual-studio-code&logoColor=white"> <img src="https://img.shields.io/badge/figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white">
 
-개발환경
+## 개발환경
+### Frontend
+- vue.js 3.5.25
+- vite 7.2.7
+- pinia 3.0.4
+### Backend
+- django 4.2.27
+- WebSocket 25.5.0
+- Redis 5.0.1
+- Daphne 4.0.0
+- docker 29.1.3
+- docker compose 2.40.3
 
-프로젝트 폴더 구조
+## 프로젝트 폴더 구조
 
-ERD
+## ERD
 
-코드 컨벤션
+## 코드 컨벤션
 
-기능 상세 설명 및 화면
+## 기능 상세 설명 및 화면
 
-문서
+## 문서
 
-사용 API
+## 사용 API
