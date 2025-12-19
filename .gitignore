@@ -16,6 +16,8 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 media/
+*.pyc
+__pycache__/
 
 # Django static (collectstatic 결과물)
 staticfiles/
