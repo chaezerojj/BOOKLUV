@@ -4,7 +4,7 @@ from django.conf import settings
 
 KAKAO_REST_API_KEY = settings.KAKAO_REST_API_KEY
 KAKAO_REDIRECT_URI = settings.KAKAO_REDIRECT_URI
-KAKAO_CLIENT_SECRET = settings.KAKAO_CLIENT_KEY
+KAKAO_CLIENT_SECRET = settings.KAKAO_CLIENT_SECRET
 
 def login(request):
     context = {
@@ -16,10 +16,6 @@ def login(request):
 
 # 테스트용 키와 URI 직접 입력
 
-REST_API_KEY = KAKAO_REST_API_KEY
-REDIRECT_URI = KAKAO_REDIRECT_URI
-CLIENT_SECRET = KAKAO_CLIENT_SECRET
-
 def kakao_callback(request):
     code = request.GET.get("code")
     if not code:
@@ -28,10 +24,10 @@ def kakao_callback(request):
     url = "https://kauth.kakao.com/oauth/token"
     data = {
         "grant_type": "authorization_code",
-        "client_id": REST_API_KEY,
-        "redirect_uri": REDIRECT_URI,
+        "client_id": KAKAO_REST_API_KEY,
+        "redirect_uri": KAKAO_REDIRECT_URI,
         "code": code,
-        "client_secret": CLIENT_SECRET
+        "client_secret": KAKAO_CLIENT_SECRET
     }
     headers = {
         "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
