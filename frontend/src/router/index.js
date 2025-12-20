@@ -77,9 +77,22 @@ const router = createRouter({
     },
     {
       path: "/kluvtalk",
-      name: "kluvtalk",
+      name: "kluvtalk-list",
       component: KluvTalkListView,
     },
+    {
+      path: '/kluvtalk/:id',
+      name: 'kluvtalk-detail',
+      component: () => import('@/views/KluvTalk/KluvTalkDetailView.vue'),
+      props: true,
+    },
+    {
+      path: '/kluvtalk/:id/quiz',
+      name: 'kluvtalk-quiz',
+      component: () => import('@/views/KluvTalk/QuizView.vue'),
+      props: true,
+    },
+
     {
       path: "/board",
       name: "board",
@@ -101,12 +114,14 @@ const router = createRouter({
       name: "board-update",
       component: BoardUpdateView,
     },
+
     {
       path: "/books/:id",
       name: "book-detail",
-      component: BookDetailView,
+      component: () => import('@/views/Books/BookDetailView.vue'),
       props: true,
     },
+    
     {
       path: "/mypage",
       name: "mypage",
