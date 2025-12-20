@@ -1,60 +1,81 @@
 <template>
-  <div class="container">
-    <div>검색창 (전역)</div>
-    <!-- SearchTypeSelect 컴포넌트를 삽입하여 카테고리 선택 -->
-    <search-type-select @update-search-type="updateSearchType" />
-    
-    <div class="search-bar">
-      <input 
-        type="text" 
-        v-model="query" 
-        placeholder="검색어를 입력하세요..." 
-        @keyup.enter="searchBooks"
-      />
-      <button @click="searchBooks">검색</button>
-    </div>
-  </div>
+  <form class="bar" @submit.prevent="onSubmit">
+    <SearchTypeSelect v-model="type" />
+
+    <input
+      v-model="q"
+      class="input"
+      type="text"
+      :placeholder="placeholder"
+    />
+
+    <button class="btn" type="submit">검색</button>
+  </form>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useBookStore } from '@/stores/bookStore.js';
-import SearchTypeSelect from './SearchTypeSelect.vue';  // 드롭다운 컴포넌트 가져오기
+import { ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import SearchTypeSelect from './SearchTypeSelect.vue'
+
+const props = defineProps({
+  placeholder: { type: String, default: '검색어를 입력하세요...' },
+  // ✅ 결과페이지에서 재사용 시 쿼리 동기화용(선택)
+  syncWithRoute: { type: Boolean, default: false },
+})
 
 const router = useRouter()
+const route = useRoute()
 
-const query = ref('');  // 검색어
-const searchType = ref('book');  // 'book' 또는 'club' (책/모임)
+const type = ref('book')
+const q = ref('')
 
-const bookStore = useBookStore();
+// 결과 페이지에서 검색바도 같이 쓰고 싶으면 syncWithRoute=true로 사용
+watch(
+  () => route.query,
+  (query) => {
+    if (!props.syncWithRoute) return
+    type.value = (query.type === 'kluvtalk' ? 'kluvtalk' : 'book')
+    q.value = typeof query.q === 'string' ? query.q : ''
+  },
+  { immediate: true }
+)
 
-// 검색창에서 검색을 실행하는 함수
-const searchBooks = () => {
-  bookStore.setSearchQuery(query.value);  // 검색어 설정
-  bookStore.fetchBooks(searchType.value);  // 선택된 카테고리에 맞는 책 목록 갱신
-  router.push({ name: 'search-result' });
-};
-
-// 검색 카테고리 타입을 업데이트하는 함수 (책/모임)
-const updateSearchType = (type) => {
-  searchType.value = type;
-};
+const onSubmit = () => {
+  const keyword = q.value.trim()
+  router.push({
+    name: 'search',
+    query: {
+      type: type.value,
+      q: keyword,
+    },
+  })
+}
 </script>
 
 <style scoped>
-.container {
+.bar {
   display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-.container div {
-  border: 1px solid purple;
-}
-
-.search-bar {
-  display: flex;
+  gap: 10px;
   align-items: center;
+  width: 500px;
+}
+
+.input {
+  flex: 1;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.btn {
+  height: 40px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 8px;
+  background: #0d6efd;
+  color: white;
+  cursor: pointer;
 }
 </style>

@@ -1,28 +1,45 @@
 <template>
-  <div>
-    <h1>검색 결과</h1>
-    <div v-if="searchType === 'book'">
-      <BookResultsList :books="books" />
-    </div>
-    <div v-if="searchType === 'club'">
-      <KluvTalkResultsList :clubs="clubs" />
-    </div>
+  <div class="container">
+    <h1 class="headline">Search</h1>
+
+    <!-- 결과 페이지에서도 검색바를 보여주고 싶다면 -->
+    <GlobalSearchBar :syncWithRoute="true" />
+
+    <SearchResultsPanel :type="type" :q="q" />
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useBookStore } from '@/stores/bookStore.js';
-import BookResultsList from '@/components/search/results/BookResultsList.vue';
-import KluvTalkResultsList from '@/components/search/results/KluvTalkResultsList.vue';
+import { computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { useSearchStore } from '@/stores/search'
 
-const bookStore = useBookStore();
+import GlobalSearchBar from '@/components/search/GlobalSearchBar.vue'
+import SearchResultsPanel from '@/components/search/results/SearchResultsPanel.vue'
 
-const books = computed(() => bookStore.books);
-const clubs = computed(() => bookStore.clubs);
-const searchType = computed(() => bookStore.searchType); // searchType을 store에서 가져옴
+const route = useRoute()
+const store = useSearchStore()
+
+const type = computed(() => (route.query.type === 'kluvtalk' ? 'kluvtalk' : 'book'))
+const q = computed(() => (typeof route.query.q === 'string' ? route.query.q : ''))
+
+watch(
+  [type, q],
+  async ([t, keyword]) => {
+    await store.search({ type: t, q: keyword })
+  },
+  { immediate: true }
+)
+
 </script>
 
 <style scoped>
-  
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 30px 16px;
+}
+.headline {
+  margin-bottom: 14px;
+}
 </style>

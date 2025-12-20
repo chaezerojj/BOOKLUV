@@ -5,6 +5,8 @@ from django.shortcuts import render, redirect
 from .models import Meeting, Book
 from django.db.models import Q
 
+from .serializers import BookSerializer
+
 def index(request):
     return render(request, 'talk/index.html')
 
@@ -29,3 +31,19 @@ def book_list(request):
         )
 
     return render(request, 'talk/book_list.html', {'books': books, 'type_filter': type_filter})
+
+@api_view(['GET'])
+def book_search_api(request):
+    q = (request.GET.get('q') or '').strip()
+    books = Book.objects.all()
+    
+    if q:
+        books = books.filter(
+            Q(title__icontains=q) |
+            Q(author_id__name__icontains=q) |
+            Q(category_id__name__icontains=q) |
+            Q(description__icontains=q)
+        )
+    
+    serializer = BookSerializer(books, many=True)
+    return Response(serializer.data)

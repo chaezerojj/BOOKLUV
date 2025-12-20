@@ -1,30 +1,29 @@
 <template>
-  <div class="search-type-select">
-    <select @change="handleSelectChange">
-      <option value="book">책</option>
-      <option value="club">모임</option>
-    </select>
-  </div>
+  <select class="select" :value="modelValue" @change="onChange">
+    <option value="book">책</option>
+    <option value="kluvtalk">모임</option>
+  </select>
 </template>
 
 <script setup>
-import { defineEmits } from 'vue';
+const props = defineProps({
+  modelValue: { type: String, default: 'book' },
+})
 
-const emit = defineEmits();
+const emit = defineEmits(['update:modelValue'])
 
-// 드롭다운에서 선택된 값 변경 시 부모 컴포넌트로 이벤트 발생
-const handleSelectChange = (event) => {
-  emit('update-search-type', event.target.value);
-};
+const onChange = (e) => {
+  emit('update:modelValue', e.target.value)
+}
 </script>
 
 <style scoped>
-.search-type-select {
-  margin: 10px;
-}
-
-select {
-  padding: 5px;
-  font-size: 16px;
+.select {
+  width: 100px;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
 }
 </style>
