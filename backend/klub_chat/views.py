@@ -43,3 +43,5 @@ async def room_detail(request, room_name):
         "nickname": nickname,
         "messages": messages
     })
+    
+    
