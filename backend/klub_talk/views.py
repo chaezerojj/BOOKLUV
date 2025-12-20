@@ -1,12 +1,9 @@
-from django.db import models
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from django.shortcuts import render, redirect
+
+from django.shortcuts import render
 from .models import Meeting, Book, Participate, Quiz
 from klub_user.models import User
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404
-from .forms import QuizForm
+from .models import Meeting, Book
 
 def index(request):
     return render(request, 'talk/index.html')
@@ -57,4 +54,3 @@ def quiz_view(request, meeting_id):
         })
 
     return render(request, "talk/quiz.html", {"quiz": quiz, "meeting": meeting})
-

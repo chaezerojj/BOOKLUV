@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>실시간 알람 테스트</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body style="text-align: center; padding-top: 50px; font-family: sans-serif;">
+
+    <h2>실시간 알람 확인용 프로토타입</h2>
+    
+    <div id="alarm-container" style="position: relative; display: inline-block; margin-bottom: 30px;">
+        <i id="chat-icon" class="fa-regular fa-bell" style="font-size: 50px; color: #ccc; transition: 0.3s;"></i>
+        <span id="alarm-dot" style="
+            display: none;
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 15px;
+            height: 15px;
+            background-color: red;
+            border-radius: 50%;
+            border: 2px solid white;
+        "></span>
+    </div>
+
+    <p id="status-text">상태: 알람 대기 중...</p>
+
+    <hr style="width: 50%; margin: 30px auto;">
+
+    <button onclick="sendSignal()" style="padding: 10px 20px; cursor: pointer; background: #2a52be; color: white; border: none; border-radius: 5px;">
+        지금 바로 알람 쏘기 (5분 전 상황 가정)
+    </button>
+
+    <script>
+        // 🔹 웹소켓 연결
+        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const socket = new WebSocket(protocol + window.location.host + '/ws/notifications/');
+
+        socket.onopen = () => console.log("웹소켓 연결 성공!");
+
+        socket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            console.log("받은 데이터:", data);
+
+            if (data.action === "ACTIVATE_5MIN_ALARM") {
+                // 1. 빨간 점 보이기
+                document.getElementById('alarm-dot').style.display = 'block';
+                // 2. 아이콘 활성화 스타일
+                const icon = document.getElementById('chat-icon');
+                icon.classList.replace('fa-regular', 'fa-solid');
+                icon.style.color = '#2a52be';
+                // 3. 텍스트 업데이트
+                document.getElementById('status-text').innerText = "상태: 🔔 알람이 도착했습니다!";
+            }
+        };
+
+        // 🔹 버튼 클릭 시 장고 View 호출 (알람 트리거)
+        function sendSignal() {
+            fetch('/klub_alram/trigger/')
+                .then(response => response.json())
+                .then(data => console.log("트리거 신호 보냄:", data));
+        }
+
+        // 아이콘 클릭 시 초기화
+        document.getElementById('alarm-container').onclick = function() {
+            document.getElementById('alarm-dot').style.display = 'none';
+            const icon = document.getElementById('chat-icon');
+            icon.classList.replace('fa-solid', 'fa-regular');
+            icon.style.color = '#ccc';
+            document.getElementById('status-text').innerText = "상태: 알람 읽음 (대기 중)";
+        };
+    </script>
+</body>
+</html>

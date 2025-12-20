@@ -9,8 +9,10 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,10 +27,14 @@ SECRET_KEY = 'django-insecure-v%7qnd++txo72rj^2akf2*)o0(2t7_whrcgcpli6hfp1$g#fvh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
+load_dotenv()
 
 # Application definition
+
+GMS_API_KEY = os.getenv("GMS_KEY")
+GMS_OPENAI_URL = "https://gms.ssafy.io/gmsapi/api.openai.com/v1/chat/completions"
 
 INSTALLED_APPS = [
     "django_extensions",
@@ -38,6 +44,8 @@ INSTALLED_APPS = [
     'klub_chat',
     'klub_talk',
     'klub_user',
+    'klub_alarm',
+    "klub_recommend",
     'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -122,9 +130,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ko-kr'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 

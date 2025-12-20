@@ -1,12 +1,42 @@
+# === Python Virtual Env / 환경 ===
 .Python
-[Bb]in
-[Ii]nclude
-[Ll]ib
-[Ll]ib64
-[Ll]ocal
-[Ss]cripts
-pyvenv.cfg
-.venv
+.venv/
+venv/
+env/
 .env
-venv
 pip-selfcheck.json
+pyvenv.cfg
+
+# === Django ===
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+*.pyc
+__pycache__/
+
+# Django static (collectstatic 결과물)
+staticfiles/
+
+# === Python build / packaging ===
+.eggs/
+*.egg-info/
+__pypackages__/
+
+# === Django / Tools ===
+.ipynb_checkpoints/
+.pytest_cache/
+.hypothesis/
+
+# === Node / Vue ===
+node_modules/
+dist/
+npm-debug.log
+yarn-error.log
+
+# === Editor ===
+.vscode/

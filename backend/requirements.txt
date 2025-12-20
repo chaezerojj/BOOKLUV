@@ -1,6 +1,8 @@
-# Django 4.2 이상으로 업데이트하여 django-extensions 4.1과 호환
+
+requests
 Django>=4.2,<4.3
 django-extensions==4.1
+python-dotenv
 aioredis==2.0.1
 asgiref==3.11.0
 async-timeout==5.0.1
