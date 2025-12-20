@@ -13,5 +13,6 @@ urlpatterns = [
     path('room/<int:pk>/', views.room_detail, name='room_detail'),
     # 퀴즈 - 모임 참여 신청 페이지
     path('quiz/<int:meeting_id>/', views.quiz_view, name='quiz'),
-    
+    path('books/', views.book_search_api, name="book_search_api"),
+    path('books/page/', views.book_list, name='search_book_page'),
 ]

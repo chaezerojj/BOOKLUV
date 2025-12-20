@@ -3,245 +3,231 @@
         "model": "klub_talk.author",
         "pk": 1,
         "fields": {
-            "name": "최태성"
+            "name": "황석영"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 2,
         "fields": {
-            "name": "수전 손택"
+            "name": "성해나"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 3,
         "fields": {
-            "name": "스즈키 유이"
+            "name": "최태성"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 4,
         "fields": {
-            "name": "한국독립언론네트워크"
+            "name": "바오수"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 5,
         "fields": {
-            "name": "성해나"
+            "name": "스즈키 유이"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 6,
         "fields": {
-            "name": "황석영"
+            "name": "이광수"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 7,
         "fields": {
-            "name": "김난도, 전미영, 최지혜, 권정윤, 한다혜, 이혜원, 이수진, 서유현, 전다현, 이준영, 이향은, 김나은"
+            "name": "박곰희"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 8,
         "fields": {
-            "name": "박곰희"
+            "name": "구병모"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 9,
         "fields": {
-            "name": "프리드리히 니체"
+            "name": "신박진영, 신그리나, 조안창혜, 이하영, 조정민, 황금명륜, 니토 유메노, 지음, 나오, 마쓰모토, 사토미"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 10,
         "fields": {
-            "name": "김홍"
+            "name": "연산호"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 11,
         "fields": {
-            "name": "데니스 존슨"
+            "name": "김애란"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 12,
         "fields": {
-            "name": "구병모"
+            "name": "김난도, 전미영, 최지혜, 권정윤, 한다혜, 이혜원, 이수진, 서유현, 전다현, 이준영, 이향은, 김나은"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 13,
         "fields": {
-            "name": "양귀자"
+            "name": "데일 브레드슨"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 14,
         "fields": {
-            "name": "조기윤, 장경훈, 풍백"
+            "name": "양귀자"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 15,
         "fields": {
-            "name": "법륜"
+            "name": "프리드리히 니체"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 16,
         "fields": {
-            "name": "손무"
+            "name": "김선형"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 17,
         "fields": {
-            "name": "켄 리우, 노자"
+            "name": "제인 오스틴"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 18,
         "fields": {
-            "name": "댄 브라운"
+            "name": "박민경, 서장원, 하가람"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 19,
         "fields": {
-            "name": "김애란"
+            "name": "데니스 존슨"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 20,
         "fields": {
-            "name": "정대건"
+            "name": "솔체"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 21,
         "fields": {
-            "name": "프란츠 카프카"
+            "name": "수전 손택"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 22,
         "fields": {
-            "name": "백우열"
+            "name": "법륜"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 23,
         "fields": {
-            "name": "스티브 벨링"
+            "name": "클레어 키건"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 24,
         "fields": {
-            "name": "한강"
+            "name": "정대건"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 25,
         "fields": {
-            "name": "김금희"
+            "name": "한컷"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 26,
         "fields": {
-            "name": "데일 브레드슨"
+            "name": "한로로"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 27,
         "fields": {
-            "name": "한로로"
+            "name": "박민규"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 28,
         "fields": {
-            "name": "박건태"
+            "name": "태수"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 29,
         "fields": {
-            "name": "송은주"
+            "name": "손무"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 30,
         "fields": {
-            "name": "태수"
+            "name": "김금희"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 31,
         "fields": {
-            "name": "앤디 위어"
+            "name": "댄 브라운"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 32,
         "fields": {
-            "name": "천선란"
+            "name": "한병철"
         }
     },
     {
         "model": "klub_talk.author",
         "pk": 33,
         "fields": {
-            "name": "가제노타미"
-        }
-    },
-    {
-        "model": "klub_talk.author",
-        "pk": 34,
-        "fields": {
-            "name": "문일호"
-        }
-    },
-    {
-        "model": "klub_talk.author",
-        "pk": 35,
-        "fields": {
-            "name": "레몬심리"
+            "name": "한강"
         }
     }
 ]

@@ -1,12 +1,14 @@
 <template>
   <div>
-    <p>알림 아이콘 (로그인 시)</p>
+    <h2>알림페이지</h2>
   </div>
 </template>
+
 
 <script setup>
 
 </script>
+
 
 <style scoped>
 
