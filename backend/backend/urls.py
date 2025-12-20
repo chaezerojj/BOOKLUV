@@ -12,4 +12,5 @@ urlpatterns = [
     path("api/recommend/", include("klub_recommend.urls")),
     # 웹소켓 실시간 알림 기능
     path("api/alarm/", include("klub_alarm.urls")),
+    path("api/auth/", include('klub_user.urls'))
 ]
