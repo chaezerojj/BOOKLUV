@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>방 목록</title>
+    <title>채팅방 목록</title>
 </head>
 <body>
 <h1>채팅방 목록</h1>
@@ -13,17 +13,22 @@
 </form>
 
 <ul>
-    {% for room in rooms %}
+{% for room in rooms %}
 <li>
-    {{ room.name }}
+    <strong>{{ room.name }}</strong>
     {% if room.slug %}
-    <a href="{% url 'chat:room-detail' room.slug %}?nickname=익명">참여</a>
+        <a href="{% url 'chat:room-detail' room.slug %}?nickname=익명">참여</a>
+        <br>
+        시작: {{ room.meeting.started_at|date:"Y-m-d H:i" }}<br>
+        종료: {{ room.meeting.finished_at|date:"Y-m-d H:i" }}
     {% else %}
-    (참여 불가)
+        (참여 불가)
+        <br>
+        시작: {{ room.meeting.started_at|date:"Y-m-d H:i" }}<br>
+        종료: {{ room.meeting.finished_at|date:"Y-m-d H:i" }}
     {% endif %}
 </li>
 {% endfor %}
-
 </ul>
 </body>
 </html>

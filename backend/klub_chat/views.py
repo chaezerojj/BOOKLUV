@@ -20,18 +20,34 @@ def room_list(request):
             Room.objects.create(name=room_name, slug=slug)
         return redirect('chat:room-list')
 
-    rooms = Room.objects.all()
+    rooms = Room.objects.select_related('meeting').all()
     return render(request, 'chat/room_list.html', {'rooms': rooms})
 
 @sync_to_async
 def get_room_or_404(slug):
     return get_object_or_404(Room, slug=slug)
 
+from django.utils import timezone
+
 async def room_detail(request, room_name):
     room = await get_room_or_404(room_name)
     nickname = request.GET.get("nickname", "익명")
 
-    # Redis 연결
+    # ORM은 sync라서 sync_to_async 필요
+    from asgiref.sync import sync_to_async
+    meeting = await sync_to_async(lambda: getattr(room, 'meeting', None))()
+    
+    now = timezone.now()
+    can_chat = False
+    if meeting and now >= meeting.started_at:
+        can_chat = True
+
+    # Redis 메시지 가져오기
+    import redis.asyncio as redis
+    import json
+    REDIS_HOST = "redis"
+    REDIS_PORT = 6379
+    REDIS_DB = 0
     r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
     messages_raw = await r.lrange(f'chat_{room.slug}', 0, -1)
     messages = [json.loads(m.decode('utf-8')) for m in messages_raw]
@@ -39,5 +55,6 @@ async def room_detail(request, room_name):
     return await sync_to_async(render)(request, "chat/room_detail.html", {
         "room": room,
         "nickname": nickname,
-        "messages": messages
+        "messages": messages,
+        "can_chat": can_chat
     })

@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{{ room.name }} 채팅방</title>
+    <title>{{ room.name }} 대기실</title>
 </head>
 <body>
-<h1>{{ room.name }} 채팅방</h1>
+<h1>{{ room.name }} 대기실</h1>
 <p>닉네임: {{ nickname }}</p>
+<p>회의가 아직 시작되지 않았습니다. 잠시 기다려주세요.</p>
 
 <div id="chat-log" style="border:1px solid #000; height:300px; overflow:auto;">
     {% for msg in messages %}
@@ -13,43 +14,36 @@
     {% endfor %}
 </div>
 
-<input type="text" id="chat-message-input" placeholder="메시지 입력">
-<button id="chat-message-submit">전송</button>
+<input type="text" id="chat-message-input" placeholder="메시지 입력" {% if not can_chat %}disabled{% endif %}>
+<button id="chat-message-submit" {% if not can_chat %}disabled{% endif %}>전송</button>
+
 
 <script>
-const nickname = "{{ nickname }}";
-const roomName = "{{ room.slug }}";
-const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-const chatSocket = new WebSocket(protocol + window.location.host + '/ws/chat/' + roomName + '/');
+    // WebSocket 연결은 여전히 해도 됨, 단 메시지 보내지 못함
+    const nickname = "{{ nickname }}";
+    const roomName = "{{ room.slug }}";
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const chatSocket = new WebSocket(protocol + window.location.host + '/ws/chat/' + roomName + '/');
 
-chatSocket.onmessage = function(e) {
-    const data = JSON.parse(e.data);
-    const chatLog = document.getElementById('chat-log');
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const chatLog = document.getElementById('chat-log');
 
-    // 안전하게 메시지 추가
-    const p = document.createElement('p');
-    const b = document.createElement('b');
-    b.textContent = data.nickname + ': ';
-    p.appendChild(b);
-    p.appendChild(document.createTextNode(data.message));
-    chatLog.appendChild(p);
+        const p = document.createElement('p');
+        const b = document.createElement('b');
+        b.textContent = data.nickname + ': ';
+        p.appendChild(b);
+        p.appendChild(document.createTextNode(data.message));
+        chatLog.appendChild(p);
 
-    // 자동 스크롤
-    chatLog.scrollTop = chatLog.scrollHeight;
-};
+        chatLog.scrollTop = chatLog.scrollHeight;
+    };
 
-chatSocket.onclose = function(e) {
-    console.error('Chat socket closed unexpectedly');
-};
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
 
-document.getElementById('chat-message-submit').onclick = function() {
-    const messageInput = document.getElementById('chat-message-input');
-    const message = messageInput.value.trim();
-    if (message) {
-        chatSocket.send(JSON.stringify({ nickname, message }));
-        messageInput.value = '';
-    }
-};
+    // 입력 막혀 있으므로 전송 기능 제거
 </script>
 </body>
 </html>
