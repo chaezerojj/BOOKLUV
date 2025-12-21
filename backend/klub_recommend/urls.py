@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 
-app_name = "klub_recommend"
+app_name = "recommend"
 
 urlpatterns = [
     # 퀴즈 조회 및 참여

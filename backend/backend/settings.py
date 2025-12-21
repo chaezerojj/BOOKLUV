@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'klub_chat',
     'klub_talk',
     'klub_user',
-    'klub_alarm',
     "klub_recommend",
     'rest_framework',
     'django.contrib.admin',
@@ -65,7 +64,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("redis", 6379)],  # <- 'localhost'가 아닌 서비스 이름
+            "hosts": [("redis", 6379)],  # 로컬 환경에서는 이렇게 설정해야 합니다.
         },
     },
 }
@@ -154,3 +153,33 @@ CORS_ALLOW_ALL_ORIGINS = True
 KAKAO_REST_API_KEY = '4bf9c626d2f496b06164d72b26db4b81'
 KAKAO_REDIRECT_URI = 'http://localhost:8000/api/auth/callback'
 KAKAO_CLIENT_SECRET = 'Py28EL9FRcSyE0PYtkz0TpKTCAjmdUwZ'
+
+# settings.py
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',  # 콘솔에 로그 출력 (필요 시 변경)
+            'class': 'logging.StreamHandler',
+        },
+        'file': {
+            'level': 'DEBUG',  # 로그 레벨 (DEBUG 이상 모두 기록)
+            'class': 'logging.FileHandler',
+            'filename': 'chat_log.txt',  # 로그 파일 경로 (여기서는 프로젝트 루트에 chat_log.txt)
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],  # 콘솔과 파일 두 곳에 로그 기록
+            'level': 'DEBUG',  # DEBUG 레벨로 모든 로그 기록
+            'propagate': True,
+        },
+        'channels': {
+            'handlers': ['file'],  # channels 로그도 콘솔과 파일에 기록
+            'level': 'DEBUG',  # DEBUG 레벨로 기록
+            'propagate': True,
+        },
+    },
+}

@@ -25,9 +25,7 @@ urlpatterns = [
     path("api/v1/chat/", include("klub_chat.urls")),
     # 3. AI API 추천 정보
     path("api/v1/recommendations/", include("klub_recommend.urls")),
-    # 4. 실시간 알람 정보
-    path("api/v1/notifications/", include("klub_alarm.urls")),
-    # 5. 사용자 로그인/로그아웃 정보
+    # 4. 사용자 로그인/로그아웃 정보
     path("api/v1/auth/", include("klub_user.urls")),
 
     # ===== Swagger =====

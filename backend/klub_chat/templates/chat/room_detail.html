@@ -1,34 +1,54 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ room.name }} 대기실</title>
 </head>
 <body>
-<h1>{{ room.name }} 대기실</h1>
-<p>닉네임: {{ nickname }}</p>
-<p>회의가 아직 시작되지 않았습니다. 잠시 기다려주세요.</p>
+    <h1>{{ room.name }} 대기실</h1>
+    <p>닉네임: {{ nickname }}</p>
 
-<div id="chat-log" style="border:1px solid #000; height:300px; overflow:auto;">
-    {% for msg in messages %}
-        <p><b>{{ msg.nickname }}:</b> {{ msg.message }}</p>
-    {% endfor %}
-</div>
+    {% if can_chat %}
+        <p>회의가 시작되었습니다! 이제 채팅을 할 수 있습니다.</p>
+    {% else %}
+        <p>회의가 아직 시작되지 않았습니다. 잠시 기다려주세요.</p>
+    {% endif %}
 
-<input type="text" id="chat-message-input" placeholder="메시지 입력" {% if not can_chat %}disabled{% endif %}>
-<button id="chat-message-submit" {% if not can_chat %}disabled{% endif %}>전송</button>
+    <div id="chat-log" style="border:1px solid #000; height:300px; overflow:auto;">
+        {% for msg in messages %}
+            <p><b>{{ msg.nickname }}:</b> {{ msg.message }}</p>
+        {% endfor %}
+    </div>
 
+    <input type="text" id="chat-message-input" placeholder="메시지 입력" {% if not can_chat %}disabled{% endif %}>
+    <button id="chat-message-submit" {% if not can_chat %}disabled{% endif %}>전송</button>
 
-<script>
-    // WebSocket 연결은 여전히 해도 됨, 단 메시지 보내지 못함
-    const nickname = "{{ nickname }}";
-    const roomName = "{{ room.slug }}";
-    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    const chatSocket = new WebSocket(protocol + window.location.host + '/ws/chat/' + roomName + '/');
+    <script>
+    const nickname = "{{ nickname }}";  // Django에서 전달된 nickname
+    const roomName = "{{ room.slug }}";  // Django에서 전달된 room slug
 
-    chatSocket.onmessage = function(e) {
-        const data = JSON.parse(e.data);
+    // WebSocket 연결 상태
+    let chatSocket;
+
+    function createWebSocketConnection() {
+        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        chatSocket = new WebSocket(protocol + window.location.host + '/ws/chat/' + roomName + '/');
+
+        // WebSocket 연결 시
+        chatSocket.onopen = function(e) {
+            console.log("WebSocket connection established");
+            document.getElementById('chat-message-submit').disabled = false;  // 전송 버튼 활성화
+        };
+
+        // WebSocket 메시지 수신 시
+        chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);  // 서버로부터 받은 메시지 파싱
+        console.log("Received message:", data);  // 수신된 메시지 콘솔에 출력
+
         const chatLog = document.getElementById('chat-log');
-
+        
+        // 메시지 출력 요소 만들기
         const p = document.createElement('p');
         const b = document.createElement('b');
         b.textContent = data.nickname + ': ';
@@ -36,14 +56,50 @@
         p.appendChild(document.createTextNode(data.message));
         chatLog.appendChild(p);
 
+        // 채팅 로그 맨 아래로 스크롤
         chatLog.scrollTop = chatLog.scrollHeight;
     };
 
-    chatSocket.onclose = function(e) {
-        console.error('Chat socket closed unexpectedly');
+    // WebSocket 에러 처리
+    chatSocket.onerror = function(e) {
+        console.error("WebSocket error:", e);
     };
 
-    // 입력 막혀 있으므로 전송 기능 제거
-</script>
+    // WebSocket 연결 종료 시
+    chatSocket.onclose = function(e) {
+        console.log("WebSocket closed", e);
+        if (e.code === 1011) {
+            console.error("WebSocket closed with code 1011. This could be due to the server or network issue.");
+        }
+        // 연결이 끊어졌을 때 재연결 시도 (간격을 5초로 두었지만 더 긴 시간 간격을 설정해볼 수 있음)
+        setTimeout(createWebSocketConnection, 5000);  // 5초 후 재연결 시도
+    };
+    }
+
+    // 페이지 로드 시 WebSocket 연결 시작
+    createWebSocketConnection();
+
+    // 메시지 전송 버튼 클릭 이벤트 처리
+    document.getElementById('chat-message-submit').onclick = function() {
+        const messageInputDom = document.getElementById('chat-message-input');
+        const message = messageInputDom.value.trim();  // 입력된 메시지
+
+        if (message && chatSocket.readyState === WebSocket.OPEN) {
+            // WebSocket을 통해 메시지 전송
+            chatSocket.send(JSON.stringify({
+                'nickname': nickname,
+                'message': message
+            }));
+            messageInputDom.value = '';  // 입력 필드 비우기
+        }
+    };
+
+    // Enter 키로 메시지 전송 가능하도록 하기
+    document.getElementById('chat-message-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('chat-message-submit').click();
+        }
+    });
+    </script>
 </body>
 </html>
