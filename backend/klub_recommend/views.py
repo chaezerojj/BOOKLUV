@@ -1,6 +1,6 @@
 import json
 from django.shortcuts import render
-from django.contrib.auth import get_user_model
+from rest_framework.decorators import api_view
 from klub_talk.models import Book, Category
 from klub_user.models import User
 from .models import ReadingPreference, RecommendationResult
@@ -13,9 +13,11 @@ GENRE_MAP = {
     "D": "SF/판타지/추리",
 }
 
+@api_view(["GET"])
 def quiz_view(request):
     return render(request, "recommend/quiz.html")
 
+@api_view(["GET", "POST"])
 def result_view(request):
     if request.method != "POST":
         return render(request, "recommend/quiz.html")

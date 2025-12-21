@@ -1,7 +1,7 @@
 <div class="container my-5">
 
   <!-- 뒤로가기 버튼 -->
-  <a href="{% url 'klub_talk:book_list' %}" class="btn btn-secondary mb-4">
+  <a href="{% url 'klub_talk:book-search-api' %}" class="btn btn-secondary mb-4">
     &larr; 목록으로 돌아가기
   </a>
 
@@ -28,7 +28,7 @@
         <strong>{{ meeting.title }}</strong><br>
         멤버 수: {{ meeting.members }}
       </div>
-      <a href="{% url 'klub_talk:room_detail' meeting.id %}" class="btn btn-primary btn-sm">자세히 보기</a>
+      <a href="{% url 'klub_talk:room-detail' meeting.id %}" class="btn btn-primary btn-sm">자세히 보기</a>
 
     </li>
     {% endfor %}

@@ -37,6 +37,7 @@ GMS_API_KEY = os.getenv("GMS_KEY")
 GMS_OPENAI_URL = "https://gms.ssafy.io/gmsapi/api.openai.com/v1/chat/completions"
 
 INSTALLED_APPS = [
+    'drf_yasg',
     "django_extensions",
     'corsheaders',
     'channels',

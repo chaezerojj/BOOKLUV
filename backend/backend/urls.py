@@ -1,16 +1,36 @@
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="BOOKLUV API",
+        default_version="v1",
+        description="BOOKLUV 백엔드 API 문서",
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
+)
 
 urlpatterns = [
-    # 관리자
-    path('admin', admin.site.urls),
-    # 책, 모임, 퀴즈 CRUD
-    path('api/v1/', include('klub_talk.urls')), 
-    # 웹소켓 실시간 채팅 CRUD
-    path('api/chat/', include('klub_chat.urls')), 
-    # AI API 기반 추천 기능 
-    path("api/recommend/", include("klub_recommend.urls")),
-    # 웹소켓 실시간 알림 기능
-    path("api/alarm/", include("klub_alarm.urls")),
-    path("api/auth/", include('klub_user.urls'))
+    # Admin
+    path("admin/", admin.site.urls),
+
+    # ===== API v1 =====
+    # 1. 책, 모임 정보
+    path("api/v1/books/", include("klub_talk.urls")),
+    # 2. 실시간 채팅 정보
+    path("api/v1/chat/", include("klub_chat.urls")),
+    # 3. AI API 추천 정보
+    path("api/v1/recommendations/", include("klub_recommend.urls")),
+    # 4. 실시간 알람 정보
+    path("api/v1/notifications/", include("klub_alarm.urls")),
+    # 5. 사용자 로그인/로그아웃 정보
+    path("api/v1/auth/", include("klub_user.urls")),
+
+    # ===== Swagger =====
+    path("swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="swagger-ui"),
+    path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="redoc"),
 ]

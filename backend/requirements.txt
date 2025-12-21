@@ -1,4 +1,4 @@
-
+drf-yasg
 requests
 Django>=4.2,<4.3
 django-extensions==4.1

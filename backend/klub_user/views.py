@@ -1,11 +1,13 @@
 import requests
 from django.shortcuts import render
+from rest_framework.decorators import api_view
 from django.conf import settings
 
 KAKAO_REST_API_KEY = settings.KAKAO_REST_API_KEY
 KAKAO_REDIRECT_URI = settings.KAKAO_REDIRECT_URI
 KAKAO_CLIENT_SECRET = settings.KAKAO_CLIENT_SECRET
 
+@api_view(["GET"])
 def login(request):
     context = {
         "KAKAO_REST_API_KEY": KAKAO_REST_API_KEY,
@@ -16,6 +18,7 @@ def login(request):
 
 # 테스트용 키와 URI 직접 입력
 
+@api_view(["POST"])
 def kakao_callback(request):
     code = request.GET.get("code")
     if not code:
