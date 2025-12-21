@@ -1,0 +1,127 @@
+[
+    {
+        "model": "klub_talk.meeting",
+        "fields": {
+            "leader_id": 1,
+            "book_id": 1,
+            "title": "독립언론과 뉴스 읽기",
+            "description": "독립언론 역할에 대해 함께 토론해요.",
+            "views": 0,
+            "created_at": "2025-12-11T13:30:00Z",
+            "started_at": "2025-12-19T14:39:00Z",
+            "finished_at": "2025-12-19T20:00:00Z"
+        }
+    },
+    {
+        "model": "klub_talk.meeting",
+        "fields": {
+            "leader_id": 1,
+            "book_id": 1,
+            "title": "삼국지 핵심 이야기 나눔",
+            "description": "삼국지 핵심 사건을 함께 토론해요.",
+            "members": 2,
+            "views": 0,
+            "created_at": "2025-12-11T12:00:00Z",
+            "started_at": "2025-12-15T19:00:00Z",
+            "finished_at": "2025-12-15T21:00:00Z"
+        }
+    },
+    {
+        "model": "klub_talk.meeting",
+        "fields": {
+            "leader_id": 2,
+            "book_id": 2,
+            "title": "해석에 반하여 토론 모임",
+            "description": "수전 손택 책을 읽고 의견 나눠요.",
+            "members": 2,
+            "views": 0,
+            "created_at": "2025-12-11T12:30:00Z",
+            "started_at": "2025-12-16T20:00:00Z",
+            "finished_at": "2025-12-16T22:00:00Z"
+        }
+    },
+    {
+        "model": "klub_talk.meeting",
+        "fields": {
+            "leader_id": 3,
+            "book_id": 3,
+            "title": "괴테 작품 이야기",
+            "description": "괴테 소설을 읽고 감상 나눠요.",
+            "members": 2,
+            "views": 0,
+            "created_at": "2025-12-11T13:00:00Z",
+            "started_at": "2025-12-17T19:00:00Z",
+            "finished_at": "2025-12-17T21:00:00Z"
+        }
+    },
+    {
+        "model": "klub_talk.meeting",
+        "fields": {
+            "leader_id": 4,
+            "book_id": 4,
+            "title": "독립언론과 뉴스 읽기",
+            "description": "독립언론 역할에 대해 함께 토론해요.",
+            "members": 2,
+            "views": 0,
+            "created_at": "2025-12-11T13:30:00Z",
+            "started_at": "2025-12-18T18:00:00Z",
+            "finished_at": "2025-12-18T20:00:00Z"
+        }
+    },
+    {
+        "model": "klub_talk.meeting",
+        "fields": {
+            "leader_id": 5,
+            "book_id": 5,
+            "title": "혼모노 소설 읽기",
+            "description": "혼모노 소설 속 캐릭터 분석 모임.",
+            "members": 2,
+            "views": 0,
+            "created_at": "2025-12-11T14:00:00Z",
+            "started_at": "2025-12-19T19:00:00Z",
+            "finished_at": "2025-12-19T21:00:00Z"
+        }
+    },
+    {
+        "model": "klub_talk.meeting",
+        "fields": {
+            "leader_id": 6,
+            "book_id": 6,
+            "title": "할매 함께 읽기",
+            "description": "황석영 장편을 읽고 이야기 나눠요.",
+            "members": 2,
+            "views": 0,
+            "created_at": "2025-12-11T14:30:00Z",
+            "started_at": "2025-12-20T18:00:00Z",
+            "finished_at": "2025-12-20T20:00:00Z"
+        }
+    },
+    {
+        "model": "klub_talk.meeting",
+        "fields": {
+            "leader_id": 7,
+            "book_id": 7,
+            "title": "트렌드 코리아 토론",
+            "description": "2026 소비트렌드 전망을 함께 분석해요.",
+            "members": 2,
+            "views": 0,
+            "created_at": "2025-12-11T15:00:00Z",
+            "started_at": "2025-12-21T19:00:00Z",
+            "finished_at": "2025-12-21T21:00:00Z"
+        }
+    },
+    {
+        "model": "klub_talk.meeting",
+        "fields": {
+            "leader_id": 8,
+            "book_id": 8,
+            "title": "연금 부자 수업 모임",
+            "description": "연금 투자 전략을 함께 공부해요.",
+            "members": 2,
+            "views": 0,
+            "created_at": "2025-12-11T15:30:00Z",
+            "started_at": "2025-12-22T20:00:00Z",
+            "finished_at": "2025-12-22T22:00:00Z"
+        }
+    }
+]

@@ -1,0 +1,18 @@
+<div class="container my-5">
+  <a href="{% url 'klub_talk:book_list' %}" class="btn btn-secondary mb-4">&larr; 목록으로 돌아가기</a>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <h1 class="card-title">{{ meeting.title }}</h1>
+      <p><strong>책 제목:</strong> {{ meeting.book_id.title }}</p>
+      <p><strong>리더:</strong> {{ meeting.leader_id.username }}</p>
+      <p><strong>멤버 수:</strong> {{ meeting.members }}</p>
+      <p><strong>조회수:</strong> {{ meeting.views }}</p>
+      <p><strong>설명:</strong> {{ meeting.description }}</p>
+      <p><strong>시작일:</strong> {{ meeting.started_at }}</p>
+      <p><strong>종료일:</strong> {{ meeting.finished_at }}</p>
+    </div>
+
+    <a href="{% url 'klub_talk:quiz' meeting.id %}" class="btn btn-success mt-3">참여하기</a>
+  </div>
+</div>

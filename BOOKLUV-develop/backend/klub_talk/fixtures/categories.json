@@ -1,0 +1,44 @@
+[
+    {
+        "model": "klub_talk.category",
+        "pk": 1,
+        "fields": {
+            "name": "소설/시/희곡"
+        }
+    },
+    {
+        "model": "klub_talk.category",
+        "pk": 2,
+        "fields": {
+            "name": "인문학"
+        }
+    },
+    {
+        "model": "klub_talk.category",
+        "pk": 3,
+        "fields": {
+            "name": "경제경영"
+        }
+    },
+    {
+        "model": "klub_talk.category",
+        "pk": 4,
+        "fields": {
+            "name": "사회과학"
+        }
+    },
+    {
+        "model": "klub_talk.category",
+        "pk": 5,
+        "fields": {
+            "name": "과학"
+        }
+    },
+    {
+        "model": "klub_talk.category",
+        "pk": 6,
+        "fields": {
+            "name": "에세이"
+        }
+    }
+]

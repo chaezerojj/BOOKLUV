@@ -1,0 +1,39 @@
+<div class="container my-5">
+
+  <!-- 뒤로가기 버튼 -->
+  <a href="{% url 'klub_talk:book_list' %}" class="btn btn-secondary mb-4">
+    &larr; 목록으로 돌아가기
+  </a>
+
+  <!-- 책 정보 카드 -->
+  <div class="card mb-4">
+    {% if book.cover_url %}
+    <img src="{{ book.cover_url }}" class="card-img-top" alt="{{ book.title }}">
+    {% endif %}
+    <div class="card-body">
+      <h1 class="card-title">{{ book.title }}</h1>
+      <p class="card-text"><strong>저자:</strong> {{ book.author_id.name }}</p>
+      <p class="card-text"><strong>출판사:</strong> {{ book.publisher }}</p>
+      <p class="card-text">{{ book.description }}</p>
+    </div>
+  </div>
+
+  <!-- 관련 모임 -->
+  <h2 class="mb-3">이 책과 관련된 모임</h2>
+  {% if meetings %}
+  <ul class="list-group">
+    {% for meeting in meetings %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <div>
+        <strong>{{ meeting.title }}</strong><br>
+        멤버 수: {{ meeting.members }}
+      </div>
+      <a href="{% url 'klub_talk:room_detail' meeting.id %}" class="btn btn-primary btn-sm">자세히 보기</a>
+
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="alert alert-info">등록된 모임이 없습니다.</div>
+  {% endif %}
+</div>
