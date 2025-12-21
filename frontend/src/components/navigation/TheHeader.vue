@@ -27,7 +27,8 @@ import HeaderRight from './HeaderRight.vue';
   padding: 0;
   text-align: justify;
   padding-top: 40px;
-  font-size: 18px;
+  font-size: 17px;
+  letter-spacing: -0.05rem;
 }
 
 .header {
@@ -36,16 +37,16 @@ import HeaderRight from './HeaderRight.vue';
   box-shadow: inset -5px -5px 9px rgba(161, 161, 161, 0.25);
   display: flex;
   width: 1300px;
-  height: 100px;
+  height: 90px;
   align-items: center;
   justify-content: space-between;
   margin: auto;
 }
 
 .logo {
-  width: 150px;
+  width: 135px;
   margin: 1.5rem;
-  margin-left: 3rem;
+  margin-left: 4rem;
 }
 
 </style>
