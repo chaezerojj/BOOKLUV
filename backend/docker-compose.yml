@@ -1,4 +1,4 @@
-
+version: "3"
 
 services:
   web:
@@ -11,10 +11,29 @@ services:
     depends_on:
       - redis
     env_file:
-    - .env
+      - .env
         
   redis:
     image: redis:7
     ports:
-      - "6380:6379"  # 호스트 6380, 컨테이너 6379
-  
+      - "6380:6379"
+
+  celery:
+    build: .
+    command: celery -A backend worker -l info
+    volumes:
+      - .:/code
+    depends_on:
+      - redis
+    env_file:
+      - .env
+
+  celery-beat:
+    build: .
+    command: celery -A backend beat -l info
+    volumes:
+      - .:/code
+    depends_on:
+      - redis
+    env_file:
+      - .env

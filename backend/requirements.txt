@@ -1,8 +1,9 @@
 drf-yasg
+celery>=5.3.0
 requests
 Django>=4.2,<4.3
 django-extensions==4.1
-python-dotenv
+python-dotenv>=1.0.0
 aioredis==2.0.1
 asgiref==3.11.0
 async-timeout==5.0.1
