@@ -1,29 +1,39 @@
-import requests
 from django.conf import settings
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from django.contrib.auth import get_user_model, login
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import logout as django_logout
-
+from django.contrib.auth import get_user_model
+import requests
+from django.contrib.auth import login
 
 User = get_user_model()
+
+KAKAO_REST_API_KEY = settings.KAKAO_REST_API_KEY
+KAKAO_REDIRECT_URI = settings.KAKAO_REDIRECT_URI
+KAKAO_CLIENT_SECRET = settings.KAKAO_CLIENT_SECRET
+
+def auth_login(request):
+    context = {
+        "KAKAO_REST_API_KEY": KAKAO_REST_API_KEY,
+        "KAKAO_REDIRECT_URI": KAKAO_REDIRECT_URI,
+    }
+    return render(request, 'auth/login.html', context)
 
 FRONT_URL = "http://localhost:5173"  # 프론트 주소
 
 def kakao_callback(request):
+    
     code = request.GET.get("code")
     if not code:
-        return JsonResponse({"detail": "missing code"}, status=400)
+        return JsonResponse({"detail": "missing code", "request": request}, status=400)
 
     try:
         token_res = requests.post(
             "https://kauth.kakao.com/oauth/token",
             data={
                 "grant_type": "authorization_code",
-                "client_id": settings.KAKAO_REST_API_KEY,
-                "redirect_uri": settings.KAKAO_REDIRECT_URI,   # http://localhost:8000/api/auth/callback/
-                "client_secret": settings.KAKAO_CLIENT_SECRET,
+                "client_id": KAKAO_REST_API_KEY,
+                "redirect_uri": KAKAO_REDIRECT_URI,   # http://localhost:8000/api/auth/callback/
+                "client_secret": KAKAO_CLIENT_SECRET,
                 "code": code,
             },
             timeout=5,
@@ -53,33 +63,18 @@ def kakao_callback(request):
 
         # 1) 유저 생성/조회 (kakao_id 기준)
         user, created = User.objects.get_or_create(
-            kakao_id=kakao_id,
-            defaults={"email": email, "is_active": True},
+        kakao_id=kakao_id,
+        defaults={
+            "email": email or f"kakao_{kakao_id}@kakao.local",
+            "is_active": True,
+            },
         )
 
-        # 2) email이 나중에 들어오면 업데이트(선택)
-        if email and user.email != email:
-            user.email = email
-            user.save(update_fields=["email"])
+        # 세션 로그인 (핵심)
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
-        # 3) 세션 로그인
-        login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-
-        # 4) 프론트로 이동
-        return redirect(f"{FRONT_URL}/auth/callback")
+        # 프론트로 이동
+        return redirect(FRONT_URL + "/")
 
     except Exception as e:
         return JsonResponse({"detail": "callback exception", "error": repr(e)}, status=500)
-
-@login_required
-def me(request):
-    u = request.user
-    return JsonResponse({
-        "id": u.id,
-        "email": getattr(u, "email", None),
-        "kakao_id": getattr(u, "kakao_id", None),
-    })
-
-def logout_view(request):
-    django_logout(request)
-    return JsonResponse({"ok": True})

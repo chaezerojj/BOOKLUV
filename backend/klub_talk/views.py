@@ -36,7 +36,8 @@ def book_list(request):
 
     return render(request, 'talk/book_list.html', {'books': books, 'type_filter': type_filter})
 
-# 책 상세 정보
+ # 책 상세 정보
+@api_view(["GET"])
 def book_detail(request, book_id):
     book = get_object_or_404(Book, id=book_id)
     meetings = Meeting.objects.filter(book_id=book) 

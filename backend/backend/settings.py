@@ -13,8 +13,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-v%7qnd++txo72rj^2akf2*)o0(2t7_whrcgcpli6hfp1$g#fvh'
 
-CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_BROKER_URL = 'redis://redis:6379/0'  # 'localhost'를 'redis'로 변경
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # 'localhost'를 'redis'로 변경
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'klub_chat',
     'klub_talk',
     'klub_user',
-    'klub_alarm',
     "klub_recommend",
     'rest_framework',
     'django.contrib.admin',
@@ -59,7 +58,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("redis", 6379)],  # <- 'localhost'가 아닌 서비스 이름
+            "hosts": [("redis", 6379)],  # 로컬 환경에서는 이렇게 설정해야 합니다.
         },
     },
 }
@@ -145,14 +144,42 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',  # 개발 중인 프론트엔드 서버
+    'https://your-frontend-domain.com',  # 배포된 프론트엔드 서버
+]
 
-# KAKAO_REST_API_KEY = '4bf9c626d2f496b06164d72b26db4b81'
-# KAKAO_REDIRECT_URI = 'http://localhost:8000/api/auth/callback/'
-# KAKAO_CLIENT_SECRET = 'Py28EL9FRcSyE0PYtkz0TpKTCAjmdUwZ'
+# settings.py
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+    'file': {
+        'level': 'DEBUG',
+        'class': 'logging.handlers.RotatingFileHandler',
+        'filename': 'chat_log.txt',
+        'maxBytes': 10485760,  # 파일 최대 크기 10MB
+        'backupCount': 5,  # 최대 5개의 백업 파일 유지
+        },
+    },
+
+    'loggers': {
+        'django': {
+            'handlers': ['file'],  # 콘솔과 파일 두 곳에 로그 기록
+            'level': 'DEBUG',  # DEBUG 레벨로 모든 로그 기록
+            'propagate': True,
+        },
+        'channels': {
+            'handlers': ['file'],  # channels 로그도 콘솔과 파일에 기록
+            'level': 'DEBUG',  # DEBUG 레벨로 기록
+            'propagate': True,
+        },
+    },
+}
 
 KAKAO_REST_API_KEY = '24dfa2917f81a949062310b5a12ad5ef'
-KAKAO_REDIRECT_URI = 'http://localhost:8000/api/auth/callback/'
+KAKAO_REDIRECT_URI = 'http://localhost:8000/api/v1/auth/callback/'
 KAKAO_CLIENT_SECRET = 'XBBTe14bpyFEoo7A2uRbR1BALzjpcZE4'
 
 

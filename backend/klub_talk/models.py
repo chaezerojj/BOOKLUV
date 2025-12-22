@@ -34,11 +34,19 @@ class Meeting(models.Model):
                                 [MinValueValidator(2),
                                 # 최대 인원 10명
                                 MaxValueValidator(10)]
-                                )
+    )
     views = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
-    started_at = models.DateTimeField(auto_now=True)
-    finished_at = models.DateTimeField(auto_now=True)
+    started_at = models.DateTimeField()
+    finished_at = models.DateTimeField()
+    
+    @property
+    def has_started(self):
+        return timezone.now() >= self.started_at
+    
+    @property
+    def has_finished(self):
+        return timezone.now() > self.finished_at
     
 # 모임 - 퀴즈 정보
 class Quiz(models.Model):

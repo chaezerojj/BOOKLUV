@@ -22,13 +22,9 @@ def home(request):
 urlpatterns = [
     # 관리자
     path('admin/', admin.site.urls),
-    # 책, 모임, 퀴즈 CRUD
-    path('api/v1/', include('klub_talk.urls')), 
-    # 웹소켓 실시간 알림 기능
-    path("api/alarm/", include("klub_alarm.urls")),
     # login
-    path("api/auth/", include('klub_user.urls')),
-    path("auth/callback/",
+    path("api/v1/auth/", include('klub_user.urls')),
+    path("auth/v1/callback/",
     TemplateView.as_view(template_name="auth/callback.html"), name="auth-callback-page"),
 
     # 책, 모임 정보
@@ -36,9 +32,7 @@ urlpatterns = [
     # 실시간 채팅 정보
     path("api/v1/chat/", include("klub_chat.urls")),
     # AI API 추천 정보
-    path("api/v1/recommend/", include("klub_recommend.urls")),
-    # 실시간 알람 정보
-    path("api/v1/notifications/", include("klub_alarm.urls")),
+    path("api/v1/recommendations/", include("klub_recommend.urls")),
 
     # ===== Swagger =====
     path("swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="swagger-ui"),
