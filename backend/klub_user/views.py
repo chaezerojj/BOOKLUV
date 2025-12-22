@@ -3,6 +3,9 @@ from django.conf import settings
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model, login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout as django_logout
+
 
 User = get_user_model()
 
@@ -63,7 +66,20 @@ def kakao_callback(request):
         login(request, user, backend="django.contrib.auth.backends.ModelBackend")
 
         # 4) 프론트로 이동
-        return redirect(f"{FRONT_URL}/")
+        return redirect(f"{FRONT_URL}/auth/callback")
 
     except Exception as e:
         return JsonResponse({"detail": "callback exception", "error": repr(e)}, status=500)
+
+@login_required
+def me(request):
+    u = request.user
+    return JsonResponse({
+        "id": u.id,
+        "email": getattr(u, "email", None),
+        "kakao_id": getattr(u, "kakao_id", None),
+    })
+
+def logout_view(request):
+    django_logout(request)
+    return JsonResponse({"ok": True})

@@ -1,31 +1,25 @@
 <template>
-  <div class="header-right-user">
-    <RouterLink :to="{name: 'notification'}">
-      <img src="@/assets/images/notification_bell.png" alt="notification-bell" class="notification-bell">
-    </RouterLink>
-    <UserMenu />
+  <div class="user">
+    <span class="email">{{ authStore.user?.email || "카카오 회원" }}</span>
+    <button class="logout" type="button" @click="onLogout">로그아웃</button>
   </div>
 </template>
 
 <script setup>
-import { RouterLink } from 'vue-router';
-import UserMenu from './UserMenu.vue';
+import { useAuthStore } from "@/stores/auth";
+import { useRouter } from "vue-router";
 
+const authStore = useAuthStore();
+const router = useRouter();
 
+const onLogout = async () => {
+  await authStore.logout();
+  router.push({ name: "home" });
+};
 </script>
 
 <style scoped>
-.header-right-user {
-  display: flex;
-  margin: 1.5rem;
-  margin-right: 3rem;
-  width: 80px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.notification-bell {
-  width: 20px;
-}
-
+.user { display: flex; gap: 12px; align-items: center; }
+.email { font-size: 14px; }
+.logout { cursor: pointer; }
 </style>

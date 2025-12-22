@@ -1,22 +1,24 @@
 <template>
   <div class="header-right">
-    <!-- <p>네비바 우측 (로그인 상태 따라 변화)</p> -->
-    <HeaderRightGuest />
-    <HeaderRightUser />
+    <HeaderRightGuest v-if="!authStore.isAuthenticated" />
+    <HeaderRightUser v-else />
   </div>
 </template>
 
 <script setup>
-import HeaderRightGuest from './HeaderRightGuest.vue';
-import HeaderRightUser from './HeaderRightUser.vue';
+import { onMounted } from "vue";
+import { useAuthStore } from "@/stores/auth";
+import HeaderRightGuest from "./HeaderRightGuest.vue";
+import HeaderRightUser from "./HeaderRightUser.vue";
 
+const authStore = useAuthStore();
 
+// 새로고침해도 로그인 유지 확인 (세션이면 쿠키로 유지됨)
+onMounted(() => {
+  authStore.fetchMe();
+});
 </script>
 
-
 <style scoped>
-.header-right {
-  display: flex;
-}
-
+.header-right { display: flex; }
 </style>
