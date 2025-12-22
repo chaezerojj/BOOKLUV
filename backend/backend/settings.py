@@ -13,6 +13,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-v%7qnd++txo72rj^2akf2*)o0(2t7_whrcgcpli6hfp1$g#fvh'
 
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -26,6 +29,7 @@ GMS_API_KEY = os.getenv("GMS_KEY")
 GMS_OPENAI_URL = "https://gms.ssafy.io/gmsapi/api.openai.com/v1/chat/completions"
 
 INSTALLED_APPS = [
+    'drf_yasg',
     "django_extensions",
     'corsheaders',
     'channels',

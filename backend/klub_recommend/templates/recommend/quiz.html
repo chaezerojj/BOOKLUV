@@ -8,7 +8,7 @@
 <body class="bg-light">
   <div class="container py-5">
     <h1 class="mb-4 text-center">📚 책 추천용 독서 취향 퀴즈</h1>
-    <form method="post" action="{% url 'klub_recommend:result' %}">
+    <form method="post" action="{% url 'klub_recommend:quiz-result' %}">
       {% csrf_token %}
 
       <!-- 1️⃣ 책을 읽는 가장 큰 목적 -->

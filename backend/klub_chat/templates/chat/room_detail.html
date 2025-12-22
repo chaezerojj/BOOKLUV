@@ -7,7 +7,6 @@
 <h1>{{ room.name }} 채팅방</h1>
 <p>닉네임: {{ nickname }}</p>
 
-<!-- chat-log는 한 번만 존재해야 함 -->
 <div id="chat-log" style="border:1px solid #000; height:300px; overflow:auto;">
     {% for msg in messages %}
         <p><b>{{ msg.nickname }}:</b> {{ msg.message }}</p>
@@ -19,32 +18,36 @@
 
 <script>
 const nickname = "{{ nickname }}";
-const roomName = "{{ room.slug }}";  
-
-const chatSocket = new WebSocket(
-    'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
-);
+const roomName = "{{ room.slug }}";
+const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+const chatSocket = new WebSocket(protocol + window.location.host + '/ws/chat/' + roomName + '/');
 
 chatSocket.onmessage = function(e) {
     const data = JSON.parse(e.data);
     const chatLog = document.getElementById('chat-log');
-    chatLog.innerHTML += '<p><b>' + data.nickname + ':</b> ' + data.message + '</p>';
-    chatLog.scrollTop = chatLog.scrollHeight; // 항상 최신 메시지 보이도록 스크롤
+
+    // 안전하게 메시지 추가
+    const p = document.createElement('p');
+    const b = document.createElement('b');
+    b.textContent = data.nickname + ': ';
+    p.appendChild(b);
+    p.appendChild(document.createTextNode(data.message));
+    chatLog.appendChild(p);
+
+    // 자동 스크롤
+    chatLog.scrollTop = chatLog.scrollHeight;
 };
 
 chatSocket.onclose = function(e) {
     console.error('Chat socket closed unexpectedly');
 };
 
-document.getElementById('chat-message-submit').onclick = function(e) {
-    const messageInputDom = document.getElementById('chat-message-input');
-    const message = messageInputDom.value;
-    if (message.trim() !== '') {  // 빈 메시지 전송 방지
-        chatSocket.send(JSON.stringify({
-            'nickname': nickname,
-            'message': message
-        }));
-        messageInputDom.value = '';
+document.getElementById('chat-message-submit').onclick = function() {
+    const messageInput = document.getElementById('chat-message-input');
+    const message = messageInput.value.trim();
+    if (message) {
+        chatSocket.send(JSON.stringify({ nickname, message }));
+        messageInput.value = '';
     }
 };
 </script>

@@ -17,7 +17,7 @@
 <li>
     {{ room.name }}
     {% if room.slug %}
-    <a href="{% url 'chat:room_detail' room.slug %}?nickname=익명">참여</a>
+    <a href="{% url 'chat:room-detail' room.slug %}?nickname=익명">참여</a>
     {% else %}
     (참여 불가)
     {% endif %}

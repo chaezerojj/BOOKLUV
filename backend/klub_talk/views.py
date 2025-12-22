@@ -7,15 +7,18 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import BookSerializer, MeetingDetailSerializer, MeetingMiniSerializer, QuizSerializer
 
+@api_view(["GET"])
 def index(request):
     return render(request, 'talk/index.html')
 
 # 알라딘 api 테스트
+@api_view(["GET"])
 def aladin_api(request):
     books = Book.objects.all()
     return render(request, 'talk/book_list.html', {'books': books})
 
 # 책 목록
+@api_view(["GET"])
 def book_list(request):
     search_query = request.GET.get('q', '')  # 검색어
     type_filter = request.GET.get('type', 'book')  # 검색 타입, 기본값은 'book'
@@ -33,7 +36,12 @@ def book_list(request):
 
     return render(request, 'talk/book_list.html', {'books': books, 'type_filter': type_filter})
 
+<<<<<<< HEAD
 # 책 상세 정보
+=======
+ # 책 상세 정보
+@api_view(["GET"])
+>>>>>>> origin/develop
 def book_detail(request, book_id):
     book = get_object_or_404(Book, id=book_id)
     meetings = Meeting.objects.filter(book_id=book) 
@@ -42,6 +50,7 @@ def book_detail(request, book_id):
         'meetings': meetings,
     })
     
+@api_view(["GET"])
 def room_detail(request, pk):
     meeting = get_object_or_404(Meeting, pk=pk)
     print(meeting)
@@ -50,7 +59,7 @@ def room_detail(request, pk):
     meeting.save(update_fields=['views'])
     return render(request, 'talk/room_detail.html', {'meeting': meeting})
 
-
+@api_view(["GET", "POST"])
 def quiz_view(request, meeting_id):
     quiz = get_object_or_404(Quiz, meeting_id=meeting_id)
     meeting = quiz.meeting_id
