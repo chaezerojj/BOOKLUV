@@ -1,4 +1,4 @@
-![b745ef9bb3bd41f685850cdd85a19338](https://github.com/user-attachments/assets/ed52030d-a8bc-47a8-b3f0-ddcb8308c876)# 📖BOOKLUV
+# 📖BOOKLUV
 
 ## 프로젝트 개요
 - 설명 : AI API 기반 도서 추천 및 실시간 모임 서비스
