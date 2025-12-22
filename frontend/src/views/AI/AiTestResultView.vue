@@ -1,148 +1,128 @@
 <template>
   <div class="ai-test-result">
-    <h1>AI 설문 결과</h1>
+    <!-- <h1>AI 설문 결과</h1> -->
 
     <div v-if="!result" class="empty">
       결과가 없어요. 테스트부터 진행해 주세요.
     </div>
 
     <div v-else class="result-container">
-      <!-- 성향 분석 -->
-      <section class="report">
-        <h3>🎯 맞춤 성향 분석 리포트</h3>
-        <p>{{ result.ai_reason }}</p>
-      </section>
+      <div class="result-inner">
+        <section class="report">
+          <h3 class="report-text">🎯 맞춤 성향 분석 리포트</h3>
+          <p>{{ result.ai_reason }}</p>
+        </section>
 
-      <!-- 추천 도서 -->
-      <section class="books">
-        <h2>📚 추천 도서</h2>
+        <section class="books">
+          <h2>📚 추천 도서</h2>
 
-        <div v-for="book in result.books" :key="book.id" class="result-book-box">
-          <img :src="book.cover_url" alt="" />
-          <div class="result-book-detail">
-            <h3 class="title">{{ book.title }}</h3>
-            <p class="meta">
-              {{ book.author_name }} | {{ book.publisher }} | {{ book.category_name }}
-            </p>
+          <div v-for="book in result.books" :key="book.id" class="result-book-box">
+            <img class="book-img" :src="book.cover_url" alt="" />
+            <div class="result-book-detail">
+              <h3 class="title">{{ book.title }}</h3>
+              <p class="meta">
+                {{ book.author_name }} | {{ book.publisher }} | {{ book.category_name }}
+              </p>
 
-            <div class="reason">
-              <b>추천 포인트:</b> {{ book.reason || "사용자님의 독서 성향에 부합하는 도서입니다." }}
-            </div>
+              <div class="reason">
+                <b>추천 포인트:</b> {{ book.reason || "사용자님의 독서 성향에 부합하는 도서입니다." }}
+              </div>
 
-            <div class="actions">
-              <button @click="goBookDetail(book.id)">책 상세로 이동</button>
-              <button @click="goKluvTalkList(book.category_name)">관련 모임 보기</button>
+              <div class="actions">
+                <RouterLink class="btn-link" :to="{ name: 'book-detail', params: { id: book.id } }">
+                  책 상세로 이동
+                </RouterLink>
+                <RouterLink class="btn-link" :to="{ name: 'kluvtalk-list', query: { category: book.category_name } }">
+                  관련 모임 보기
+                </RouterLink>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { computed } from "vue";
-import { useRouter } from "vue-router";
+import { RouterLink } from "vue-router";
 import { useAiRecommendStore } from "@/stores/aiRecommend";
 
-const router = useRouter();
 const store = useAiRecommendStore();
-
 const result = computed(() => store.result);
-
-const goBookDetail = (bookId) => {
-  // ⚠️ 여기 route name은 네 프로젝트 책 상세 라우트 name에 맞춰 바꿔줘
-  router.push({ name: "book-detail", params: { bookId } });
-};
-
-const goKluvTalkList = (categoryName) => {
-  // ⚠️ 모임 리스트 라우트 name에 맞춰 바꿔줘
-  router.push({ name: "kluvtalk-list", query: { category: categoryName } });
-};
 </script>
 
 <style scoped>
 .ai-test-result {
-  border: 1px solid black;
+  display: flex;
   margin: 1rem auto;
-  padding: 2rem;
-  text-align: center;
+  margin-top: 3rem;
+  width: 100%;
 }
 
 .result-container {
-  max-width: 1000px;
-  margin: 1.5rem auto 0;
-  text-align: left;
+  width: 1300px;
+  border-radius: 20px;
+  background-color: #fff;
+}
+
+.result-inner {
+  margin: 3rem;
+  margin-left: 4rem;
+  text-align: center;
 }
 
 .report {
-  background: #f8faff;
-  border-radius: 16px;
-  padding: 18px;
-  border: 1px solid #e0e8f5;
-  margin-bottom: 24px;
+  margin-bottom: 3rem;
 }
 
-.report h3 {
-  margin: 0 0 10px;
-}
-
-.report p {
-  margin: 0;
-  line-height: 1.8;
+.report-text {
+  font-weight: 700;
+  font-size: 25px;
 }
 
 .result-book-box {
   display: flex;
-  gap: 18px;
-  background: white;
-  border-radius: 12px;
-  padding: 18px;
-  margin-bottom: 18px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  text-align: center;
+  justify-content: center;
 }
 
-.result-book-box img {
-  width: 130px;
-  height: 190px;
-  object-fit: cover;
-  border-radius: 8px;
+.book-img {
+  margin: 1rem;
+  border: 10px solid #fff;
+  border-radius: 20px;
+  box-shadow: 2px 2px 8px rgba(161, 161, 161, 0.25);
 }
 
-.title {
-  margin: 0 0 6px;
-}
-
-.meta {
-  margin: 0 0 10px;
-  color: #777;
-  font-size: 14px;
-}
-
-.reason {
-  background: #fdf6ec;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border-left: 4px solid #f39c12;
-  color: #856404;
-  margin-bottom: 10px;
+.result-book-detail {
+  margin: 2rem;
+  text-align: left;
+  width: 600px;
+  line-height: 2rem;
 }
 
 .actions {
+  margin-top: 1.5rem;
   display: flex;
   gap: 10px;
 }
 
-.actions button {
+/* RouterLink용 버튼 스타일 */
+.btn-link {
+  display: inline-block;
   border: 1px solid #ddd;
   background: #fff;
   border-radius: 10px;
   padding: 10px 12px;
   cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  font-size: 14px;
 }
 
-.empty {
-  padding: 30px;
-  font-weight: 700;
+.btn-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 2px 2px 12px rgba(161, 161, 161, 0.25);
 }
 </style>
