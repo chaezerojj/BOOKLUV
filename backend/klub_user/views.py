@@ -1,15 +1,28 @@
-import requests
 from django.conf import settings
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from django.contrib.auth import get_user_model, login
+from django.contrib.auth import get_user_model
+import requests
 
 User = get_user_model()
+
+KAKAO_REST_API_KEY = settings.KAKAO_REST_API_KEY
+KAKAO_REDIRECT_URI = settings.KAKAO_REDIRECT_URI
+KAKAO_CLIENT_SECRET = settings.KAKAO_CLIENT_SECRET
+
+def auth_login(request):
+    context = {
+        "KAKAO_REST_API_KEY": KAKAO_REST_API_KEY,
+        "KAKAO_REDIRECT_URI": KAKAO_REDIRECT_URI,
+    }
+    return render(request, 'auth/login.html', context)
 
 FRONT_URL = "http://localhost:5173"  # 프론트 주소
 
 def kakao_callback(request):
+    
     code = request.GET.get("code")
+    print(code)
     if not code:
         return JsonResponse({"detail": "missing code"}, status=400)
 
@@ -60,7 +73,7 @@ def kakao_callback(request):
             user.save(update_fields=["email"])
 
         # 3) 세션 로그인
-        login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+        auth_login(request)
 
         # 4) 프론트로 이동
         return redirect(f"{FRONT_URL}/")

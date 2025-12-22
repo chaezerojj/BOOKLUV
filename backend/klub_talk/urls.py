@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 
-app_name = 'klub_talk'
+app_name = 'talk'
 
 urlpatterns = [
     # 도서 - 알라딘 api 데이터 기반 도서 목록
