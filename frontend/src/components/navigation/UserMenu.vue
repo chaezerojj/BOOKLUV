@@ -1,42 +1,58 @@
 <template>
   <div class="user-menu" ref="root">
-    <button class="menu-toggle" type="button" @mousedown.prevent="toggle" :aria-expanded="open" aria-haspopup="menu">
+    <button
+      class="menu-toggle"
+      type="button"
+      @mousedown.prevent="toggle"
+      :aria-expanded="open"
+      aria-haspopup="menu"
+    >
       <img src="@/assets/images/account_circle.png" alt="user-account-img" class="account-img">
     </button>
 
     <div class="menu" :class="{ open }" role="menu">
       <RouterLink :to="{name: 'mypage-info'}" class="item" @click="close">마이페이지</RouterLink>
       <RouterLink :to="{name: 'mypage-mykluv'}" class="item" @click="close">나의 모임</RouterLink>
-      <button class="item" type="button" @mousedown.prevent="onLogout">로그아웃</button>
+
+      <!-- ✅ 로그아웃 -->
+      <button class="item" type="button" @mousedown.prevent="onLogout" :disabled="authStore.isLoading">
+        {{ authStore.isLoading ? '로그아웃 중...' : '로그아웃' }}
+      </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, onBeforeUnmount } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
 
-const router = useRouter()
-const root = ref(null)
-const open = ref(false)
+const router = useRouter();
+const authStore = useAuthStore();
 
-const toggle = () => { open.value = !open.value }
-const close = () => { open.value = false }
+const root = ref(null);
+const open = ref(false);
+
+const toggle = () => { open.value = !open.value; };
+const close = () => { open.value = false; };
 
 const onClickOutside = (e) => {
-  if (!root.value) return
-  if (!root.value.contains(e.target)) close()
-}
+  if (!root.value) return;
+  if (!root.value.contains(e.target)) close();
+};
 
-const onLogout = () => {
-  // TODO: 토큰/유저 상태 초기화
-  close()
-  router.push('/')
-}
+const onLogout = async () => {
+  try {
+    // 백엔드 세션 로그아웃 + 스토어 상태 초기화
+    await authStore.logout();
+  } finally {
+    close();
+    router.replace({ name: "home" });
+  }
+};
 
-onMounted(() => document.addEventListener('mousedown', onClickOutside))
-onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
-
+onMounted(() => document.addEventListener("mousedown", onClickOutside));
+onBeforeUnmount(() => document.removeEventListener("mousedown", onClickOutside));
 </script>
 
 <style scoped>
@@ -104,4 +120,8 @@ button {
   background-color: rgba(161, 161, 161, 0.1);
 }
 
+.item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 </style>
