@@ -46,7 +46,13 @@
 ### Frontend
 - vue.js 3.5.25
 - vite 7.2.7
+- vue-router 4.6.3
 - pinia 3.0.4
+- pinia-plugin-persistedstate 4.7.1
+- axios 1.13.2
+- swiper 12.0.3
+- @vitejs/plugin-vue 6.0.2
+- vite-plugin-vue-devtools 8.0.5
 ### Backend
 - django 4.2.27
 - WebSocket 25.5.0
