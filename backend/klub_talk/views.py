@@ -1,10 +1,11 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from .models import Meeting, Book, Participate, Quiz
 from klub_user.models import User
-from django.db.models import Q
+from django.db.models import Q, Count
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from .forms import MeetingForm, QuizForm
 from .serializers import BookSerializer, MeetingDetailSerializer, MeetingMiniSerializer, QuizSerializer
 
 @api_view(["GET"])
@@ -49,11 +50,18 @@ def book_detail(request, book_id):
 @api_view(["GET"])
 def room_detail(request, pk):
     meeting = get_object_or_404(Meeting, pk=pk)
-    print(meeting)
+
     # 조회수 증가
     meeting.views += 1
     meeting.save(update_fields=['views'])
-    return render(request, 'talk/room_detail.html', {'meeting': meeting})
+
+    # 참여 인원 계산
+    joined_count = Participate.objects.filter(meeting=meeting, result=True).count()
+
+    return render(request, 'talk/room_detail.html', {
+        'meeting': meeting,
+        'joined_count': joined_count
+    })
 
 @api_view(["GET", "POST"])
 def quiz_view(request, meeting_id):
@@ -133,3 +141,59 @@ def quiz_api(request, meeting_id):
         "answer": correct,
         "result": result,
     }, status=status.HTTP_200_OK)
+
+def meeting_search(request):
+    query = request.GET.get("q", "")
+
+    # 모임 queryset 준비
+    meetings = Meeting.objects.select_related("book_id", "leader_id")
+
+    # joined_count 계산
+    meetings = meetings.annotate(
+        joined_count=Count(
+            "participations",
+            filter=Q(participations__result=True)
+        )
+    ).order_by("-created_at")
+
+    # 검색어가 있으면 필터링
+    if query:
+        meetings = meetings.filter(
+            Q(title__icontains=query) |
+            Q(book_id__title__icontains=query)
+        )
+
+    return render(request, "talk/meeting_list.html", {
+        "meetings": meetings,
+        "query": query,
+        "is_search": True,
+    })
+    
+
+def create_meeting(request, pk):
+    book = Book.objects.get(id=pk)
+    
+    if request.method == 'POST':
+        meeting_form = MeetingForm(request.POST)
+        quiz_form = QuizForm(request.POST)
+
+        if meeting_form.is_valid() and quiz_form.is_valid():
+            meeting = meeting_form.save(commit=False)
+            meeting.book_id = book
+            meeting.leader_id = request.user
+            meeting.save()
+
+            quiz = quiz_form.save(commit=False)
+            quiz.meeting_id = meeting
+            quiz.save()
+
+            return redirect('talk:book-detail', book_id=book.id)  # 생성 후 리다이렉트
+    else:
+        meeting_form = MeetingForm()
+        quiz_form = QuizForm()
+
+    return render(request, 'talk/create_meeting.html', {
+        'book': book,
+        'meeting_form': meeting_form,
+        'quiz_form': quiz_form,
+    })
