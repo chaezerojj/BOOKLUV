@@ -24,8 +24,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-v%7qnd++txo72rj^2akf2*)o0(2t7_whrcgcpli6hfp1$g#fvh'
 
-CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_BROKER_URL = 'redis://redis:6379/0'  # 'localhost'를 'redis'로 변경
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # 'localhost'를 'redis'로 변경
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -148,7 +148,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',  # 개발 중인 프론트엔드 서버
+    'https://your-frontend-domain.com',  # 배포된 프론트엔드 서버
+]
 
 KAKAO_REST_API_KEY = '4bf9c626d2f496b06164d72b26db4b81'
 KAKAO_REDIRECT_URI = 'http://localhost:8000/api/auth/callback'
@@ -160,16 +163,15 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'console': {
-            'level': 'DEBUG',  # 콘솔에 로그 출력 (필요 시 변경)
-            'class': 'logging.StreamHandler',
-        },
-        'file': {
-            'level': 'DEBUG',  # 로그 레벨 (DEBUG 이상 모두 기록)
-            'class': 'logging.FileHandler',
-            'filename': 'chat_log.txt',  # 로그 파일 경로 (여기서는 프로젝트 루트에 chat_log.txt)
+    'file': {
+        'level': 'DEBUG',
+        'class': 'logging.handlers.RotatingFileHandler',
+        'filename': 'chat_log.txt',
+        'maxBytes': 10485760,  # 파일 최대 크기 10MB
+        'backupCount': 5,  # 최대 5개의 백업 파일 유지
         },
     },
+
     'loggers': {
         'django': {
             'handlers': ['file'],  # 콘솔과 파일 두 곳에 로그 기록

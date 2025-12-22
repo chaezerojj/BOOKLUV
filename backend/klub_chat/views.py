@@ -8,6 +8,7 @@ import redis.asyncio as redis
 from django.utils import timezone
 from django.http import JsonResponse
 from klub_talk.models import Meeting
+from .utils import send_meeting_alert
 
 # Redis 설정
 REDIS_HOST = "redis"
@@ -30,14 +31,12 @@ def room_list(request):
 @sync_to_async
 def get_room_or_404(slug):
     return get_object_or_404(Room, slug=slug)
-# 예시로 미팅이 시작될 때 알림을 보낸다면:
-from .utils import send_meeting_alert
 
 async def room_detail(request, room_name):
     room = await get_room_or_404(room_name)
     nickname = request.GET.get("nickname", "익명")
 
-    # Meeting 객체 가져오기
+    # Meeting 객체 가져오기 (비동기 처리)
     meeting = await sync_to_async(lambda: getattr(room, 'meeting', None))()
 
     # 현재 시간 로컬 시간으로 변환
@@ -46,11 +45,13 @@ async def room_detail(request, room_name):
     can_chat = False
 
     # 회의가 있고, 현재 시간이 회의 시작 시간 이후라면 채팅 가능
-    if meeting and now >= timezone.localtime(meeting.started_at):
-        can_chat = True
+    if meeting:
+        if now >= timezone.localtime(meeting.started_at) and now <= timezone.localtime(meeting.finished_at):
+            can_chat = True
         
         # 미팅이 시작되었으면 알림을 보내기
-        send_meeting_alert(meeting.title, meeting.started_at)
+        if can_chat:
+            send_meeting_alert(meeting.title, meeting.started_at)
 
     # Redis 메시지 가져오기
     r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
@@ -63,8 +64,6 @@ async def room_detail(request, room_name):
         "messages": messages,
         "can_chat": can_chat
     })
-
-
 
 # 오늘 회의 전체 API
 def today_meetings(request):

@@ -1,7 +1,6 @@
 from django.db import models
-from django.utils.text import slugify
 from klub_talk.models import Meeting
-from channels.db import database_sync_to_async
+from django.utils import timezone
 
 class Room(models.Model):
     name = models.CharField(max_length=255)
@@ -9,6 +8,13 @@ class Room(models.Model):
         Meeting, on_delete=models.CASCADE, related_name="room", null=True, blank=True
     )
     slug = models.SlugField(unique=True, blank=True)
+    
+    def is_meeting_active(self):
+        """회의 중이면 True"""
+        if not self.meeting:
+            return False
+        now = timezone.now()
+        return self.meeting.started_at <= now <= self.meeting.finished_at
 
         
 class ChatMessage(models.Model):

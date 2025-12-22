@@ -25,7 +25,7 @@ def get_ai_recommendation(quiz_answers, books):
 
 조건:
 - 위 도서 중에서만 추천할 것
-- 최대 3권 추천
+- 1권 추천
 - 각 책마다 '추천 이유'를 2문장 이내로 작성
 - JSON 형식으로만 응답
 
