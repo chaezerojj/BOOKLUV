@@ -14,7 +14,7 @@
 - Kakao API 기반 소셜 로그인 
 - ChatGPT 4o mini 기반 도서 및 모임 추천
 - WebSocket 및 Django Channels, Redis 기반 실시간 채팅 
-- WebSocket, Django Channels, Django Selery 기반 알림
+- WebSocket, Django Channels, Django Selery 기반 알림 및 채팅방 생성
 - 자유 게시판 및 댓글 CRUD
 
 ## 팀 소개
@@ -66,7 +66,6 @@
 ### Backend - Django
 ```
 backend/
-├── klub_alarm/ # 알림 기능 관련 앱
 ├── klub_chat/ # 채팅 기능 관련 앱
 ├── klub_talk/ # 도서 관련 기능 앱
 ├── klub_user/ # 사용자 관리 기능 앱
