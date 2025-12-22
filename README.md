@@ -60,6 +60,20 @@
 
 ## 프로젝트 폴더 구조
 ### Frontend - Vue.js
+```
+frontend/
+├── node_modules/
+├── public/
+├── App.vue
+├── main.js
+└── src/                     # 프론트엔드 메인 소스 디렉터리
+    ├── api/                 # 백엔드 API 통신 모듈
+    ├── assets/              # 이미지, 스타일 등 정적 리소스
+    ├── components/          # 공통 컴포넌트
+    ├── router/              # Vue Router 설정
+    ├── stores/              # 상태 관리 (Pinia/Vuex)
+    └── views/               # 페이지 단위 컴포넌트
+```
 ### Backend - Django
 ```
 backend/
