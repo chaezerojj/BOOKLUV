@@ -22,8 +22,6 @@ def home(request):
 urlpatterns = [
     # 관리자
     path('admin/', admin.site.urls),
-    # 책, 모임, 퀴즈 CRUD
-    path('api/v1/', include('klub_talk.urls')), 
     # login
     path("api/v1/auth/", include('klub_user.urls')),
     path("auth/v1/callback/",

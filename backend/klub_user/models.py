@@ -19,6 +19,7 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
+
 class User(AbstractBaseUser, PermissionsMixin):
     # 카카오톡 로그인 시 저장되는 정보
     # 이메일
@@ -30,12 +31,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
 
     date_joined = models.DateTimeField(auto_now_add=True)
-
     # 지웠을때 어떻게 될 지 모름 -> 나중에 수정~
     # objects = UserManager()
 
     USERNAME_FIELD = "email"
     # REQUIRED_FIELDS = []
+    last_login = models.DateTimeField(null=True, blank=True)  # ✅ 추가
+
 
     def __str__(self):
         return self.email or f"kakao_{self.kakao_id}"
