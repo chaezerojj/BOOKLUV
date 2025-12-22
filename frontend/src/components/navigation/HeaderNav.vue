@@ -1,6 +1,6 @@
 <template>
   <div class="header-nav">
-    <RouterLink :to="{name: 'ai'}">AI 추천</RouterLink>
+    <RouterLink :to="{name: 'ai-recommend'}">AI 추천</RouterLink>
     <br>
     <RouterLink :to="{name: 'kluvtalk-list'}">모임</RouterLink>
     <br>

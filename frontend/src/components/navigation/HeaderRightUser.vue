@@ -11,8 +11,8 @@
 import { RouterLink } from 'vue-router';
 import UserMenu from './UserMenu.vue';
 
-
 </script>
+
 
 <style scoped>
 .header-right-user {

@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import http from "@/api/http";
+import { http } from "@/api/http";
 
 export const useKluvTalkStore = defineStore('meeting', {
   state: () => ({

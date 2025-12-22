@@ -4,6 +4,10 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 import requests
 from django.contrib.auth import login
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.contrib.auth import logout
 
 User = get_user_model()
 
@@ -78,3 +82,21 @@ def kakao_callback(request):
 
     except Exception as e:
         return JsonResponse({"detail": "callback exception", "error": repr(e)}, status=500)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def me(request):
+    user = request.user
+    return Response({
+        "id": user.id,
+        "email": user.email,
+        "kakao_id": user.kakao_id,
+        "is_authenticated": True,
+    })
+
+
+@api_view(["POST"])
+def logout_view(request):
+    logout(request)  # 세션 삭제
+    return Response({"detail": "logged out"})
