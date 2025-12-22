@@ -78,6 +78,7 @@ backend/
 1. Kakao 소셜 로그인/회원가입 API
 2. 알라딘 도서 검색 API
 3. GPT 4o mini API
+- 도서 추천 기능을 위한 소형 멀티모달 AI. 
 ```
 
 
