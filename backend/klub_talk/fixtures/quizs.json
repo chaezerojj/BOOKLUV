@@ -1,0 +1,74 @@
+[
+    {
+        "model": "klub_talk.quiz",
+        "pk": 1,
+        "fields": {
+            "meeting_id": 1,
+            "question": "삼국지의 주인공 이름은?",
+            "answer": "유비"
+        }
+    },
+    {
+        "model": "klub_talk.quiz",
+        "pk": 2,
+        "fields": {
+            "meeting_id": 2,
+            "question": "『해석에 반하여』 책의 작가는 누구인가요?",
+            "answer": "수전 손택"
+        }
+    },
+    {
+        "model": "klub_talk.quiz",
+        "pk": 3,
+        "fields": {
+            "meeting_id": 3,
+            "question": "괴테의 대표적인 작품 주인공 이름은?",
+            "answer": "파우스트"
+        }
+    },
+    {
+        "model": "klub_talk.quiz",
+        "pk": 4,
+        "fields": {
+            "meeting_id": 4,
+            "question": "독립언론과 뉴스 읽기 모임에서 다루는 주제는?",
+            "answer": "독립언론의 역할"
+        }
+    },
+    {
+        "model": "klub_talk.quiz",
+        "pk": 5,
+        "fields": {
+            "meeting_id": 5,
+            "question": "혼모노 소설 속 주요 캐릭터 이름은?",
+            "answer": "오언"
+        }
+    },
+    {
+        "model": "klub_talk.quiz",
+        "pk": 6,
+        "fields": {
+            "meeting_id": 6,
+            "question": "『할매』 소설의 작가는?",
+            "answer": "황석영"
+        }
+    },
+    {
+        "model": "klub_talk.quiz",
+        "pk": 7,
+        "fields": {
+            "meeting_id": 7,
+            "question": "트렌드 코리아 2026의 핵심 주제는?",
+            "answer": "소비 트렌드 전망"
+        }
+    },
+    {
+        "model": "klub_talk.quiz",
+        "pk": 8,
+        "fields": {
+            "meeting_id": 8,
+            "question": "연금 부자 수업 모임에서 배우는 내용은?",
+            "answer": "연금 투자 전략"
+        }
+    }
+]

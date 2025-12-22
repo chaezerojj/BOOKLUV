@@ -1,0 +1,58 @@
+<h2>오늘의 미팅 알람</h2>
+<div id="meeting-alerts"></div>
+
+<ul>
+{% for room in rooms %}
+<li>
+    <strong>{{ room.name }}</strong>
+    {% if room.slug %}
+        <a href="{% url 'chat:room-detail' room.slug %}?nickname=익명" data-slug="{{ room.slug }}">참여</a>
+        <br>
+        시작: {{ room.meeting.started_at|date:"Y-m-d H:i" }}<br>
+        종료: {{ room.meeting.finished_at|date:"Y-m-d H:i" }}
+    {% else %}
+        (참여 불가)
+        <br>
+        시작: {{ room.meeting.started_at|date:"Y-m-d H:i" }}<br>
+        종료: {{ room.meeting.finished_at|date:"Y-m-d H:i" }}
+    {% endif %}
+</li>
+{% endfor %}
+</ul>
+
+<script>
+// WebSocket 연결을 위한 함수
+function createWebSocketConnection() {
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const chatSocket = new WebSocket(protocol + window.location.host + '/ws/meeting-alerts/');
+
+    // WebSocket 연결 시
+    chatSocket.onopen = function(e) {
+        console.log("WebSocket connection established");
+    };
+
+    // 서버로부터 메시지를 받을 때
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        console.log("Received data:", data);
+
+        const meetingAlerts = document.getElementById('meeting-alerts');
+        const div = document.createElement('div');
+        div.innerHTML = `${data.title} 미팅이 <span class="time">${data.started_at}</span>에 시작됩니다!`;
+        meetingAlerts.appendChild(div);
+    };
+
+    // WebSocket 에러 처리
+    chatSocket.onerror = function(e) {
+        console.error("WebSocket error:", e);
+    };
+
+    // WebSocket 연결 종료 시
+    chatSocket.onclose = function(e) {
+        console.log("WebSocket closed", e);
+    };
+}
+
+// 페이지 로드 시 WebSocket 연결 시작
+createWebSocketConnection();
+</script>

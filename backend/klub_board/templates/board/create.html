@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>게시판 작성 페이지</title>
+</head>
+<body>
+    <h1>New</h1>
+
+    {% comment %} enctype = 'multipart/form-data' : 폼 데이터 와 함께 파일(이미지, zip파일...)도 서버에 전송 {% endcomment %}
+    <form action="{% url 'board:create' %}" method = 'POST' enctype = 'multipart/form-data'>
+        {% csrf_token %}
+        {% comment %} django model form이 자동으로 만들어 준다 ---> db저장 {% endcomment %}
+        {% comment %} form.as_table, form.as_ul, form.as_div, form.as_p {% endcomment %}
+        {{ form.as_p}}
+
+        <input type="submit">
+    </form>
+
+    <hr>
+    {% comment %} HOME 버튼 {% endcomment %}
+    <a href="{% url "board:index" %}">HOME</a>
+        
+</body>
+</html>

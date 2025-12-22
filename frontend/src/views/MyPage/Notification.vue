@@ -1,0 +1,15 @@
+<template>
+  <div>
+    <h2>알림페이지</h2>
+  </div>
+</template>
+
+
+<script setup>
+
+</script>
+
+
+<style scoped>
+
+</style>

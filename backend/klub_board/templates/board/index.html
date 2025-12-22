@@ -1,0 +1,42 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>게시판 페이지</title>
+</head>
+<body>
+
+    {% comment %} alt : 대체 텍스트
+    {% comment %} <img src="{% static "django_image.png" %}" alt="django"> {% endcomment %}
+
+    {% comment %} user는 views.py의 request로 넘어왔다  {% endcomment %}
+
+    <h1>게시판</h1>
+
+    {% comment %} 사용자가 인증 되어 있을 때(로그인 되어 있을 떄) {% endcomment %}
+    {% comment %} {% if request.user.is_authenticated %} {% endcomment %}
+
+    <hr>
+        <a href="{% url 'board:create'%}">글쓰기</a>
+    <hr>
+
+
+    {% comment %} DTL : for문 {% endcomment %}
+    {% for b in  boards %}
+        {% comment %} {{객체.속성}} {% endcomment %}
+        <p>글 id : {{b.pk}}</p>
+
+        <a href="{% url "board:detail" b.pk %}">
+            <p>글 제목 : {{b.title}}</p>
+        </a>
+
+        <p>글 내용 : {{b.content}}</p>
+        
+        {% comment %} <p>글 생성 시간 : {{article.created_at}}</p> {% endcomment %}
+        <hr>
+    {% endfor %}
+
+</body>
+</html>

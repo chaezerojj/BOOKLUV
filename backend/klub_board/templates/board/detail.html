@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>게시판 상세 페이지</title>
+</head>
+<body>
+    <h2>Detail 페이지</h2>
+    <h3>{{board.pk}}번째 게시글</h3>
+
+    <hr>
+
+    <p>제목 : {{board.title}}</p>
+    <p>내용 : {{board.content}}</p>
+    <p>작성 시각 : {{board.created_at}}</p>
+    <p>수정 시각 : {{board.updated_at}}</p>
+
+    <hr>
+    <h4>댓글 목록</h4>
+
+    <ul>
+        {% for comment in comments%}
+        <li>
+            {{comment.user}} - {{comment.content}}
+            {% if request.user == comment.user %}
+                <form action="{% url "board:comments_delete" board.pk comment.pk %}" method="POST">
+                    {% csrf_token %}
+                    <input type="submit" value="삭제">
+                </form>
+            
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    <hr>
+
+    <h4>댓글 생성</h4>
+    <form action="{% url "board:comments_create" board.pk%}" method="POST">
+        {% csrf_token %}
+        {{ comment_form }}
+        <input type="submit" value="생성">
+    </form>
+
+    <hr>
+
+    <a href="{% url "board:index" %}"> Home </a>
+
+    <hr>
+
+    <form action="{% url 'board:delete' board.pk %}" method = 'POST'>
+        {% csrf_token %}
+        <input type="submit" value='삭제'>
+    </form>
+
+    <hr>
+
+    {% comment %} EDIT 버튼 {% endcomment %}
+    <a href="{% url "board:update" board.pk %}">EDIT</a>
+
+
+
+       
+</body>
+</html>
