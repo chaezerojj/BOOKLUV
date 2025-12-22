@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 import requests
+from django.contrib.auth import login
 
 User = get_user_model()
 
@@ -22,18 +23,17 @@ FRONT_URL = "http://localhost:5173"  # 프론트 주소
 def kakao_callback(request):
     
     code = request.GET.get("code")
-    print(code)
     if not code:
-        return JsonResponse({"detail": "missing code"}, status=400)
+        return JsonResponse({"detail": "missing code", "request": request}, status=400)
 
     try:
         token_res = requests.post(
             "https://kauth.kakao.com/oauth/token",
             data={
                 "grant_type": "authorization_code",
-                "client_id": settings.KAKAO_REST_API_KEY,
-                "redirect_uri": settings.KAKAO_REDIRECT_URI,   # http://localhost:8000/api/auth/callback/
-                "client_secret": settings.KAKAO_CLIENT_SECRET,
+                "client_id": KAKAO_REST_API_KEY,
+                "redirect_uri": KAKAO_REDIRECT_URI,   # http://localhost:8000/api/auth/callback/
+                "client_secret": KAKAO_CLIENT_SECRET,
                 "code": code,
             },
             timeout=5,
@@ -63,20 +63,18 @@ def kakao_callback(request):
 
         # 1) 유저 생성/조회 (kakao_id 기준)
         user, created = User.objects.get_or_create(
-            kakao_id=kakao_id,
-            defaults={"email": email, "is_active": True},
+        kakao_id=kakao_id,
+        defaults={
+            "email": email or f"kakao_{kakao_id}@kakao.local",
+            "is_active": True,
+            },
         )
 
-        # 2) email이 나중에 들어오면 업데이트(선택)
-        if email and user.email != email:
-            user.email = email
-            user.save(update_fields=["email"])
+        # 세션 로그인 (핵심)
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
-        # 3) 세션 로그인
-        auth_login(request)
-
-        # 4) 프론트로 이동
-        return redirect(f"{FRONT_URL}/")
+        # 프론트로 이동
+        return redirect(FRONT_URL + "/")
 
     except Exception as e:
         return JsonResponse({"detail": "callback exception", "error": repr(e)}, status=500)

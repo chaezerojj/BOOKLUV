@@ -179,7 +179,7 @@ LOGGING = {
 }
 
 KAKAO_REST_API_KEY = '24dfa2917f81a949062310b5a12ad5ef'
-KAKAO_REDIRECT_URI = 'http://localhost:8000/api/auth/callback/'
+KAKAO_REDIRECT_URI = 'http://localhost:8000/api/v1/auth/callback/'
 KAKAO_CLIENT_SECRET = 'XBBTe14bpyFEoo7A2uRbR1BALzjpcZE4'
 
 
