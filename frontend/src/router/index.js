@@ -53,7 +53,7 @@ const router = createRouter({
     },
     {
       path: "/ai",
-      name: "ai",
+      name: "ai-recommend",
       component: AiRecommendView,
     },
     {

@@ -36,7 +36,7 @@ urlpatterns = [
     # 실시간 채팅 정보
     path("api/v1/chat/", include("klub_chat.urls")),
     # AI API 추천 정보
-    path("api/v1/recommendations/", include("klub_recommend.urls")),
+    path("api/v1/recommend/", include("klub_recommend.urls")),
     # 실시간 알람 정보
     path("api/v1/notifications/", include("klub_alarm.urls")),
 
