@@ -1,7 +1,5 @@
 <template>
   <div class="ai-test-result">
-    <!-- <h1>AI 설문 결과</h1> -->
-
     <div v-if="!result" class="empty">
       결과가 없어요. 테스트부터 진행해 주세요.
     </div>
@@ -44,14 +42,15 @@
   </div>
 </template>
 
+
 <script setup>
 import { computed } from "vue";
-import { RouterLink } from "vue-router";
 import { useAiRecommendStore } from "@/stores/aiRecommend";
 
 const store = useAiRecommendStore();
 const result = computed(() => store.result);
 </script>
+
 
 <style scoped>
 .ai-test-result {

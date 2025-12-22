@@ -1,7 +1,7 @@
 <template>
   <div class="ai-recommend">
     <div class="background-img">
-      <h1 class="ai-main-text">🪄 AI로 취향에 맞는 책과 모임을 찾아드려요!</h1>
+      <div class="ai-main-text">🪄 AI로 취향에 맞는 책과 모임을 찾아드려요!</div>
       <div class="img-box">
         <img class="book-3d-img" src="../../assets/images/3dicons-notebook.png" alt="book-3d-img">
         <img class="chat-3d-img" src="../../assets/images/3dicons-chat.png" alt="chat-3d-img">
@@ -30,19 +30,25 @@ import { RouterLink } from "vue-router";
 
 .background-img {
   /* border: 0.1px solid red; */
-  background-size: cover;
+  margin: 0 auto;
+  background-size: 800px;
   background-repeat: no-repeat;
-  background-image: url('@/assets/images/clipboard-3dicon.png');
-  background-position: center -300px;
+  background-image: url('@/assets/images/tablet2.png');
+  background-position: center -1px;
   padding-bottom: 18rem;
 }
 
 
 .ai-main-text {
+  font-size: 28px;
+  font-weight: 700;
   padding: 2rem;
-  padding-top: 16rem;
+  padding-top: 12rem;
   margin-top: 1rem;
-  /* border: 1px solid red; */
+}
+
+.img-box {
+  padding-top: 3rem;
 }
 
 .book-3d-img {
@@ -69,7 +75,8 @@ import { RouterLink } from "vue-router";
 }
 
 .text {
-  margin: 3rem;
+  margin: 2rem;
+  margin-top: 5rem;
   font-weight: 600;
 }
 
@@ -82,13 +89,12 @@ import { RouterLink } from "vue-router";
   background-color: #ffffff;
   border-radius: 10px;
   width: 200px;
-  /* height: 40px; */
   margin: 1rem auto;
   padding: 1rem;
   text-align: center;
   font-weight: 800;
   font-size: 18px;
-  border: 1px solid #eee;
+  border: 1px solid #e4e4e4;
 }
 
 .test-link-text:hover {
