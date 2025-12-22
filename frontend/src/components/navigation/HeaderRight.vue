@@ -1,22 +1,18 @@
 <template>
   <div class="header-right">
-    <!-- <p>네비바 우측 (로그인 상태 따라 변화)</p> -->
-    <HeaderRightGuest />
-    <HeaderRightUser />
+    <HeaderRightGuest v-if="authStore.isReady && !authStore.isAuthenticated" />
+    <HeaderRightUser v-else-if="authStore.isReady && authStore.isAuthenticated" />
   </div>
 </template>
 
 <script setup>
-import HeaderRightGuest from './HeaderRightGuest.vue';
-import HeaderRightUser from './HeaderRightUser.vue';
+import { useAuthStore } from "@/stores/auth";
+import HeaderRightGuest from "./HeaderRightGuest.vue";
+import HeaderRightUser from "./HeaderRightUser.vue";
 
-
+const authStore = useAuthStore();
 </script>
 
-
 <style scoped>
-.header-right {
-  display: flex;
-}
-
+.header-right { display: flex; }
 </style>

@@ -1,35 +1,13 @@
 <template>
-  <div class="header-right-guest">
-    <!-- <p>회원가입 + 로그인 (비로그인 시)</p> -->
-    <RouterLink :to="{name: 'signup'}">회원가입</RouterLink>
-    <span>|</span>
-    <RouterLink :to="{name: 'login'}">로그인</RouterLink>
+  <div class="guest">
+    <RouterLink :to="{ name: 'login' }" class="link">로그인</RouterLink>
+    <RouterLink :to="{ name: 'signup' }" class="link">회원가입</RouterLink>
   </div>
 </template>
 
-<script setup>
-import { RouterLink } from 'vue-router';
-
-
-</script>
+<script setup></script>
 
 <style scoped>
-.header-right-guest {
-  width: 150px;
-  display: flex;
-  justify-content: space-between;
-  margin: auto;
-}
-
-.header-right-guest a {
-  text-decoration: none;
-  color: #1f2328;
-  font-weight: 500;
-}
-
-.header-right-guest a:hover {
-  font-weight: 700;
-}
-
-
+.guest { display: flex; gap: 12px; align-items: center; }
+.link { text-decoration: none; }
 </style>

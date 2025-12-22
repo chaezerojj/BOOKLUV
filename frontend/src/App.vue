@@ -10,7 +10,16 @@
 
 <script setup>
 import { RouterView } from 'vue-router'
+import { onMounted } from "vue";
+import { useAuthStore } from "@/stores/auth";
+
 import TheHeader from '@/components/navigation/TheHeader.vue'
+
+const authStore = useAuthStore();
+
+onMounted(() => {
+  authStore.fetchMe();
+});
 </script>
 
 <style scoped>
@@ -40,6 +49,5 @@ import TheHeader from '@/components/navigation/TheHeader.vue'
   margin: 0 auto;
   min-height: calc(100vh - var(--header-height, 72px));
 }
-
 
 </style>

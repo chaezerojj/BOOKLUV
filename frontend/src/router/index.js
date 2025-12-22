@@ -20,6 +20,7 @@ import BookDetailView from "@/views/Books/BookDetailView.vue";
 import Notification from "@/views/MyPage/Notification.vue";
 import BoardUpdateView from "@/views/Board/BoardUpdateView.vue";
 import SearchResultView from "@/views/Search/SearchResultView.vue";
+import AuthCallBackView from "@/views/Auth/AuthCallBackView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -30,13 +31,29 @@ const router = createRouter({
       component: HomeView,
     },
     {
+      path: "/auth/login", 
+      name: "login", 
+      component: LoginView,
+    },
+    {
+      path: "/auth/signup",
+      name: "signup",
+      component: SignUpView,
+    },
+    // 백엔드에서 redirect로 보내는 곳
+    {
+      path: "/auth/callback",
+      name: "auth-callback",
+      component: AuthCallBackView,
+    },
+    {
       path: "/search",
       name: 'search',
       component: SearchResultView,
     },
     {
       path: "/ai",
-      name: "ai",
+      name: "ai-recommend",
       component: AiRecommendView,
     },
     {

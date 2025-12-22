@@ -11,6 +11,7 @@ pyvenv.cfg
 *.log
 *.pot
 *.pyc
+.pyc
 __pycache__/
 local_settings.py
 db.sqlite3

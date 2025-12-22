@@ -147,7 +147,15 @@ STATIC_URL = 'static/'
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',  # 개발 중인 프론트엔드 서버
     'https://your-frontend-domain.com',  # 배포된 프론트엔드 서버
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
 
 # settings.py
 
