@@ -6,7 +6,7 @@ from django.views.generic import TemplateView
 app_name = 'klub_user'
 
 urlpatterns = [
-    path('', views.login, name='login'),
+    path('', views.auth_login, name='login'),
     path('callback/', views.kakao_callback, name='callback'),  # 수정!
     # path("token/refresh/", views.token_refresh, name="token_refresh"),
     # path("logout/", views.logout, name="logout"), 
