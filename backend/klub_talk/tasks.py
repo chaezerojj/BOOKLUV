@@ -62,11 +62,23 @@ def send_today_meeting_alarms():
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     today_end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
 
+    # 오늘 시작되는 미팅 목록을 가져옵니다.
     meetings = Meeting.objects.filter(started_at__range=(today_start, today_end))
+
+    channel_layer = get_channel_layer()
 
     for meeting in meetings:
         room = getattr(meeting, 'room', None)
         if room and room.slug:
-            # 메시지 전송
+            # 메시지 생성
             message = f"'{meeting.title}' 미팅이 {meeting.started_at.strftime('%H:%M')}에 시작됩니다!"
-            print(message)  # 실제로 메시지를 전송하는 코드 추가 필요
+            
+            # WebSocket을 통해 메시지 전송 (meeting_alerts 그룹으로 전송)
+            async_to_sync(channel_layer.group_send)(
+                "meeting_alerts",  # WebSocket 그룹 이름
+                {
+                    "type": "send_meeting_alert",  # consumer에서 정의한 메시지 타입
+                    "title": meeting.title,
+                    "started_at": meeting.started_at.strftime('%Y-%m-%d %H:%M:%S'),  # ISO 형식으로 전송
+                }
+            )
