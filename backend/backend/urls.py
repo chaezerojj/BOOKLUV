@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import TemplateView
+from django.http import HttpResponse
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -14,21 +16,29 @@ schema_view = get_schema_view(
     permission_classes=[permissions.AllowAny],
 )
 
-urlpatterns = [
-    # Admin
-    path("admin/", admin.site.urls),
+def home(request):
+    return HttpResponse("로그인 성공!") #임시 메인페이지 대체
 
-    # ===== API v1 =====
-    # 1. 책, 모임 정보
+urlpatterns = [
+    # 관리자
+    path('admin/', admin.site.urls),
+    # 책, 모임, 퀴즈 CRUD
+    path('api/v1/', include('klub_talk.urls')), 
+    # 웹소켓 실시간 알림 기능
+    path("api/alarm/", include("klub_alarm.urls")),
+    # login
+    path("api/auth/", include('klub_user.urls')),
+    path("auth/callback/",
+    TemplateView.as_view(template_name="auth/callback.html"), name="auth-callback-page"),
+
+    # 책, 모임 정보
     path("api/v1/books/", include("klub_talk.urls")),
-    # 2. 실시간 채팅 정보
+    # 실시간 채팅 정보
     path("api/v1/chat/", include("klub_chat.urls")),
-    # 3. AI API 추천 정보
+    # AI API 추천 정보
     path("api/v1/recommendations/", include("klub_recommend.urls")),
-    # 4. 실시간 알람 정보
+    # 실시간 알람 정보
     path("api/v1/notifications/", include("klub_alarm.urls")),
-    # 5. 사용자 로그인/로그아웃 정보
-    path("api/v1/auth/", include("klub_user.urls")),
 
     # ===== Swagger =====
     path("swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="swagger-ui"),

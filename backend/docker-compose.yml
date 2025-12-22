@@ -1,39 +1,25 @@
-version: "3"
-
 services:
   web:
-    build: .
+    build:
+      context: .
+    container_name: bookluv_web
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
     ports:
       - "8000:8000"
     depends_on:
-      - redis
+      redis:
+        condition: service_started
     env_file:
       - .env
-        
+    environment:
+      # Django가 .env를 못 읽는 상황 대비(확실하게)
+      DJANGO_SETTINGS_MODULE: backend.settings
+      PYTHONUNBUFFERED: "1"
+
   redis:
     image: redis:7
+    container_name: bookluv_redis
     ports:
-      - "6380:6379"
-
-  celery:
-    build: .
-    command: celery -A backend worker -l info
-    volumes:
-      - .:/code
-    depends_on:
-      - redis
-    env_file:
-      - .env
-
-  celery-beat:
-    build: .
-    command: celery -A backend beat -l info
-    volumes:
-      - .:/code
-    depends_on:
-      - redis
-    env_file:
-      - .env
+      - "6380:6379"  # 호스트 6380, 컨테이너 6379

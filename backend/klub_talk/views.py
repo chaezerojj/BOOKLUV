@@ -4,7 +4,8 @@ from klub_user.models import User
 from django.db.models import Q
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import BookSerializer
+from rest_framework import status
+from .serializers import BookSerializer, MeetingDetailSerializer, MeetingMiniSerializer, QuizSerializer
 
 @api_view(["GET"])
 def index(request):
@@ -35,8 +36,12 @@ def book_list(request):
 
     return render(request, 'talk/book_list.html', {'books': books, 'type_filter': type_filter})
 
+<<<<<<< HEAD
+# 책 상세 정보
+=======
  # 책 상세 정보
 @api_view(["GET"])
+>>>>>>> origin/develop
 def book_detail(request, book_id):
     book = get_object_or_404(Book, id=book_id)
     meetings = Meeting.objects.filter(book_id=book) 
@@ -94,3 +99,41 @@ def book_search_api(request):
     
     serializer = BookSerializer(books, many=True)
     return Response(serializer.data)
+
+@api_view(['GET'])
+def book_detail_api(request, book_id):
+    book = Book.objects.get(pk=book_id)
+    # 이 책으로 개설된 모임들
+    meetings = Meeting.objects.filter(book_id=book).order_by('-created_at') 
+    data = {
+        "book": BookSerializer(book).data,
+        "meetings": MeetingMiniSerializer(meetings, many=True).data,
+    }
+    return Response(data)
+
+
+@api_view(['GET'])
+def meeting_detail_api(request, pk):
+    meeting = Meeting.objects.get(pk=pk)
+    return Response(MeetingDetailSerializer(meeting).data)
+
+
+@api_view(['GET', 'POST'])
+def quiz_api(request, meeting_id):
+    quiz = Quiz.objects.get(meeting_id=meeting_id)
+
+    if request.method == 'GET':
+        return Response(QuizSerializer(quiz).data)
+
+    # POST: 채점
+    user_answer = (request.data.get('answer') or '').strip()
+    correct = (quiz.answer or '').strip()
+
+    result = (user_answer == correct)
+
+    return Response({
+        "question": quiz.question,
+        "user_answer": user_answer,
+        "answer": correct,
+        "result": result,
+    }, status=status.HTTP_200_OK)

@@ -29,7 +29,16 @@ class Meeting(models.Model):
     book_id = models.ForeignKey(Book, on_delete = models.CASCADE)
     title = models.CharField(max_length=50, default="함께 책 읽고 소통해요")
     description = models.TextField(blank=True, default="책을 읽고 함께 이야기를 나눌 분들을 찾습니다.")
+<<<<<<< HEAD
+    members = models.IntegerField(validators=
+                                # 최소 인원 2명
+                                [MinValueValidator(2),
+                                # 최대 인원 10명
+                                MaxValueValidator(10)]
+                                )
+=======
     members = models.IntegerField(validators=[MinValueValidator(2), MaxValueValidator(10)])
+>>>>>>> origin/develop
     views = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     started_at = models.DateTimeField(auto_now=True)
