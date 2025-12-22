@@ -51,7 +51,9 @@ async def room_detail(request, room_name):
         
         # 미팅이 시작되었으면 알림을 보내기
         if can_chat:
-            send_meeting_alert(meeting.title, meeting.started_at)
+            await send_meeting_alert(meeting.title, meeting.started_at, meeting.id)
+
+
 
     # Redis 메시지 가져오기
     r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)

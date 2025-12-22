@@ -25,3 +25,10 @@ class ChatMessage(models.Model):
 
     class Meta:
         ordering = ['timestamp']
+        
+class MeetingAlert(models.Model):
+    meeting = models.OneToOneField(Meeting, on_delete=models.CASCADE)  # unique=True 대신 OneToOneField
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('meeting',)  # 중복 알림 방지

@@ -1,16 +1,19 @@
-
-
 from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
+from asgiref.sync import sync_to_async
+from .models import MeetingAlert
 
-def send_meeting_alert(title, started_at):
-    # WebSocket 그룹에 메시지를 보내기
+async def send_meeting_alert(title, started_at, meeting_id):
+    exists = await sync_to_async(MeetingAlert.objects.filter(meeting_id=meeting_id).exists)()
+    if exists:
+        return
+    await sync_to_async(MeetingAlert.objects.create)(meeting_id=meeting_id)
+
     channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        "meeting_alerts",  # WebSocket 그룹 이름
+    await channel_layer.group_send(
+        "meeting_alerts",
         {
-            "type": "send_meeting_alert",  # 클라이언트에서 처리할 이벤트 타입
+            "type": "send_meeting_alert",
             "title": title,
-            "started_at": started_at.strftime('%Y-%m-%d %H:%M:%S'),  # 알림 시간
+            "started_at": started_at.strftime('%Y-%m-%d %H:%M:%S'),
         }
     )
