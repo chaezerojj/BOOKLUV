@@ -14,6 +14,9 @@ services:
       - .env
     environment:
       - TZ=Asia/Seoul
+      # Django가 .env를 못 읽는 상황 대비(확실하게)
+      - DJANGO_SETTINGS_MODULE: backend.settings
+      - PYTHONUNBUFFERED: "1"
 
   redis:
     image: redis:7

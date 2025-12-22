@@ -10,11 +10,12 @@
       <SearchResultsPanel />
     </section>
 
-    <!-- 큰 배너 -->
-    <HomeHeroSection />
-
-    <!-- 카드 2개 -->
-    <HomeCardsSection />
+    <div class="home-container">
+      <!-- 큰 배너 -->
+      <HomeHeroSection />
+      <!-- 카드 2개 -->
+      <HomeCardsSection />
+    </div>
   </div>
 </template>
 
@@ -32,3 +33,10 @@ import HomeHeroSection from '@/components/home/HomeHeroSection.vue'
 const route = useRoute()
 const hasQuery = computed(() => !!route.query.q && !!route.query.type)
 </script>
+
+<style scoped>
+.home-container{
+  margin: 1rem auto;
+}
+
+</style>

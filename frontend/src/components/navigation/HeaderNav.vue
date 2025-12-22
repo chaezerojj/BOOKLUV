@@ -17,7 +17,7 @@ import { RouterLink } from 'vue-router';
 <style scoped>
 .header-nav {
   display: flex;
-  width: 400px;
+  width: 380px;
   justify-content: space-between;
 }
 

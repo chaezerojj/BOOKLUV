@@ -1,53 +1,69 @@
 import requests
-from django.shortcuts import render
-from rest_framework.decorators import api_view
 from django.conf import settings
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.contrib.auth import get_user_model, login
 
-KAKAO_REST_API_KEY = settings.KAKAO_REST_API_KEY
-KAKAO_REDIRECT_URI = settings.KAKAO_REDIRECT_URI
-KAKAO_CLIENT_SECRET = settings.KAKAO_CLIENT_SECRET
+User = get_user_model()
 
-@api_view(["GET"])
-def login(request):
-    context = {
-        "KAKAO_REST_API_KEY": KAKAO_REST_API_KEY,
-        "KAKAO_REDIRECT_URI": KAKAO_REDIRECT_URI,
-    }
-    return render(request, 'auth/login.html', context)
+FRONT_URL = "http://localhost:5173"  # 프론트 주소
 
-
-# 테스트용 키와 URI 직접 입력
-
-@api_view(["POST"])
 def kakao_callback(request):
     code = request.GET.get("code")
     if not code:
-        return render(request, "auth/callback.html", {"error": "code 값이 없습니다."})
+        return JsonResponse({"detail": "missing code"}, status=400)
 
-    url = "https://kauth.kakao.com/oauth/token"
-    data = {
-        "grant_type": "authorization_code",
-        "client_id": KAKAO_REST_API_KEY,
-        "redirect_uri": KAKAO_REDIRECT_URI,
-        "code": code,
-        "client_secret": KAKAO_CLIENT_SECRET
-    }
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
-    }
+    try:
+        token_res = requests.post(
+            "https://kauth.kakao.com/oauth/token",
+            data={
+                "grant_type": "authorization_code",
+                "client_id": settings.KAKAO_REST_API_KEY,
+                "redirect_uri": settings.KAKAO_REDIRECT_URI,   # http://localhost:8000/api/auth/callback/
+                "client_secret": settings.KAKAO_CLIENT_SECRET,
+                "code": code,
+            },
+            timeout=5,
+        )
+        if token_res.status_code != 200:
+            return JsonResponse({"detail": "token exchange failed", "kakao": token_res.text}, status=400)
 
-    response = requests.post(url, data=data, headers=headers)
+        access_token = token_res.json().get("access_token")
+        if not access_token:
+            return JsonResponse({"detail": "no access_token", "kakao": token_res.json()}, status=400)
 
-    # 디버그: 응답 출력
-    print("status_code:", response.status_code)
-    print("response_body:", response.text)
+        me_res = requests.get(
+            "https://kapi.kakao.com/v2/user/me",
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=5,
+        )
+        if me_res.status_code != 200:
+            return JsonResponse({"detail": "user info failed", "kakao": me_res.text}, status=400)
 
-    if response.status_code == 200:
-        result = response.json()
-        access_token = result.get("access_token")
-        refresh_token = result.get("refresh_token")
-        context = {"access_token": access_token, "refresh_token": refresh_token}
-    else:
-        context = {"error": f"토큰 발급 실패: {response.text}"}
+        me = me_res.json()
+        kakao_id = me.get("id")
+        kakao_account = me.get("kakao_account", {})
+        email = kakao_account.get("email")  # 동의 안 받으면 None
 
-    return render(request, "auth/callback.html", context)
+        if not kakao_id:
+            return JsonResponse({"detail": "missing kakao id", "me": me}, status=400)
+
+        # 1) 유저 생성/조회 (kakao_id 기준)
+        user, created = User.objects.get_or_create(
+            kakao_id=kakao_id,
+            defaults={"email": email, "is_active": True},
+        )
+
+        # 2) email이 나중에 들어오면 업데이트(선택)
+        if email and user.email != email:
+            user.email = email
+            user.save(update_fields=["email"])
+
+        # 3) 세션 로그인
+        login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+
+        # 4) 프론트로 이동
+        return redirect(f"{FRONT_URL}/")
+
+    except Exception as e:
+        return JsonResponse({"detail": "callback exception", "error": repr(e)}, status=500)

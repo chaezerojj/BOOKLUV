@@ -16,11 +16,22 @@ import TheHeader from '@/components/navigation/TheHeader.vue'
 <style scoped>
 .app {
   width: 100%;
-  margin: 0 auto;
-  padding: 0px;
+  margin: 0;
+  padding: 0;
   font-family: Pretendard;
   color:  #1f2328;
-  background-image: linear-gradient(#FDF4DC, #ffffff);
+}
+
+:global(html, body) {
+  margin: 0;
+  height: 100%;
+}
+
+:global(body) {
+  min-height: 100vh;
+  background: linear-gradient(#FDF4DC, #ffffff);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 /* 페이지가 바뀌는 영역 */

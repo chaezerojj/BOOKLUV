@@ -1,75 +1,66 @@
 <template>
   <div class="grid">
-    <div v-for="book in books" :key="book.id" class="card">
-      <img v-if="book.cover_url" class="cover" :src="book.cover_url" :alt="book.title" />
-
+    <RouterLink v-for="book in books" :key="book.id" class="card"
+      :to="{ name: 'book-detail', params: { id: book.id } }">
+      <img v-if="book.cover_url" :src="book.cover_url" class="cover" />
       <div class="body">
-        <h5 class="title">{{ book.title }}</h5>
-        <p class="meta"><b>Author:</b> {{ book.author_name || 'Unknown' }}</p>
-        <p class="meta"><b>Category:</b> {{ book.category_name || 'Unknown' }}</p>
+        <h3 class="title">{{ book.title }}</h3>
+        <p class="meta">저자: {{ book.author_name ?? 'Unknown' }}</p>
+        <p class="meta">카테고리: {{ book.category_name ?? 'Unknown' }}</p>
         <p class="desc">{{ book.description }}</p>
       </div>
-    </div>
+    </RouterLink>
   </div>
 </template>
 
+
 <script setup>
 defineProps({
-  books: { type: Array, default: () => [] },
+  books: { type: Array, required: true },
 })
 </script>
 
 <style scoped>
 .grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
 }
 
-@media (max-width: 1200px) {
-  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-@media (max-width: 768px) {
-  .grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-}
-
 .card {
-  border: 1px solid #eee;
+  display: block;
+  background: #fff;
   border-radius: 12px;
-  overflow: hidden;
-  background: white;
-  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+  padding: 12px;
+  text-decoration: none;
+  color: inherit;
 }
 
 .cover {
   width: 100%;
-  height: 220px;
+  height: 180px;
   object-fit: cover;
-  background: #f7f7f7;
-}
-
-.body {
-  padding: 12px;
+  border-radius: 10px;
 }
 
 .title {
-  margin: 0 0 8px;
   font-size: 16px;
+  margin: 8px 0;
 }
 
 .meta {
+  font-size: 12px;
+  color: #666;
   margin: 2px 0;
-  font-size: 14px;
 }
 
 .desc {
-  margin-top: 8px;
-  font-size: 13px;
-  color: #777;
-
+  font-size: 12px;
+  color: #444;
+  margin-top: 6px;
+  overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 </style>

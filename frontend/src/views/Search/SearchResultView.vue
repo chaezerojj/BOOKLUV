@@ -1,8 +1,6 @@
 <template>
   <div class="container">
-    <h1 class="headline">Search</h1>
-
-    <!-- 결과 페이지에서도 검색바를 보여주고 싶다면 -->
+    <!-- 결과 페이지에서도 검색바 유지 -->
     <GlobalSearchBar :syncWithRoute="true" />
 
     <SearchResultsPanel :type="type" :q="q" />
@@ -37,7 +35,7 @@ watch(
 .container {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 30px 16px;
+  /* padding: 30px 16px; */
 }
 .headline {
   margin-bottom: 14px;
