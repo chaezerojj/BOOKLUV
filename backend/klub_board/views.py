@@ -55,6 +55,32 @@ def comments_create(request, pk):
     }
     return render(request, 'board/detail.html', context)
 
+from django.shortcuts import get_object_or_404
+
+def comments_update(request, board_pk, comment_pk):
+    board = get_object_or_404(Board, pk=board_pk)
+    comment = get_object_or_404(Comment, pk=comment_pk)
+
+    # 권한 체크 (작성자만 수정 가능)
+    if request.user != comment.user:
+        return redirect('board:detail', board_pk)
+
+    if request.method == 'POST':
+        comment_form = CommentForm(request.POST, instance=comment)
+        if comment_form.is_valid():
+            comment_form.save()
+            return redirect('board:detail', board_pk)
+    else:
+        # 수정 버튼 눌렀을 때 기존 댓글 내용 채워서 보여주기
+        comment_form = CommentForm(instance=comment)
+
+    context = {
+        'board': board,
+        'comment': comment,
+        'comment_form': comment_form,
+    }
+    return render(request, 'board/comment_update.html', context)
+
 
 def comments_delete(request, board_pk, comment_pk):
     comment = Comment.objects.get(pk=comment_pk)

@@ -36,6 +36,11 @@ urlpatterns = [
         '<int:board_pk>/comments/<int:comment_pk>/delete/',
         views.comments_delete,
         name = 'comments_delete'
-    )
+    ),
+    path(
+        '<int:board_pk>/comments/<int:comment_pk>/update/',
+        views.comments_update,
+        name='comments_update'
+    ),
 
 ]

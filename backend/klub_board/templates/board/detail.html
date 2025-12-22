@@ -23,6 +23,10 @@
         <li>
             {{comment.user}} - {{comment.content}}
             {% if request.user == comment.user %}
+                <form action="{% url "board:comments_update" board.pk comment.pk %}">
+                    {% csrf_token %}
+                    <input type="submit" value="수정">
+                </form>
                 <form action="{% url "board:comments_delete" board.pk comment.pk %}" method="POST">
                     {% csrf_token %}
                     <input type="submit" value="삭제">
@@ -51,6 +55,7 @@
         {% csrf_token %}
         <input type="submit" value='삭제'>
     </form>
+
 
     <hr>
 
