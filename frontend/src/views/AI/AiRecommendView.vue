@@ -1,15 +1,17 @@
 <template>
   <div class="ai-recommend">
-    <h1 class="ai-main-text">🪄 AI로 취향에 맞는 책과 모임을 찾아드려요! 🪄</h1>
-    <div class="img-box">
-      <img class="book-3d-img" src="../../assets/images/3dicons-notebook.png" alt="book-3d-img">
-      <img class="chat-3d-img" src="../../assets/images/3dicons-chat.png" alt="chat-3d-img">
+    <div class="background-img">
+      <h1 class="ai-main-text">🪄 AI로 취향에 맞는 책과 모임을 찾아드려요!</h1>
+      <div class="img-box">
+        <img class="book-3d-img" src="../../assets/images/3dicons-notebook.png" alt="book-3d-img">
+        <img class="chat-3d-img" src="../../assets/images/3dicons-chat.png" alt="chat-3d-img">
+      </div>
+      <div class="text">⬇️아래 버튼을 눌러 테스트를 시작하세요⬇️</div>
+      
+      <RouterLink :to="{ name: 'ai-test' }" class="ai-test-link">
+        <div class="test-link-text">❤️테스트 하러 가기</div>
+      </RouterLink>
     </div>
-    <div class="text">⬇️아래 버튼을 눌러 테스트를 시작하세요⬇️</div>
-
-    <RouterLink :to="{ name: 'ai-test' }" class="ai-test-link">
-      <div class="test-link-text">❤️테스트 하러 가기</div>
-    </RouterLink>
   </div>
 </template>
 
@@ -19,24 +21,37 @@ import { RouterLink } from "vue-router";
 
 <style scoped>
 .ai-recommend {
-  margin: 2rem auto;
-  padding: 2rem;
+  /* border: 1px solid red; */
+  margin: 0rem auto;
+  padding-top: 5rem;
   text-align: center;
-  background: radial-gradient(circle at center, #ffffff 0%, #ffffff 20%, #FDF4DC 100%, 0.7);
+  border-radius: 20px;
 }
+
+.background-img {
+  /* border: 0.1px solid red; */
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-image: url('@/assets/images/clipboard-3dicon.png');
+  background-position: center -300px;
+  padding-bottom: 18rem;
+}
+
 
 .ai-main-text {
   padding: 2rem;
+  padding-top: 16rem;
+  margin-top: 1rem;
   /* border: 1px solid red; */
 }
 
 .book-3d-img {
-  width: 400px;
+  width: 350px;
   animation: orbit 2.4s linear infinite;
 }
 
 .chat-3d-img {
-  width: 300px;
+  width: 250px;
   animation: orbit 3.8s linear infinite;
   margin-bottom: 4rem;
 }
