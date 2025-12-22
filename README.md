@@ -22,8 +22,7 @@
 |--------|--------|--------|
 | 진채영 (팀장) | Frontend | - 와이어 프레임 및 UXUI 설계 / 프론트엔드(Vue) 전반 |
 | 김수미 | Backend | - Kakao API 기반 로그인 기능 구현 / 자유게시판 및 댓글 CRUD |
-| ![b745ef9bb3bd41f685850cdd85a19338](https://github.com/user-attachments/assets/ef205757-0ebd-41d7-b742-fc086aa776a8)
-엄송현 | Backend | - WebSocket, Redis 기반 실시간 채팅 구현 / WebSocket, Celery 기반 실시간 알림 구현 |
+| ![b745ef9bb3bd41f685850cdd85a19338](https://github.com/user-attachments/assets/ef205757-0ebd-41d7-b742-fc086aa776a8)엄송현 | Backend | - WebSocket, Redis 기반 실시간 채팅 구현 / WebSocket, Celery 기반 실시간 알림 구현 |
 
 ## 성과
 
