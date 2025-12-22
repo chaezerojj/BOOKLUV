@@ -7,6 +7,7 @@ urlpatterns = [
     # 도서 - 알라딘 api 데이터 기반 도서 목록
     # path('', views.aladin_api, name='book_list'),
     # 채영언니가 쓴 api
+    # path('index', views.show_index, name="index"), 
     path('', views.book_search_api, name="book-search-api"), 
     path('page/', views.book_list, name='search-book-page'),
     # 모임 상세 페이지
