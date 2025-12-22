@@ -67,3 +67,4 @@ def kakao_callback(request):
 
     except Exception as e:
         return JsonResponse({"detail": "callback exception", "error": repr(e)}, status=500)
+ 
