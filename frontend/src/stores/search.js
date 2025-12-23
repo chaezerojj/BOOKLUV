@@ -1,7 +1,18 @@
-import { defineStore } from 'pinia'
-import axios from 'axios'
+import { defineStore } from "pinia";
+import { http } from "@/api/http"; // axios 인스턴스 사용(쿠키/CSRF 세팅 포함)
 
-export const useSearchStore = defineStore('search', {
+const normalizeBook = (b) => ({
+  ...b,
+  id: b?.id ?? b?.pk ?? b?.book_id ?? null,
+});
+
+const isProbablyHtmlString = (data) => {
+  if (typeof data !== "string") return false;
+  const s = data.trim().toLowerCase();
+  return s.startsWith("<!doctype html") || s.startsWith("<html") || s.includes("<head");
+};
+
+export const useSearchStore = defineStore("search", {
   state: () => ({
     loading: false,
     error: null,
@@ -11,41 +22,51 @@ export const useSearchStore = defineStore('search', {
 
   actions: {
     async search({ type, q }) {
-      const keyword = (q ?? '').trim()
+      const keyword = (q ?? "").trim();
 
       if (!keyword) {
-        this.books = []
-        this.kluvTalks = []
-        this.error = null
-        return
+        this.books = [];
+        this.kluvTalks = [];
+        this.error = null;
+        return;
       }
 
-      this.loading = true
-      this.error = null
+      this.loading = true;
+      this.error = null;
 
       try {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
-
-        if (type === 'book') {
-          const res = await axios.get(`${API_URL}/api/v1/books/`, {
+        if (type === "book") {
+          const res = await http.get("/api/v1/books/", {
             params: { q: keyword },
-          })
-          // 무조건 배열이 옴 (Response(serializer.data))
-          this.books = res.data
-          this.kluvTalks = []
+            headers: { Accept: "application/json" },
+          });
+
+          // 혹시라도 HTML 문자열이 오는 경우 방어
+          if (isProbablyHtmlString(res.data)) {
+            throw new Error("책 검색 API가 JSON이 아니라 HTML을 반환했어요. (백엔드 라우팅 확인 필요)");
+          }
+
+          // 배열만 허용 (페이지네이션이면 results도 허용)
+          const list = Array.isArray(res.data)
+            ? res.data
+            : Array.isArray(res.data?.results)
+            ? res.data.results
+            : [];
+
+          this.books = list.map(normalizeBook);
+          this.kluvTalks = [];
         } else {
-          // 모임 구현안된 상태라 요청 막아둠
-          this.kluvTalks = []
-          this.books = []
-          this.error = new Error('모임 검색은 아직 준비 중이에요.')
+          this.kluvTalks = [];
+          this.books = [];
+          this.error = new Error("모임 검색은 아직 준비 중이에요.");
         }
       } catch (e) {
-        this.error = e
-        this.books = []
-        this.kluvTalks = []
+        this.error = e;
+        this.books = [];
+        this.kluvTalks = [];
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
   },
-})
+});

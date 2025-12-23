@@ -127,16 +127,17 @@ const router = createRouter({
       props: true,
     },
     {
-      path: "/board/:id",
+      path: "/board/:id/update",
       name: "board-update",
       component: BoardUpdateView,
+      props: true,
     },
 
     {
       path: "/books/:id",
       name: "book-detail",
       component: () => import('@/views/Books/BookDetailView.vue'),
-      props: true,
+      // props: true,
     },
     
     {

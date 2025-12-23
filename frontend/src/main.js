@@ -16,7 +16,7 @@ pinia.use(piniaPluginPersistedstate)
 app.use(pinia)
 app.use(router)
 
-// ✅ 앱 시작 시 세션 로그인 여부 확인
+// 앱 시작 시 세션 로그인 여부 확인
 const authStore = useAuthStore();
 authStore.fetchMe();
 

@@ -10,16 +10,15 @@
 <body>
 <div class="container my-5">
     <h1 class="mb-4">Book Search</h1>
-    <form method="GET" action="{% url 'talk:meeting-search' %}">
-        <div class="input-group">
-            <input
-                type="text"
-                name="q"
-                class="form-control"
-                placeholder="모임 제목 또는 책 제목 검색"
-                value="{{ q }}"
-            >
-            <button class="btn btn-primary">검색</button>
+
+    <div class="row mb-4">
+        <div class="col-md-8 mx-auto">
+            <form action="{% url 'talk:search-book-page' %}" method="GET">
+                <div class="input-group shadow-sm">
+                    <input type="text" name="q" class="form-control" placeholder="검색어를 입력하세요..." value="{{ request.GET.q|default:'' }}">
+                    <button class="btn btn-primary" type="submit">검색</button>
+                </div>
+            </form>
         </div>
     </form>
 

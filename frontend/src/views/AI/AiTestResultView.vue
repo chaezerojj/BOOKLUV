@@ -1,20 +1,14 @@
 <template>
   <div class="ai-test-result">
-    <!-- <h1>AI 설문 결과</h1> -->
-
     <div v-if="!result" class="empty">
       결과가 없어요. 테스트부터 진행해 주세요.
     </div>
 
     <div v-else class="result-container">
       <div class="result-inner">
-        <section class="report">
-          <h3 class="report-text">🎯 맞춤 성향 분석 리포트</h3>
-          <p>{{ result.ai_reason }}</p>
-        </section>
 
         <section class="books">
-          <h2>📚 추천 도서</h2>
+          <h2 class="recommend-main-text">💛 Bookluv가 추천하는 도서를 알려드릴게요!</h2>
 
           <div v-for="book in result.books" :key="book.id" class="result-book-box">
             <img class="book-img" :src="book.cover_url" alt="" />
@@ -32,9 +26,7 @@
                 <RouterLink class="btn-link" :to="{ name: 'book-detail', params: { id: book.id } }">
                   책 상세로 이동
                 </RouterLink>
-                <RouterLink class="btn-link" :to="{ name: 'kluvtalk-list', query: { category: book.category_name } }">
-                  관련 모임 보기
-                </RouterLink>
+                <span class="detail-text">🙌 상세 페이지에서 해당 책의 모임을 보실 수 있습니다.</span>
               </div>
             </div>
           </div>
@@ -44,32 +36,35 @@
   </div>
 </template>
 
+
 <script setup>
 import { computed } from "vue";
-import { RouterLink } from "vue-router";
 import { useAiRecommendStore } from "@/stores/aiRecommend";
 
 const store = useAiRecommendStore();
 const result = computed(() => store.result);
 </script>
 
+
 <style scoped>
 .ai-test-result {
   display: flex;
   margin: 1rem auto;
-  margin-top: 3rem;
+  margin-top: 5rem;
   width: 100%;
+  justify-content: center;
 }
 
 .result-container {
-  width: 1300px;
+  width: 1000px;
   border-radius: 20px;
-  background-color: #fff;
+  background-color: #ffffff;
 }
 
 .result-inner {
   margin: 3rem;
   margin-left: 4rem;
+  padding: 0.5rem 1rem;
   text-align: center;
 }
 
@@ -90,7 +85,7 @@ const result = computed(() => store.result);
 
 .book-img {
   margin: 1rem;
-  border: 10px solid #fff;
+  border: 7px solid #fff;
   border-radius: 20px;
   box-shadow: 2px 2px 8px rgba(161, 161, 161, 0.25);
 }
@@ -100,6 +95,18 @@ const result = computed(() => store.result);
   text-align: left;
   width: 600px;
   line-height: 2rem;
+}
+
+.title {
+  font-size: 24px;
+}
+
+.meta {
+  font-size: 18px;
+}
+
+.reason {
+  font-size: 16px;
 }
 
 .actions {
@@ -118,11 +125,19 @@ const result = computed(() => store.result);
   cursor: pointer;
   text-decoration: none;
   color: inherit;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .btn-link:hover {
   transform: translateY(-1px);
   box-shadow: 2px 2px 12px rgba(161, 161, 161, 0.25);
+}
+
+.detail-text {
+  margin-top: 0.6rem;
+  margin-left: 0.6rem;
+  font-size: 14px;
+  font-weight: 700;
 }
 </style>

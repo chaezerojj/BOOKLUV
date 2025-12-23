@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>나의 모임방</title>
+</head>
+<body>
+<h2>나의 모임방</h2>
+
+{% if room_infos %}
+  <ul>
+    {% for room in room_infos %}
+      <li style="margin-bottom: 16px;">
+        <strong>{{ room.room_name }}</strong><br>
+
+        시작: {{ room.started_at|date:"Y-m-d H:i" }}<br>
+        종료: {{ room.finished_at|date:"Y-m-d H:i" }}<br>
+
+        상태:
+        {% if room.is_active %}
+          <span style="color: green;">진행 중</span>
+        {% else %}
+          <span style="color: gray;">종료</span>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>참여 중인 모임이 없습니다.</p>
+{% endif %}
+
+<a href="{% url 'user:mypage' %}">나의 프로필</a>
+<a href="{% url 'user:myroom' %}">나의 모임방</a>
+</body>
+</html>
+
+

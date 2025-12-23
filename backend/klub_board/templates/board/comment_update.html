@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>게시판 수정 페이지</title>
+</head>
+<body>
+<h2>댓글 수정</h2>
+
+<form action="" method="POST">
+    {% csrf_token %}
+    {{ comment_form.as_p }}
+    <button type="submit">수정 완료</button>
+</form>
+
+<a href="{% url 'board:detail' board.pk %}">취소</a>
+</body>
+</html>

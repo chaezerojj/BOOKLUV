@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>마이페이지 - 회원정보 수정</title>
+</head>
+<body>
+<h2>회원 정보 수정</h2>
+
+<form method="POST" action="{% url 'user:mypage_edit' %}">
+    {% csrf_token %}
+
+    <div>
+        <label>이메일</label>
+        <input type="text" value="{{ user.email }}" readonly>
+    </div>
+
+    <div>
+        <label>닉네임</label>
+        <input type="text" name="nickname" value="{{ user.nickname }}">
+    </div>
+
+    <div>
+        <label>가입일</label>
+        <input type="text" value="{{ user.date_joined }}" readonly>
+    </div>
+
+    <button type="submit">수정하기</button>
+</form>
+<a href="{% url 'user:mypage' %}">나의 프로필</a>
+<a href="{% url 'user:myroom' %}">나의 모임방</a>
+</body>
+</html>

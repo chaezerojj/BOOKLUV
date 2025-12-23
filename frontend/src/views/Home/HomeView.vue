@@ -11,9 +11,7 @@
     </section>
 
     <div class="home-container">
-      <!-- 큰 배너 -->
-      <HomeHeroSection />
-      <!-- 카드 2개 -->
+      <HomeHeroSlider />
       <HomeCardsSection />
     </div>
   </div>
@@ -28,7 +26,7 @@ import GlobalSearchBar from '@/components/search/GlobalSearchBar.vue'
 import SearchResultsPanel from '@/components/search/results/SearchResultsPanel.vue'
 
 import HomeCardsSection from '@/components/home/HomeCardsSection.vue'
-import HomeHeroSection from '@/components/home/HomeHeroSection.vue'
+import HomeHeroSlider from '@/components/home/HomeHeroSlider.vue'
 
 
 const route = useRoute()

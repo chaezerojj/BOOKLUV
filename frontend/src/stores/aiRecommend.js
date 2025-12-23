@@ -40,9 +40,7 @@ export const useAiRecommendStore = defineStore("aiRecommend", {
       this.error = null;
 
       try {
-        // ✅ 백엔드 JSON API로 POST (아래 5번에서 백엔드 코드 제공)
-        // 예: /api/v1/recommend/result/
-        const res = await http.post("/api/v1/recommend/api/result/", this.answers);
+        const res = await http.post("/api/v1/recommendations/api/result/", this.answers);
         this.result = res.data;
         return res.data;
       } catch (err) {

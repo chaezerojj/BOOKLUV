@@ -26,9 +26,13 @@ urlpatterns = [
     path("api/v1/auth/", include('klub_user.urls')),
     path("auth/v1/callback/",
     TemplateView.as_view(template_name="auth/callback.html"), name="auth-callback-page"),
-
+    
+    # path('api/v1/board/', include('klub_board.urls', namespace='board')),
+    path('api/v1/board/', include('klub_board.api_urls', namespace='board')),
     # 책, 모임 정보
-    path("api/v1/books/", include("klub_talk.urls")),
+    path("api/v1/books/", include("klub_talk.api_urls")),
+    # 테스트
+    path("api/v1/book/", include("klub_talk.urls")),
     # 실시간 채팅 정보
     path("api/v1/chat/", include("klub_chat.urls")),
     # AI API 추천 정보

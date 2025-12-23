@@ -5,7 +5,7 @@ app_name = 'talk'
 
 urlpatterns = [
     # 도서 - 알라딘 api 데이터 기반 도서 목록
-    # path('', views.aladin_api, name='book_list'),
+    path('aladin/', views.aladin_api, name='aladin-books'),
     # 채영언니가 쓴 api
     # path('index', views.show_index, name="index"), 
     path('', views.book_search_api, name="book-search-api"), 

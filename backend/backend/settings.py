@@ -21,6 +21,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# 로그인 페이지 URL
+LOGIN_URL = 'http://192.168.202.130:8000/api/v1/auth/'
+
+# 로그인 성공 후 기본 리다이렉트
+LOGIN_REDIRECT_URL = 'http://192.168.202.130:8000/api/v1/chat/rooms/'
+
 load_dotenv()
 
 # Application definition
@@ -34,6 +40,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'channels',
     'daphne',
+    'klub_board',
     'klub_chat',
     'klub_talk',
     'klub_user',

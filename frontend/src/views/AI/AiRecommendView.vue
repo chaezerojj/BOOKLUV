@@ -1,15 +1,17 @@
 <template>
   <div class="ai-recommend">
-    <h1 class="ai-main-text">🪄 AI로 취향에 맞는 책과 모임을 찾아드려요! 🪄</h1>
-    <div class="img-box">
-      <img class="book-3d-img" src="../../assets/images/3dicons-notebook.png" alt="book-3d-img">
-      <img class="chat-3d-img" src="../../assets/images/3dicons-chat.png" alt="chat-3d-img">
+    <div class="background-img">
+      <div class="ai-main-text">🪄 AI로 취향에 맞는 책과 모임을 찾아드려요!</div>
+      <div class="img-box">
+        <img class="book-3d-img" src="../../assets/images/3dicons-notebook.png" alt="book-3d-img">
+        <img class="chat-3d-img" src="../../assets/images/3dicons-chat.png" alt="chat-3d-img">
+      </div>
+      <div class="text">⬇️아래 버튼을 눌러 테스트를 시작하세요⬇️</div>
+      
+      <RouterLink :to="{ name: 'ai-test' }" class="ai-test-link">
+        <div class="test-link-text">❤️테스트 하러 가기</div>
+      </RouterLink>
     </div>
-    <div class="text">⬇️아래 버튼을 눌러 테스트를 시작하세요⬇️</div>
-
-    <RouterLink :to="{ name: 'ai-test' }" class="ai-test-link">
-      <div class="test-link-text">❤️테스트 하러 가기</div>
-    </RouterLink>
   </div>
 </template>
 
@@ -19,24 +21,44 @@ import { RouterLink } from "vue-router";
 
 <style scoped>
 .ai-recommend {
-  margin: 2rem auto;
-  padding: 2rem;
+  /* border: 1px solid red; */
+  margin: 0rem auto;
+  padding-top: 5rem;
   text-align: center;
-  background: radial-gradient(circle at center, #ffffff 0%, #ffffff 20%, #FDF4DC 100%, 0.7);
+  border-radius: 20px;
 }
 
+.background-img {
+  /* border: 0.1px solid red; */
+  margin: 0 auto;
+  background-size: 800px;
+  background-repeat: no-repeat;
+  background-image: url('@/assets/images/tablet4.png');
+  background-position: center -1px;
+  padding-bottom: 18rem;
+}
+
+
 .ai-main-text {
+  font-size: 28px;
+  font-weight: 700;
   padding: 2rem;
-  /* border: 1px solid red; */
+  padding-top: 12rem;
+  margin-top: 1rem;
+  letter-spacing: -0.04rem;
+}
+
+.img-box {
+  padding-top: 4.5rem;
 }
 
 .book-3d-img {
-  width: 400px;
+  width: 330px;
   animation: orbit 2.4s linear infinite;
 }
 
 .chat-3d-img {
-  width: 300px;
+  width: 240px;
   animation: orbit 3.8s linear infinite;
   margin-bottom: 4rem;
 }
@@ -54,8 +76,9 @@ import { RouterLink } from "vue-router";
 }
 
 .text {
-  margin: 3rem;
-  font-weight: 600;
+  margin: 2rem;
+  margin-top: 5rem;
+  font-weight: 400;
 }
 
 .ai-test-link {
@@ -67,17 +90,16 @@ import { RouterLink } from "vue-router";
   background-color: #ffffff;
   border-radius: 10px;
   width: 200px;
-  /* height: 40px; */
   margin: 1rem auto;
   padding: 1rem;
   text-align: center;
   font-weight: 800;
   font-size: 18px;
-  border: 1px solid #eee;
+  border: 1px solid #e4e4e4;
 }
 
 .test-link-text:hover {
   transform: translateY(-2px);
-  box-shadow: 2px 2px 12px rgba(161, 161, 161, 0.3);
+  box-shadow: 2px 2px 8px rgba(161, 161, 161, 0.3);
 }
 </style>

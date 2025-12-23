@@ -11,16 +11,23 @@
     <button id="kakao-login-btn">카카오톡 로그인하기</button>
 
     <script>
-        // Django context에서 변수 가져오기
-        const REST_API_KEY = "{{ KAKAO_REST_API_KEY }}";
-        const REDIRECT_URI = "{{ KAKAO_REDIRECT_URI }}";
+    const REST_API_KEY = "{{ KAKAO_REST_API_KEY }}";
+    const REDIRECT_URI = "{{ KAKAO_REDIRECT_URI }}";
+    let NEXT = "{{ next }}";
 
-        const kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}`;
+    // 상대 경로를 절대 URL로 변환
+    if (NEXT && NEXT.startsWith("/")) {
+        NEXT = "http://192.168.202.130:8000" + NEXT;
+    }
 
-        document.getElementById("kakao-login-btn").addEventListener("click", () => {
-            // 카카오 로그인 페이지로 이동
-            window.location.href = kakaoAuthURL;
-        });
-    </script>
+    let kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}`;
+    if (NEXT) {
+        kakaoAuthURL += `&state=${encodeURIComponent(NEXT)}`;
+    }
+
+    document.getElementById("kakao-login-btn").addEventListener("click", () => {
+        window.location.href = kakaoAuthURL;
+    });
+</script>
 </body>
 </html>
