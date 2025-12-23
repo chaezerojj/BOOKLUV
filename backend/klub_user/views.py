@@ -4,6 +4,12 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 import requests
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from klub_chat.models import Room
+from klub_talk.models import Meeting
+from klub_talk.models import Participate
+from django.utils import timezone
+
 
 User = get_user_model()
 
@@ -81,3 +87,68 @@ def kakao_callback(request):
 
     except Exception as e:
         return JsonResponse({"detail": "callback exception", "error": repr(e)}, status=500)
+    
+
+
+@login_required(login_url="/api/v1/auth/")
+def mypage(request):
+    return render(request, "auth/mypage.html", {
+        "user": request.user
+    })
+
+@login_required(login_url="/api/v1/auth/")
+def mypage_edit(request):
+    user = request.user
+
+    if request.method == "POST":
+        nickname = request.POST.get("nickname")
+
+        if nickname:
+            user.nickname = nickname 
+            user.save()
+
+        return redirect("user:mypage")
+    return render(request, "klub_user/mypage_edit.html")
+    
+# @login_required(login_url="/api/v1/auth/")
+# def myroom(request):
+#     rooms = Room.objects.filter(members=request.user)
+#     meetings = Meeting.objects.filter(members=request.user)
+    
+#     return render(request, "myroom.html", {
+#         "rooms": rooms,
+#         "meetings": meetings
+#     })
+
+
+@login_required(login_url="/api/v1/auth/")
+def myroom(request):
+    participations = (
+        Participate.objects
+        .filter(user_id=request.user)
+        .select_related("meeting_id", "meeting_id__room")
+    )
+
+    room_infos = []
+
+    for p in participations:
+        meeting = p.meeting_id
+        room = getattr(meeting, "room", None)
+
+        if not room:
+            continue
+
+        now = timezone.now()
+        is_active = meeting.started_at <= now <= meeting.finished_at
+
+        room_infos.append({
+            "room_name": room.name,
+            "started_at": meeting.started_at,
+            "finished_at": meeting.finished_at,
+            "is_active": is_active,
+        })
+
+    return render(request, "auth/myroom.html", {
+        "room_infos": room_infos
+    })
+

@@ -21,6 +21,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    nickname = models.CharField(max_length=30, default="user",blank=True)
     # 카카오톡 로그인 시 저장되는 정보
     # 이메일
     email = models.EmailField(unique=True, null=True, blank=True)
