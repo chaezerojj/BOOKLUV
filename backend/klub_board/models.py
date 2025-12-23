@@ -11,7 +11,7 @@ class Board(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    image = models.ImageField(blank=True)
+    # image = models.ImageField(blank=True)
 
 class Comment(models.Model):
     # 게시글과 댓글 관계 (Many-to-one), 게시글 삭제되면 댓글도 삭제

@@ -36,7 +36,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     # objects = UserManager()
 
     USERNAME_FIELD = "email"
-    # REQUIRED_FIELDS = []
+    # REQUIRED_FIELDS = [] 
     last_login = models.DateTimeField(null=True, blank=True)  # ✅ 추가
 
 
