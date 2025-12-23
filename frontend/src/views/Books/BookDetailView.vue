@@ -1,43 +1,45 @@
 <template>
-  <div class="container">
-    <div v-if="store.loading">로딩중...</div>
-    <div v-else-if="store.error">에러가 발생했어요.</div>
-
-    <div v-else-if="store.book" class="wrap">
-      <div class="book">
-        <img v-if="store.book.cover_url" :src="store.book.cover_url" class="cover" />
-        <div class="info">
-          <h1 class="title">{{ store.book.title }}</h1>
-          <p>저자: {{ store.book.author_name ?? 'Unknown' }}</p>
-          <p>카테고리: {{ store.book.category_name ?? 'Unknown' }}</p>
-          <p>출판사: {{ store.book.publisher ?? '-' }}</p>
-          <p class="desc">{{ store.book.description }}</p>
+  <GlobalSearchBar class="global-search" />
+  <div class="book-detail">
+    <div class="detail-container">
+      <div v-if="store.loading">로딩중...</div>
+      <div v-else-if="store.error">에러가 발생했어요.</div>
+      
+      <div v-else-if="store.book" class="wrap">
+        <div class="book">
+          <img v-if="store.book.cover_url" :src="store.book.cover_url" class="cover" />
+          <div class="info">
+            <h1 class="title">{{ store.book.title }}</h1>
+            <p>{{ store.book.author_name ?? 'Unknown' }} 저자 | 
+              {{ store.book.publisher ?? '-' }} | {{ store.book.category_name ?? 'Unknown' }}</p>
+            <p class="desc">{{ store.book.description }}</p>
+          </div>
         </div>
+        
+        
+        <section class="meetings">
+          <hr class="line" />
+          <h2>이 책과 관련된 모임 ({{ store.meetings.length }})</h2>
+          
+          <div v-if="store.meetings.length === 0" class="empty">
+            등록된 모임이 없습니다.
+          </div>
+          
+          <ul v-else class="list">
+            <li v-for="m in store.meetings" :key="m.id" class="item">
+              <div>
+                <div class="m-title">{{ m.title }}</div>
+                <div class="m-meta">멤버 수: {{ m.members }} · 조회수: {{ m.views }}</div>
+                <div class="m-desc">{{ m.description }}</div>
+              </div>
+              
+              <RouterLink class="btn" :to="{ name: 'kluvtalk-detail', params: { id: m.id } }">
+                자세히 보기
+              </RouterLink>
+            </li>
+          </ul>
+        </section>
       </div>
-
-      <hr class="line" />
-
-      <section class="meetings">
-        <h2>이 책과 관련된 모임 ({{ store.meetings.length }})</h2>
-
-        <div v-if="store.meetings.length === 0" class="empty">
-          등록된 모임이 없습니다.
-        </div>
-
-        <ul v-else class="list">
-          <li v-for="m in store.meetings" :key="m.id" class="item">
-            <div>
-              <div class="m-title">{{ m.title }}</div>
-              <div class="m-meta">멤버 수: {{ m.members }} · 조회수: {{ m.views }}</div>
-              <div class="m-desc">{{ m.description }}</div>
-            </div>
-
-            <RouterLink class="btn" :to="{ name: 'kluvtalk-detail', params: { id: m.id } }">
-              자세히 보기
-            </RouterLink>
-          </li>
-        </ul>
-      </section>
     </div>
   </div>
 </template>
@@ -47,6 +49,7 @@
 import { onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useBookDetailStore } from '@/stores/bookDetail'
+import GlobalSearchBar from '@/components/search/GlobalSearchBar.vue'
 
 const route = useRoute()
 const store = useBookDetailStore()
@@ -63,8 +66,15 @@ watch(() => route.params.id, load)
 
 
 <style scoped>
-.container {
-  max-width: 1000px;
+.book-detail {
+  margin: 0 auto;
+  padding: 1rem;
+  padding-top: 3rem;
+}
+
+.detail-container {
+  background: #fff;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 24px 16px;
 }
@@ -72,18 +82,25 @@ watch(() => route.params.id, load)
 .book {
   display: flex;
   gap: 16px;
+  width: 880px;
+  padding: 3rem;
+  padding-bottom: 1rem;
 }
 
 .cover {
   width: 240px;
   height: 320px;
   object-fit: cover;
-  border-radius: 12px;
-  background: #eee;
+  border-radius: 3px;
 }
 
 .info {
+  margin: 1rem;
   flex: 1;
+}
+
+.info p {
+  font-weight: 400;
 }
 
 .title {
@@ -98,7 +115,21 @@ watch(() => route.params.id, load)
 }
 
 .line {
-  margin: 22px 0;
+  width: 1000px;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.meetings {
+  padding: 2.5rem;
+}
+
+.meetings h2 {
+  padding-left: 0.5rem;
+}
+
+.meetings div {
+  padding-left: 0.5rem;
 }
 
 .list {
