@@ -1,13 +1,18 @@
 <template>
-  <div class="wrap">
-    <h1>회원가입</h1>
-    <p>현재는 카카오 로그인으로 회원이 자동 생성돼요.</p>
+  <div class="signup">
+    <div class="signup-text">
+      <span>카카오 계정으로</span>
+      <span>간편하게 시작하기</span>
+    </div>
 
-    <button class="kakao" type="button" @click="onKakaoLogin">
-      카카오로 시작하기
-    </button>
+    <div class="kakao-btn-box">
+      <button class="kakao" type="button" @click="onKakaoLogin">
+        <span><img class="talk-img" src="@/assets/images/talk.png" alt=""></span>
+        <span class="kakao-start">카카오로 시작하기</span>
+      </button>
+    </div>
 
-    <div class="etc">
+    <div class="back-to-login">
       <RouterLink :to="{ name: 'login' }">로그인으로 돌아가기</RouterLink>
     </div>
   </div>
@@ -23,12 +28,77 @@ const onKakaoLogin = () => {
 </script>
 
 <style scoped>
-.wrap { padding: 24px; }
-.kakao {
-  padding: 12px 16px;
-  border: 0;
-  border-radius: 10px;
-  cursor: pointer;
+.signup {
+  display: flex;
+  flex-direction: column;
+  margin: 5rem auto;
+  align-items: center;
+  text-align: center;
+  border-radius: 16px;
+  background-color: #ffffff;
+  box-shadow: 0px 0px 50px rgba(0, 0, 0, 0.1);
+  width: 350px;
+  height: 380px;
 }
-.etc { margin-top: 12px; }
+
+.signup-text {
+  display: flex;
+  flex-direction: column;
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.02rem;
+  margin: 4.5rem 3rem;
+}
+
+.signup-text span {
+  margin: 0.3rem;
+}
+
+
+.kakao {
+  width: 180px;
+  height: 47px;
+  text-align: center;
+  background-color: #FEE500;
+  border: 0;
+  border-radius: 9px;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 14px;
+}
+
+.talk-img {
+  width: 19px;
+  display: block;
+  margin: 0;
+}
+
+.kakao-start {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  letter-spacing: -0.02rem;
+}
+
+.kakaotalk-img {
+  width: 25px;
+}
+
+.back-to-login {
+  margin-top: 1rem;
+}
+
+.back-to-login a {
+  text-decoration: none;
+  color: #7C7C7C;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: -0.04rem;
+}
 </style>
