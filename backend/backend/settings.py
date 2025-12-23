@@ -159,32 +159,32 @@ CSRF_TRUSTED_ORIGINS = [
 
 # settings.py
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-    'file': {
-        'level': 'DEBUG',
-        'class': 'logging.handlers.RotatingFileHandler',
-        'filename': 'chat_log.txt',
-        'maxBytes': 10485760,  # 파일 최대 크기 10MB
-        'backupCount': 5,  # 최대 5개의 백업 파일 유지
-        },
-    },
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#     'file': {
+#         'level': 'DEBUG',
+#         'class': 'logging.handlers.RotatingFileHandler',
+#         'filename': 'chat_log.txt',
+#         'maxBytes': 10485760,  # 파일 최대 크기 10MB
+#         'backupCount': 5,  # 최대 5개의 백업 파일 유지
+#         },
+#     },
 
-    'loggers': {
-        'django': {
-            'handlers': ['file'],  # 콘솔과 파일 두 곳에 로그 기록
-            'level': 'DEBUG',  # DEBUG 레벨로 모든 로그 기록
-            'propagate': True,
-        },
-        'channels': {
-            'handlers': ['file'],  # channels 로그도 콘솔과 파일에 기록
-            'level': 'DEBUG',  # DEBUG 레벨로 기록
-            'propagate': True,
-        },
-    },
-}
+#     'loggers': {
+#         'django': {
+#             'handlers': ['file'],  # 콘솔과 파일 두 곳에 로그 기록
+#             'level': 'DEBUG',  # DEBUG 레벨로 모든 로그 기록
+#             'propagate': True,
+#         },
+#         'channels': {
+#             'handlers': ['file'],  # channels 로그도 콘솔과 파일에 기록
+#             'level': 'DEBUG',  # DEBUG 레벨로 기록
+#             'propagate': True,
+#         },
+#     },
+# }
 
 KAKAO_REST_API_KEY = '24dfa2917f81a949062310b5a12ad5ef'
 KAKAO_REDIRECT_URI = 'http://localhost:8000/api/v1/auth/callback/'

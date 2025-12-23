@@ -58,35 +58,84 @@ def room_detail(request, pk):
     # 참여 인원 계산
     joined_count = Participate.objects.filter(meeting=meeting, result=True).count()
 
+    participated = False
+    can_participate = True
+    remaining_chances = 3  # 기본 참여 기회
+
+    if request.user.is_authenticated:
+        # 이미 참여 완료했는지
+        participated = Participate.objects.filter(
+            meeting=meeting,
+            user_id=request.user,
+            result=True
+        ).exists()
+
+        # 틀린 횟수 체크
+        wrong_count = Participate.objects.filter(
+            meeting=meeting,
+            user_id=request.user,
+            result=False
+        ).count()
+        remaining_chances = max(0, 3 - wrong_count)
+
+        if remaining_chances == 0:
+            can_participate = False
+
     return render(request, 'talk/room_detail.html', {
         'meeting': meeting,
-        'joined_count': joined_count
+        'joined_count': joined_count,
+        'participated': participated,
+        'can_participate': can_participate,
+        'remaining_chances': remaining_chances
     })
+
 
 @api_view(["GET", "POST"])
 def quiz_view(request, meeting_id):
     quiz = get_object_or_404(Quiz, meeting_id=meeting_id)
-    meeting = quiz.meeting_id
+    meeting = quiz.meeting_id  # Meeting 객체
+
+    user = request.user  # 현재 로그인 유저
+
+    # 이미 틀린 횟수
+    wrong_count = Participate.objects.filter(
+        meeting=meeting,
+        user_id=user,
+        result=False
+    ).count()
+    remaining_chances = max(0, 3 - wrong_count)
+
+    result = None  # 기본값
 
     if request.method == "POST":
-        user_answer = request.POST.get("answer")
-        result = (user_answer.strip() == quiz.answer.strip())
+        user_answer = request.POST.get("answer", "").strip()
+        correct_answer = quiz.answer.strip()
+        result = (user_answer == correct_answer)
 
-        Participate.objects.update_or_create(
-            meeting_id=meeting,
-            user_id=User.objects.get(pk=1),  # 나중에 request.user로 교체
-            defaults={"result": result}
+        # 틀리면 result=False 레코드 생성
+        Participate.objects.create(
+            meeting=meeting,
+            user_id=user,
+            result=result
         )
+
+        # 남은 기회 업데이트 (틀린 경우)
+        if not result:
+            wrong_count += 1
+            remaining_chances = max(0, 3 - wrong_count)
 
         return render(request, "talk/quiz_result.html", {
             "quiz": quiz,
             "result": result,
-            "meeting": meeting
+            "meeting": meeting,
+            "remaining_chances": remaining_chances
         })
 
-    # GET 요청 처리: quiz.html 템플릿을 렌더
-    return render(request, "talk/quiz.html", {"quiz": quiz, "meeting": meeting})
-
+    return render(request, "talk/quiz.html", {
+        "quiz": quiz,
+        "meeting": meeting,
+        "remaining_chances": remaining_chances
+    })
 
 @api_view(['GET'])
 def book_search_api(request):
@@ -197,3 +246,21 @@ def create_meeting(request, pk):
         'meeting_form': meeting_form,
         'quiz_form': quiz_form,
     })
+    
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+
+# @login_required
+# @require_POST
+def cancel_participation(request, meeting_id):
+    meeting = get_object_or_404(Meeting, pk=meeting_id)
+
+    # result=True인 Participate 레코드 삭제
+    Participate.objects.filter(
+        meeting=meeting,
+        user_id=request.user,
+        result=True
+    ).delete()
+
+    # 삭제 후 모임 상세 페이지로 리다이렉트
+    return redirect('talk:meeting-test-detail', pk=meeting_id)

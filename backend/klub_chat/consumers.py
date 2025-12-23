@@ -88,6 +88,8 @@ class MeetingAlertConsumer(AsyncWebsocketConsumer):
 
     async def send_meeting_alert(self, event):
         await self.send(text_data=json.dumps({
-            'title': event['title'],
-            'started_at': event['started_at']
+            "title": event["title"],
+            "started_at": event["started_at"],
+            "meeting_id": event["meeting_id"],
+            "join_url": event.get("join_url", "#")  # 반드시 join_url 포함
         }))

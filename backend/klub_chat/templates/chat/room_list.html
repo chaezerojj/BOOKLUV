@@ -1,5 +1,5 @@
 <h2>오늘의 미팅 알람</h2>
-<div id="meeting-alerts"></div>
+<div id="meeting-alerts" style="margin-bottom: 20px;"></div>
 
 <ul>
 {% for room in rooms %}
@@ -20,39 +20,53 @@
 {% endfor %}
 </ul>
 
+<style>
+#meeting-alerts div {
+    background-color: #f0f8ff;
+    border-left: 4px solid #007bff;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+#meeting-alerts a {
+    margin-left: 10px;
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+}
+#meeting-alerts a:hover {
+    text-decoration: underline;
+}
+</style>
+
 <script>
-// WebSocket 연결을 위한 함수
 function createWebSocketConnection() {
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const chatSocket = new WebSocket(protocol + window.location.host + '/ws/meeting-alerts/');
 
-    // WebSocket 연결 시
-    chatSocket.onopen = function(e) {
-        console.log("WebSocket connection established");
-    };
+    let shownMeetingIds = new Set();
 
-    // 서버로부터 메시지를 받을 때
     chatSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
-        console.log("Received data:", data);
+
+        if (shownMeetingIds.has(data.meeting_id)) return;
+        shownMeetingIds.add(data.meeting_id);
 
         const meetingAlerts = document.getElementById('meeting-alerts');
         const div = document.createElement('div');
-        div.innerHTML = `${data.title} 미팅이 <span class="time">${data.started_at}</span>에 시작됩니다!`;
-        meetingAlerts.appendChild(div);
+        console.log(data)
+        div.innerHTML = `
+            <strong>${data.title}</strong> 미팅이 
+            <span class="time">${data.started_at}</span>에 시작됩니다! 
+            <a href="${data.join_url}">참여하기</a>
+        `;
+        meetingAlerts.prepend(div); // 새 알람이 위로
     };
 
-    // WebSocket 에러 처리
-    chatSocket.onerror = function(e) {
-        console.error("WebSocket error:", e);
-    };
-
-    // WebSocket 연결 종료 시
-    chatSocket.onclose = function(e) {
-        console.log("WebSocket closed", e);
-    };
+    chatSocket.onopen = function() { console.log("WebSocket connected"); };
+    chatSocket.onerror = function(e) { console.error("WebSocket error", e); };
+    chatSocket.onclose = function() { console.log("WebSocket closed"); };
 }
 
-// 페이지 로드 시 WebSocket 연결 시작
 createWebSocketConnection();
 </script>
