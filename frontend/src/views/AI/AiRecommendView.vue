@@ -33,7 +33,7 @@ import { RouterLink } from "vue-router";
   margin: 0 auto;
   background-size: 800px;
   background-repeat: no-repeat;
-  background-image: url('@/assets/images/tablet2.png');
+  background-image: url('@/assets/images/tablet4.png');
   background-position: center -1px;
   padding-bottom: 18rem;
 }
@@ -45,19 +45,20 @@ import { RouterLink } from "vue-router";
   padding: 2rem;
   padding-top: 12rem;
   margin-top: 1rem;
+  letter-spacing: -0.04rem;
 }
 
 .img-box {
-  padding-top: 3rem;
+  padding-top: 4.5rem;
 }
 
 .book-3d-img {
-  width: 350px;
+  width: 330px;
   animation: orbit 2.4s linear infinite;
 }
 
 .chat-3d-img {
-  width: 250px;
+  width: 240px;
   animation: orbit 3.8s linear infinite;
   margin-bottom: 4rem;
 }
@@ -77,7 +78,7 @@ import { RouterLink } from "vue-router";
 .text {
   margin: 2rem;
   margin-top: 5rem;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .ai-test-link {
@@ -99,6 +100,6 @@ import { RouterLink } from "vue-router";
 
 .test-link-text:hover {
   transform: translateY(-2px);
-  box-shadow: 2px 2px 12px rgba(161, 161, 161, 0.3);
+  box-shadow: 2px 2px 8px rgba(161, 161, 161, 0.3);
 }
 </style>

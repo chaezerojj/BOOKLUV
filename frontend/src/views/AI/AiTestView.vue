@@ -5,7 +5,7 @@
       <h1>🔎 AI 취향 설문조사</h1>
       <!-- q1 -->
       <div class="q">
-        <label class="q-label">1) 책을 읽는 가장 큰 목적은?</label>
+        <label class="q-label">1. 책을 읽는 가장 큰 목적은?</label>
         <div class="options">
           <label class="opt">
             <input type="radio" name="q1" value="A" v-model="answers.q1" required />
@@ -28,7 +28,7 @@
 
       <!-- q2 -->
       <div class="q">
-        <label class="q-label">2) 더 끌리는 책은?</label>
+        <label class="q-label">2. 더 끌리는 책은?</label>
         <div class="options">
           <label class="opt">
             <input type="radio" name="q2" value="A" v-model="answers.q2" required />
@@ -47,7 +47,7 @@
 
       <!-- q3 -->
       <div class="q">
-        <label class="q-label">3) 책을 고를 때 가장 먼저 보는 건?</label>
+        <label class="q-label">3. 책을 고를 때 가장 먼저 보는 건?</label>
         <div class="options">
           <label class="opt">
             <input type="radio" name="q3" value="A" v-model="answers.q3" required />
@@ -70,7 +70,7 @@
 
       <!-- q4 -->
       <div class="q">
-        <label class="q-label">4) 가장 선호하는 장르는?</label>
+        <label class="q-label">4. 가장 선호하는 장르는?</label>
         <div class="options">
           <label class="opt">
             <input type="radio" name="q4" value="A" v-model="answers.q4" required />
@@ -93,7 +93,7 @@
 
       <!-- q5 -->
       <div class="q">
-        <label class="q-label">5) 책의 분위기는 어떤 게 좋아?</label>
+        <label class="q-label">5. 책의 분위기는 어떤 게 좋아?</label>
         <div class="options">
           <label class="opt">
             <input type="radio" name="q5" value="A" v-model="answers.q5" required />
@@ -116,7 +116,7 @@
 
       <!-- q6 -->
       <div class="q">
-        <label class="q-label">6) 읽을 때 더 중요한 요소는?</label>
+        <label class="q-label">6. 읽을 때 더 중요한 요소는?</label>
         <div class="options">
           <label class="opt">
             <input type="radio" name="q6" value="A" v-model="answers.q6" required />
@@ -139,7 +139,7 @@
 
       <!-- q7 -->
       <div class="q">
-        <label class="q-label">7) 책 한 권 분량 선호는?</label>
+        <label class="q-label">7. 책 한 권 분량 선호는?</label>
         <div class="options">
           <label class="opt">
             <input type="radio" name="q7" value="A" v-model="answers.q7" required />
@@ -158,7 +158,7 @@
 
       <!-- q8 -->
       <div class="q">
-        <label class="q-label">8) 독서 스타일은?</label>
+        <label class="q-label">8. 독서 스타일은?</label>
         <div class="options">
           <label class="opt">
             <input type="radio" name="q8" value="A" v-model="answers.q8" required />
@@ -177,7 +177,7 @@
 
       <!-- q9 -->
       <div class="q">
-        <label class="q-label">9) 책을 다 읽고 나면 보통?</label>
+        <label class="q-label">9. 책을 다 읽고 나면 보통?</label>
         <div class="options">
           <label class="opt">
             <input type="radio" name="q9" value="A" v-model="answers.q9" required />
@@ -200,7 +200,7 @@
 
       <!-- q10 -->
       <div class="q">
-        <label class="q-label">10) 지금 나에게 더 필요한 책은?</label>
+        <label class="q-label">10. 지금 나에게 더 필요한 책은?</label>
         <div class="options">
           <label class="opt">
             <input type="radio" name="q10" value="A" v-model="answers.q10" required />
@@ -257,25 +257,31 @@ const onSubmit = async () => {
 }
 
 .test-container {
-  background-color: #fcfcfc;
-  width: 720px;
+  background-color: #fefefe;
+  width: 1000px;
   margin: 0 auto;
   display: grid;
   gap: 14px;
-  text-align: left;
+  text-align: center;
   margin: 0 auto;
+  margin-top: 3rem;
   padding: 2rem;
   padding-top: 3.5rem;
-  box-shadow: 0px 0px 8px rgba(161, 161, 161, 0.25);
-  border-radius: 13px;
+  box-shadow: 0px 0px 8px rgba(161, 161, 161, 0.1);
+  border-radius: 5px;
 }
 
 .test-container h1 {
   text-align: center;
+  padding: 1rem;
+  padding-bottom: 3rem;
 }
 
 .q {
-  padding: 2rem 1rem;
+  text-align: center;
+  padding: 2rem 6rem;
+  padding-bottom: 4.5rem;
+  /* background-color: #fff; */
 }
 
 .q label {
@@ -285,8 +291,9 @@ const onSubmit = async () => {
 }
 
 .q-label {
-  font-size: 18px;
-  padding-bottom: 1rem;
+  font-size: 24px;
+  padding-bottom: 2.5rem;
+  letter-spacing: -0.05rem;
 }
 
 .options {
@@ -295,10 +302,14 @@ const onSubmit = async () => {
 }
 
 .opt {
+  letter-spacing: -0.03rem;
+  margin: 0 auto;
+  background-color: #ebebeb;
+  width: 300px;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 15px 12px;
   border-radius: 12px;
   cursor: pointer;
   user-select: none;
@@ -307,22 +318,32 @@ const onSubmit = async () => {
 }
 
 .opt input {
+  margin: 0 1rem;
   width: 18px;
   height: 18px;
 }
 
+.opt span {
+  padding: 0.1rem;
+}
+
 .submit {
+  justify-self: center;
   margin-top: 12px;
-  height: 44px;
+  width: 330px;
+  height: 60px;
   border-radius: 12px;
   border: 1px solid #ddd;
   background: #fff;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
+  font-size: 19px;
+  letter-spacing: -0.06rem;
 }
 
 .err {
   color: #d33;
   font-weight: 700;
 }
+
 </style>
