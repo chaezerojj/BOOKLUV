@@ -53,8 +53,8 @@
 
 <script>
 function createWebSocketConnection() {
-    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    const chatSocket = new WebSocket(protocol + window.location.host + '/ws/meeting-alerts/');
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://'; 
+    const chatSocket = new WebSocket(protocol + '192.168.0.5:8000/ws/meeting-alerts/');
 
     let shownMeetingIds = new Set();
 

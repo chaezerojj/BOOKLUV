@@ -13,5 +13,5 @@ def schedule_meeting_alarm(sender, instance, created, raw, **kwargs):
         alarm_time = instance.started_at - timedelta(minutes=10)
         if alarm_time > timezone.now():
             # task import를 여기서
-            from klub_talk.tasks import send_test_meeting_alert
-            send_test_meeting_alert.apply_async(eta=alarm_time)
+            from klub_talk.tasks import send_today_meeting_alarms_for_today
+            send_today_meeting_alarms_for_today.apply_async(eta=alarm_time)

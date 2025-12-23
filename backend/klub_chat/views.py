@@ -21,7 +21,7 @@ REDIS_DB = 0
 # =====================
 # 채팅방 목록
 # =====================
-@login_required(login_url="/api/v1/auth/")
+@login_required
 def room_list(request):
     if request.method == "POST":
         room_name = request.POST.get("room_name")
@@ -45,7 +45,7 @@ def room_list(request):
 # =====================
 # 채팅방 상세
 # =====================
-@login_required(login_url="/api/v1/auth/")
+@login_required
 def room_detail(request, room_name):
     room = get_object_or_404(Room, slug=room_name)
     meeting = getattr(room, "meeting", None)
@@ -121,7 +121,7 @@ def room_detail(request, room_name):
 # =====================
 # 오늘의 미팅 (알림/목록용)
 # =====================
-@login_required(login_url="/api/v1/auth/")
+@login_required
 def today_meetings(request):
     now = timezone.localtime()
 

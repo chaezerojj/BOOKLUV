@@ -207,6 +207,7 @@ class MeetingAlertConsumer(AsyncWebsocketConsumer):
         )
 
     async def send_meeting_alert(self, event):
+        print("🔥 send_meeting_alert called:", event)  # <- 확인용
         await self.send(text_data=json.dumps({
             "title": event["title"],
             "started_at": event["started_at"],  # 이미 KST

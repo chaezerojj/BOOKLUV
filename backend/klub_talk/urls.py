@@ -20,6 +20,6 @@ urlpatterns = [
     path("meetings/", views.meeting_search, name="meeting-search"),
     # 모임 상세 render - 백엔드에서 확인용
     path("meetings/render/<int:pk>/", views.room_detail, name="meeting-test-detail"),
-    path('<int:pk>/meeting/', views.create_meeting, name='meeting-create'),
+    path('<int:pk>/meeting/', views.create_meeting, name='create-meeting'),
     path('meetings/<int:meeting_id>/cancel/', views.cancel_participation, name='cancel-participation'),
 ]

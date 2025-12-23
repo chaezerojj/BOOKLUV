@@ -214,3 +214,7 @@ CSRF_COOKIE_SAMESITE = "Lax"
 
 # 세션 쿠키를 프론트에서도 쓰게 할 때 (필요하다면..)
 SESSION_COOKIE_HTTPONLY = True
+
+LOGIN_URL = "http://192.168.0.5:8000/api/v1/auth/"
+
+ALLOWED_HOSTS = ['192.168.0.5', 'localhost']
