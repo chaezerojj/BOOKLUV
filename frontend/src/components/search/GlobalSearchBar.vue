@@ -58,6 +58,7 @@ const onSubmit = () => {
 .bar {
   display: flex;
   margin: 2rem auto;
+  margin-top: 3.3rem;
   padding: 0.4rem;
   gap: 7px;
   align-items: center;
