@@ -21,7 +21,6 @@ REDIS_DB = 0
 # =====================
 # 채팅방 목록
 # =====================
-@login_required
 def room_list(request):
     if request.method == "POST":
         room_name = request.POST.get("room_name")

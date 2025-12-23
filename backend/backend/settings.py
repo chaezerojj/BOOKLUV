@@ -156,11 +156,13 @@ CORS_ALLOWED_ORIGINS = [
     'https://your-frontend-domain.com',  # 배포된 프론트엔드 서버
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://glycogenetic-stilted-sunshine.ngrok-free.dev",  # ngrok 도메인 추가
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://glycogenetic-stilted-sunshine.ngrok-free.dev",  # ngrok 도메인 추가
 ]
 
 
@@ -194,7 +196,7 @@ CSRF_TRUSTED_ORIGINS = [
 # }
 
 KAKAO_REST_API_KEY = '4bf9c626d2f496b06164d72b26db4b81'
-KAKAO_REDIRECT_URI = 'http://192.168.0.5:8000/api/v1/auth/callback'
+KAKAO_REDIRECT_URI = 'https://dayle-preadherent-longly.ngrok-free.dev/api/v1/auth/callback/'
 KAKAO_CLIENT_SECRET = 'Py28EL9FRcSyE0PYtkz0TpKTCAjmdUwZ'
 
 
@@ -209,12 +211,9 @@ AUTH_USER_MODEL = 'klub_user.User'
 CORS_ALLOW_CREDENTIALS = True
 
 # 개발환경(HTTP)에서 프론트<->백엔드 다른 포트면 SameSite 이슈 있어서 설정
-SESSION_COOKIE_SAMESITE = "Lax"
-CSRF_COOKIE_SAMESITE = "Lax"
-
 # 세션 쿠키를 프론트에서도 쓰게 할 때 (필요하다면..)
-SESSION_COOKIE_HTTPONLY = True
 
-LOGIN_URL = "http://192.168.0.5:8000/api/v1/auth/"
+LOGIN_URL = "https://dayle-preadherent-longly.ngrok-free.dev/api/v1/auth/"
 
-ALLOWED_HOSTS = ['192.168.0.5', 'localhost']
+ALLOWED_HOSTS = ['*']
+DOMAIN_URL = "https://dayle-preadherent-longly.ngrok-free.dev/"

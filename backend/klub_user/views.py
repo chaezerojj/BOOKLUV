@@ -48,7 +48,7 @@ def kakao_callback(request):
     code = request.GET.get("code")
     if not code:
         return JsonResponse({"detail": "missing code"}, status=400)
-    print(code,KAKAO_REST_API_KEY,KAKAO_REDIRECT_URI,KAKAO_CLIENT_SECRET)
+
     try:
         token_res = requests.post(
             "https://kauth.kakao.com/oauth/token",
@@ -108,11 +108,11 @@ def kakao_callback(request):
         login(request, user, backend="django.contrib.auth.backends.ModelBackend")
 
         # 프론트에서 state를 next_url로 쓴다면 여기서 처리
-        # next_url = request.GET.get("state")
-        # if next_url:
-        #     return redirect(next_url)
-        next_url = request.GET.get("state") or f"http://192.168.0.5:8000/api/v1/chat/rooms/"
-        return redirect(next_url)
+        next_url = request.GET.get("state")
+        if next_url:
+            return redirect(next_url)
+
+        return redirect(FRONT_URL + "/")
 
     except Exception as e:
         return JsonResponse({"detail": "callback exception", "error": repr(e)}, status=500)
