@@ -2,7 +2,7 @@
   <div class="card-body">
     <h1 class="card-title">{{ meeting.title }}</h1>
     <p><strong>책 제목:</strong> {{ meeting.book_id.title }}</p>
-    <p><strong>리더:</strong> {{ meeting.leader_id.username }}</p>
+    <p><strong>리더:</strong> {{ leader.nickname }}</p>
     <p><strong>👥 참여 인원:</strong> {{ joined_count }} / {{ meeting.members }} 명</p>
     <p><strong>조회수:</strong> {{ meeting.views }}</p>
     <p><strong>설명:</strong> {{ meeting.description }}</p>
@@ -10,17 +10,13 @@
     <p><strong>종료일:</strong> {{ meeting.finished_at }}</p>
   </div>
 
-  {% if participated %}
-    <form action="{% url 'talk:cancel-participation' meeting.id %}" method="post">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger mt-3">참여 취소</button>
-    </form>
-  {% else %}
-      {% if can_participate %}
-          <a href="{% url 'talk:quiz-detail' meeting.id %}" class="btn btn-success mt-3">참여하기</a>
-          <p>남은 기회: {{ remaining_chances }}회</p>
-      {% else %}
-          <button class="btn btn-secondary mt-3" disabled>참여 불가 (기회 소진)</button>
-      {% endif %}
-  {% endif %}
+  {% if user == leader %}
+    <p style="color: gray;">개설자는 참여할 수 없습니다.</p>
+{% elif participated %}
+    <p style="color: green;">이미 참여 완료했습니다.</p>
+{% elif not can_participate %}
+    <p style="color: red;">참여 기회를 모두 소진했습니다.</p>
+{% else %}
+    <button>참여하기</button>
+{% endif %}
 </div>

@@ -51,44 +51,57 @@ def book_detail(request, book_id):
 def room_detail(request, pk):
     meeting = get_object_or_404(Meeting, pk=pk)
 
-    # 조회수 증가
-    meeting.views += 1
-    meeting.save(update_fields=['views'])
+    # ✅ 세션 기반 조회수 증가 (사용자당 1회)
+    session_key = f"viewed_meeting_{meeting.id}"
 
-    # 참여 인원 계산
-    joined_count = Participate.objects.filter(meeting=meeting, result=True).count()
+    if not request.session.get(session_key):
+        meeting.views += 1
+        meeting.save(update_fields=["views"])
+        request.session[session_key] = True
+
+    # 참여 인원
+    joined_count = Participate.objects.filter(
+        meeting=meeting,
+        result=True
+    ).count()
+
+    leader = meeting.leader_id
 
     participated = False
     can_participate = True
-    remaining_chances = 3  # 기본 참여 기회
+    remaining_chances = 3
 
     if request.user.is_authenticated:
-        # 이미 참여 완료했는지
-        participated = Participate.objects.filter(
-            meeting=meeting,
-            user_id=request.user,
-            result=True
-        ).exists()
-
-        # 틀린 횟수 체크
-        wrong_count = Participate.objects.filter(
-            meeting=meeting,
-            user_id=request.user,
-            result=False
-        ).count()
-        remaining_chances = max(0, 3 - wrong_count)
-
-        if remaining_chances == 0:
+        if request.user == leader:
             can_participate = False
+            participated = True
+            remaining_chances = 0
+        else:
+            participated = Participate.objects.filter(
+                meeting=meeting,
+                user_id=request.user,
+                result=True
+            ).exists()
 
-    return render(request, 'talk/room_detail.html', {
-        'meeting': meeting,
-        'joined_count': joined_count,
-        'participated': participated,
-        'can_participate': can_participate,
-        'remaining_chances': remaining_chances
+            wrong_count = Participate.objects.filter(
+                meeting=meeting,
+                user_id=request.user,
+                result=False
+            ).count()
+
+            remaining_chances = max(0, 3 - wrong_count)
+
+            if remaining_chances == 0:
+                can_participate = False
+
+    return render(request, "talk/room_detail.html", {
+        "meeting": meeting,
+        "leader": leader,
+        "joined_count": joined_count,
+        "participated": participated,
+        "can_participate": can_participate,
+        "remaining_chances": remaining_chances,
     })
-
 
 @api_view(["GET", "POST"])
 def quiz_view(request, meeting_id):

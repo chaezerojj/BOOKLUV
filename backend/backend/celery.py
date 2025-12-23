@@ -1,5 +1,6 @@
 import os
 from celery import Celery
+from celery.schedules import crontab
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 
@@ -15,6 +16,10 @@ app.conf.beat_schedule = {
     },
     'send_today_meeting_alarms_for_today': {
         'task': 'klub_talk.tasks.send_today_meeting_alarms_for_today',
+        'schedule': 10.0,
+    },
+    "send_meeting_system_messages": {
+        "task": "klub_talk.tasks.send_meeting_system_messages",
         'schedule': 10.0,
     },
 }

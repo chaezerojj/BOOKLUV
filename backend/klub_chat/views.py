@@ -1,71 +1,27 @@
-# klub_chat/views.py
+import json
+import redis
+
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Room
 from django.utils.text import slugify
 from django.contrib.auth.decorators import login_required
-from rest_framework.decorators import api_view
-from asgiref.sync import sync_to_async
-import json
-import redis.asyncio as redis
 from django.utils import timezone
-from django.http import JsonResponse, HttpResponseRedirect
-from klub_talk.models import Meeting
-from .utils import send_meeting_alert
+from django.http import JsonResponse
 
+from .models import Room
+from klub_talk.models import Meeting
+
+# =====================
+# Redis 설정
+# =====================
 REDIS_HOST = "redis"
 REDIS_PORT = 6379
 REDIS_DB = 0
 
-@sync_to_async
-def is_authenticated(request):
-    return request.user.is_authenticated
 
-@login_required(login_url='/accounts/login/')
-@api_view(["GET", "POST"])
-def room_list(request):
-    if request.method == "POST":
-        room_name = request.POST.get("room_name")
-        if room_name and not Room.objects.filter(name=room_name).exists():
-            slug = slugify(room_name)
-            Room.objects.create(name=room_name, slug=slug)
-        return redirect('chat:room-list')
-    user = request.user
-    rooms = Room.objects.select_related('meeting').all()
-    
-    context = {
-        'rooms' : rooms,
-        'user' : user
-    }
-    return render(request, 'chat/room_list.html',context)
-
-@sync_to_async
-def get_room_or_404(slug):
-    return get_object_or_404(Room, slug=slug)
-
-# klub_chat/views.py
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Room
-from django.utils.text import slugify
-from django.contrib.auth.decorators import login_required
-from rest_framework.decorators import api_view
-from asgiref.sync import sync_to_async
-import json
-import redis.asyncio as redis
-from django.utils import timezone
-from django.http import JsonResponse, HttpResponseRedirect
-from klub_talk.models import Meeting
-from .utils import send_meeting_alert
-
-REDIS_HOST = "redis"
-REDIS_PORT = 6379
-REDIS_DB = 0
-
-@sync_to_async
-def is_authenticated(request):
-    return request.user.is_authenticated
-
-@api_view(["GET", "POST"])
-@login_required(login_url="/accounts/login/")
+# =====================
+# 채팅방 목록
+# =====================
+@login_required(login_url="/api/v1/auth/")
 def room_list(request):
     if request.method == "POST":
         room_name = request.POST.get("room_name")
@@ -82,117 +38,125 @@ def room_list(request):
 
     return render(request, "chat/room_list.html", {
         "rooms": rooms,
-        "user": request.user,  # 템플릿에서 {{ user.nickname }}
+        "user": request.user,
     })
 
-@sync_to_async
-def get_room_or_404(slug):
-    return get_object_or_404(Room, slug=slug)
 
+# =====================
+# 채팅방 상세
+# =====================
+@login_required(login_url="/api/v1/auth/")
+def room_detail(request, room_name):
+    room = get_object_or_404(Room, slug=room_name)
+    meeting = getattr(room, "meeting", None)
 
-@sync_to_async
-def is_authenticated(user):
-    return user.is_authenticated
+    nickname = request.user.nickname
 
-
-@sync_to_async
-def get_user_nickname(user):
-    return getattr(user, "nickname", user.nickname)
-
-async def room_detail(request, room_name):
-    # ✅ 로그인 체크
-    if not await is_authenticated(request.user):
-        return HttpResponseRedirect(
-            f"/accounts/login/?next={request.path}"
-        )
-
-    room = await get_room_or_404(room_name)
-    nickname = await get_user_nickname(request.user)
-
-    meeting = await sync_to_async(lambda: getattr(room, "meeting", None))()
-    now = timezone.localtime()
     can_chat = False
+    leader = None
+    participants = []
+
+    total_members = 0
+    joined_members = 0
+
+    now = timezone.localtime()
 
     if meeting:
-        started_at = meeting.started_at
-        finished_at = meeting.finished_at
+        start = timezone.localtime(meeting.started_at)
+        end = timezone.localtime(meeting.finished_at)
 
-        if started_at <= now <= finished_at:
+        if start <= now <= end:
             can_chat = True
 
-            # 🔔 미팅 시작 알림 (한 번만 보내게 utils에서 제어 권장)
-            join_url = f"/api/v1/chat/rooms/{room.slug}/"
-            await send_meeting_alert(
-                meeting.title,
-                meeting.started_at,
-                meeting.id,
-                join_url
-            )
+        leader = meeting.leader_id
 
-    # 📦 Redis 메시지 로드
+        participants = (
+            meeting.participations
+            .filter(result=True)
+            .select_related("user_id")
+        )
+
+        joined_members = participants.count()
+        total_members = joined_members + 1  # 리더 포함
+
     r = redis.Redis(
         host=REDIS_HOST,
         port=REDIS_PORT,
-        db=REDIS_DB
+        db=REDIS_DB,
+        decode_responses=True,
     )
 
-    messages_raw = await r.lrange(f"chat_{room.slug}", 0, -1)
-    messages = [json.loads(m.decode("utf-8")) for m in messages_raw]
+    messages_raw = r.lrange(f"chat_{room.slug}", 0, -1)
+    messages = []
+    
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print(start, end)
+    
+    for m in messages_raw:
+        msg = json.loads(m)
+        # 🔥 timestamp가 있으면 KST 변환
+        if "timestamp" in msg:
+            msg["timestamp"] = timezone.localtime(
+                timezone.datetime.fromisoformat(msg["timestamp"])
+            ).strftime("%Y-%m-%d %H:%M:%S")
+        messages.append(msg)
 
-    return await sync_to_async(render)(
+
+    return render(
         request,
         "chat/room_detail.html",
         {
             "room": room,
             "nickname": nickname,
-            "user": request.user,
             "messages": messages,
             "can_chat": can_chat,
+            "leader": leader,
+            "participants": participants,
+            "total_members": total_members,
+            "joined_members": joined_members,
         }
     )
 
-def today_meetings(request):
-    now = timezone.localtime()
-    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    today_end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
-    meetings = Meeting.objects.filter(started_at__range=(today_start, today_end))
 
-    data = []
-    for m in meetings:
-        if hasattr(m, 'room') and m.room:
-            join_url = f"/rooms/{m.room.slug}/?nickname=익명"
-        else:
-            join_url = "#"
-        data.append({
-            "title": m.title,
-            "started_at": m.started_at.strftime("%H:%M"),
-            "join_url": join_url
-        })
-
-    return JsonResponse({"meetings": data})
-
-@login_required(login_url="/accounts/login/")
+# =====================
+# 오늘의 미팅 (알림/목록용)
+# =====================
+@login_required(login_url="/api/v1/auth/")
 def today_meetings(request):
     now = timezone.localtime()
 
-    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    today_end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    today_start_local = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    today_end_local = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+    # 🔥 UTC 기준으로 변환해서 조회
+    today_start_utc = timezone.make_aware(
+        today_start_local.replace(tzinfo=None),
+        timezone.get_current_timezone()
+    ).astimezone(timezone.utc)
+
+    today_end_utc = timezone.make_aware(
+        today_end_local.replace(tzinfo=None),
+        timezone.get_current_timezone()
+    ).astimezone(timezone.utc)
 
     meetings = Meeting.objects.filter(
-        started_at__range=(today_start, today_end)
-    )
+        started_at__range=(today_start_utc, today_end_utc)
+    ).select_related("room")
 
     data = []
 
     for m in meetings:
-        if hasattr(m, "room") and m.room:
-            join_url = f"/api/v1/chat/rooms/{m.room.slug}/"
-        else:
-            join_url = "#"
+        start_local = timezone.localtime(m.started_at)
+
+        join_url = (
+            f"/api/v1/chat/rooms/{m.room.slug}/"
+            if hasattr(m, "room") and m.room
+            else "#"
+        )
 
         data.append({
             "title": m.title,
-            "started_at": m.started_at.strftime("%H:%M"),
+            "started_at": start_local.strftime("%H:%M"),
             "join_url": join_url,
         })
 
