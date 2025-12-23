@@ -43,7 +43,7 @@ def kakao_callback(request):
     - kakao_id 기준으로 유저 생성/조회
     - 세션 로그인
     - state(프론트에서 next 목적지로 사용) 있으면 그쪽으로 redirect
-      없으면 FRONT_URL + "/"
+        없으면 FRONT_URL + "/"
     """
     code = request.GET.get("code")
     if not code:
@@ -204,3 +204,26 @@ def myroom(request):
         )
 
     return render(request, "auth/myroom.html", {"room_infos": room_infos})
+
+@api_view(["GET", "PATCH"])
+@permission_classes([IsAuthenticated])
+def me(request):
+    user = request.user
+
+    # 닉네임 수정
+    if request.method == "PATCH":
+        nickname = request.data.get("nickname")
+        if nickname is not None:
+            user.nickname = nickname
+            user.save()
+
+    return Response(
+        {
+            "id": user.id,
+            "email": getattr(user, "email", None),
+            "kakao_id": getattr(user, "kakao_id", None),
+            "nickname": getattr(user, "nickname", None),
+            "date_joined": getattr(user, "date_joined", None),
+            "is_authenticated": True,
+        }
+    )
