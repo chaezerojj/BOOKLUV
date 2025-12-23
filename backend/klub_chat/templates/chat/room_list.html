@@ -2,6 +2,9 @@
 <div id="meeting-alerts" style="margin-bottom: 20px;"></div>
 
 <ul>
+<h2>안녕하세요 {{ user.nickname }}님! 👋</h2>
+<h3>오늘의 미팅 알람</h3>
+<div id="meeting-alerts" style="margin-bottom: 20px;"></div>
 {% for room in rooms %}
 <li>
     <strong>{{ room.name }}</strong>

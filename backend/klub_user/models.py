@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
-from django.conf import settings
 
 # 관리자 계정
 class UserManager(BaseUserManager):
@@ -22,7 +21,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    nickname = 'user'
+    nickname = models.CharField(max_length=30, default="user",blank=True)
     # 카카오톡 로그인 시 저장되는 정보
     # 이메일
     email = models.EmailField(unique=True, null=True, blank=True)
@@ -37,7 +36,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     # objects = UserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    # REQUIRED_FIELDS = [] 
     last_login = models.DateTimeField(null=True, blank=True)  # ✅ 추가
 
 
