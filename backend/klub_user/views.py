@@ -48,7 +48,7 @@ def kakao_callback(request):
     code = request.GET.get("code")
     if not code:
         return JsonResponse({"detail": "missing code"}, status=400)
-
+    print(code,KAKAO_REST_API_KEY,KAKAO_REDIRECT_URI,KAKAO_CLIENT_SECRET)
     try:
         token_res = requests.post(
             "https://kauth.kakao.com/oauth/token",
@@ -111,7 +111,7 @@ def kakao_callback(request):
         # next_url = request.GET.get("state")
         # if next_url:
         #     return redirect(next_url)
-        next_url = request.GET.get("state") or f"http://192.168.202.130:8000/api/v1/chat/rooms/"
+        next_url = request.GET.get("state") or f"http://192.168.0.5:8000/api/v1/chat/rooms/"
         return redirect(next_url)
 
     except Exception as e:

@@ -4,10 +4,8 @@ import redis
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.text import slugify
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login
 from django.utils import timezone
 from django.http import JsonResponse
-from django.utils.http import url_has_allowed_host_and_scheme
 
 from .models import Room
 from klub_talk.models import Meeting
@@ -23,21 +21,31 @@ REDIS_DB = 0
 # =====================
 # 채팅방 목록
 # =====================
-@login_required(login_url="http://192.168.202.130:8000/api/v1/auth/")
+@login_required(login_url="/api/v1/auth/")
 def room_list(request):
     if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            next_url = request.GET.get('next') or "http://192.168.202.130:8000/api/v1/chat/rooms/"
-            return redirect(next_url)
-    return render(request, "auth/login.html")
+        room_name = request.POST.get("room_name")
+
+        if room_name and not Room.objects.filter(name=room_name).exists():
+            Room.objects.create(
+                name=room_name,
+                slug=slugify(room_name)
+            )
+
+        return redirect("chat:room-list")
+
+    rooms = Room.objects.select_related("meeting").all()
+
+    return render(request, "chat/room_list.html", {
+        "rooms": rooms,
+        "user": request.user,
+    })
+
+
 # =====================
 # 채팅방 상세
 # =====================
-@login_required(login_url="http://192.168.202.130:8000/api/v1/auth/")
+@login_required(login_url="/api/v1/auth/")
 def room_detail(request, room_name):
     room = get_object_or_404(Room, slug=room_name)
     meeting = getattr(room, "meeting", None)
@@ -113,7 +121,7 @@ def room_detail(request, room_name):
 # =====================
 # 오늘의 미팅 (알림/목록용)
 # =====================
-@login_required(login_url="http://192.168.202.130:8000/api/v1/auth/")
+@login_required(login_url="/api/v1/auth/")
 def today_meetings(request):
     now = timezone.localtime()
 
