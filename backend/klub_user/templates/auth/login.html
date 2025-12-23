@@ -14,9 +14,13 @@
         // Django context에서 변수 가져오기
         const REST_API_KEY = "{{ KAKAO_REST_API_KEY }}";
         const REDIRECT_URI = "{{ KAKAO_REDIRECT_URI }}";
+        const NEXT = "{{ next }}";
 
-        const kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}`;
-
+        let kakaoAuthURL = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}`; // &state=${next ? `&state=${next}` : ''}`; {encodeURIComponent(next)}`;
+        // next 추가
+        if (NEXT) {
+        kakaoAuthURL += `&state=${encodeURIComponent(NEXT)}`;
+        }
         document.getElementById("kakao-login-btn").addEventListener("click", () => {
             // 카카오 로그인 페이지로 이동
             window.location.href = kakaoAuthURL;

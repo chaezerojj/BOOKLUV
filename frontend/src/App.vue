@@ -10,16 +10,16 @@
 
 <script setup>
 import { RouterView } from 'vue-router'
-import { onMounted } from "vue";
+// import { onMounted } from "vue";
 import { useAuthStore } from "@/stores/auth";
 
 import TheHeader from '@/components/navigation/TheHeader.vue'
 
-const authStore = useAuthStore();
+// const authStore = useAuthStore();
 
-onMounted(() => {
-  authStore.fetchMe();
-});
+// onMounted(() => {
+//   authStore.fetchMe();
+// });
 </script>
 
 <style scoped>

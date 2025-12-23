@@ -127,9 +127,10 @@ const router = createRouter({
       props: true,
     },
     {
-      path: "/board/:id",
+      path: "/board/:id/update",
       name: "board-update",
       component: BoardUpdateView,
+      props: true,
     },
 
     {

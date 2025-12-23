@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'channels',
     'daphne',
+    'klub_board',
     'klub_chat',
     'klub_talk',
     'klub_user',
