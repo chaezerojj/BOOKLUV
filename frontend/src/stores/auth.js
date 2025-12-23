@@ -46,6 +46,13 @@ const logout = async () => {
   isReady.value = true;
 };
 
+// 회원정보수정
+const updateProfile = async (payload) => {
+  const res = await http.patch("/api/v1/auth/me/", payload);
+  user.value = res.data;
+  return res.data;
+};
+
   return {
     user,
     isLoading,
@@ -54,5 +61,6 @@ const logout = async () => {
     fetchMe,
     startKakaoLogin,
     logout,
+    updateProfile,
   };
 });
