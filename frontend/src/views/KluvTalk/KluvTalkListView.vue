@@ -1,4 +1,5 @@
 <template>
+  <GlobalSearchBar />
   <div class="kluvtalk-list">
     <!-- todo: swiper로 카드섹션 슬라이드 만들기 -->
     <div class="kluvtalk-maintext">지금 인기있는 KluvTalk!</div>
@@ -30,6 +31,7 @@
 </template>
 
 <script setup>
+import GlobalSearchBar from '@/components/search/GlobalSearchBar.vue';
 import { RouterLink } from 'vue-router';
 
 
