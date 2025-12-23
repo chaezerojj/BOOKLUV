@@ -1,9 +1,12 @@
 <template>
-  <div class="book-results-list">
-    <div class="book-result-text">"{{ keyword }}" <span>에 대한 검색 결과입니다.</span></div>
-    <div class="grid">
-      <RouterLink v-for="book in books" :key="book.id" class="card"
-        :to="{ name: 'book-detail', params: { id: book.id } }">
+  <div class="grid">
+    <template v-for="book in books" :key="getBookId(book) ?? book.title">
+      <!-- id 있을 때만 RouterLink -->
+      <RouterLink
+        v-if="getBookId(book)"
+        class="card"
+        :to="{ name: 'book-detail', params: { id: getBookId(book) } }"
+      >
         <img v-if="book.cover_url" :src="book.cover_url" class="cover" />
         <div class="body">
           <h3 class="title">{{ book.title }}</h3>
@@ -12,25 +15,26 @@
           <p class="desc">{{ book.description }}</p>
         </div>
       </RouterLink>
-    </div>
+
+      <!-- id 없으면 링크 없이 카드만 -->
+      <div v-else class="card disabled" title="상세로 이동할 수 없는 데이터(id 없음)">
+        <div class="body">
+          <h3 class="title">{{ book.title }}</h3>
+          <p class="meta">저자: {{ book.author_name ?? 'Unknown' }}</p>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
-
 <script setup>
-import { computed } from "vue"
-import { useRoute } from "vue-router"
-
 defineProps({
   books: { type: Array, required: true },
-})
+});
 
-const route = useRoute()
-
-const keyword = computed(() => {
-  const q = route.query.q
-  return (q ?? "").toString().trim()
-})
+const getBookId = (book) => {
+  return book?.id ?? book?.pk ?? book?.book_id ?? null;
+};
 </script>
 
 <style scoped>

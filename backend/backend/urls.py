@@ -30,7 +30,7 @@ urlpatterns = [
     # path('api/v1/board/', include('klub_board.urls', namespace='board')),
     path('api/v1/board/', include('klub_board.api_urls', namespace='board')),
     # 책, 모임 정보
-    path("api/v1/books/", include("klub_talk.urls")),
+    path("api/v1/books/", include("klub_talk.api_urls")),
     # 실시간 채팅 정보
     path("api/v1/chat/", include("klub_chat.urls")),
     # AI API 추천 정보
