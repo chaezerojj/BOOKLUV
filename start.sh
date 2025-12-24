@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "Checking Python version..."
-python3 --version || { echo "Python3 is not installed"; exit 1; }
+echo "Navigating to the backend directory..."
+cd backend  # backend 디렉토리로 이동
 
 echo "Running Django migrations..."
 python3 manage.py migrate || { echo "Django migration failed"; exit 1; }
