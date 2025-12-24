@@ -1,4 +1,5 @@
 import json
+import os
 import redis.asyncio as redis
 
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -8,10 +9,11 @@ from django.utils import timezone
 from .models import Room
 from klub_talk.models import Participate
 
-REDIS_HOST = "redis"
-REDIS_PORT = 6379
-REDIS_DB = 0
-
+# =====================
+# Redis 설정 (Railway 환경변수 로드)
+# =====================
+# 제공해주신 내부 URL 주소를 기본값으로 설정합니다.
+REDIS_URL = os.getenv('REDIS_URL', 'redis://default:bGBSgqYKpfUrphgGUScwxHlFkdvRIKYh@redis.railway.internal:6379')
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -23,12 +25,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
-        self.room = await self.get_room()
-        self.redis = redis.Redis(
-            host=REDIS_HOST,
-            port=REDIS_PORT,
-            db=REDIS_DB,
-        )
+        # 1. 방 정보 가져오기
+        try:
+            self.room = await self.get_room()
+        except Exception:
+            # 방 번호가 -1이거나 존재하지 않는 슬러그일 경우 대비
+            await self.close()
+            return
+
+        # 2. Redis 연결 (🔥 Authentication required 에러 해결 핵심)
+        # redis.Redis(...) 대신 redis.from_url(...)을 사용해야 인증 정보가 적용됩니다.
+        self.redis = redis.from_url(REDIS_URL, decode_responses=True)
 
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -36,9 +43,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
         await self.accept()
 
+        # 온라인 상태 처리
         await self.add_online_user()
         await self.broadcast_participants_status()
 
+        # 입장 시스템 메시지
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -48,8 +57,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
     async def disconnect(self, close_code):
-        await self.remove_online_user()
-        await self.broadcast_participants_status()
+        # Redis 객체가 생성된 경우에만 실행
+        if hasattr(self, 'redis'):
+            await self.remove_online_user()
+            await self.broadcast_participants_status()
 
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -63,9 +74,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
+        # Redis 연결 닫기
+        if hasattr(self, 'redis'):
+            await self.redis.close()
 
     # =====================
-    # 메시지 수신
+    # 메시지 수신 및 발송
     # =====================
     async def receive(self, text_data):
         data = json.loads(text_data)
@@ -88,29 +102,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 "user_id": self.user.id
             }
         )
-    async def system_message(self, event):
-        await self.send(text_data=json.dumps({
-            "type": "system",
-            "message": event["message"],
-            "timestamp": timezone.localtime().isoformat(),
-        }))
-
-    # =====================
-    # 참가자 상태
-    # =====================
-    async def broadcast_participants_status(self):
-        participants = await self.get_participants_status()
-
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                "type": "participants_status",
-                "participants": participants,
-            }
-        )
 
     async def chat_message(self, event):
-    # 그룹에서 보낸 메시지를 개별 클라이언트의 웹소켓으로 전송
         await self.send(text_data=json.dumps({
             "type": "chat",
             "message": event["message"],
@@ -119,12 +112,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "user_id": event["user_id"],
         }))
 
-    async def participants_status(self, event):
-    # 그룹에서 보낸 참여자 목록을 개별 클라이언트의 웹소켓으로 전송
+    async def system_message(self, event):
         await self.send(text_data=json.dumps({
-            "type": "participants",
-            "participants": event["participants"],
+            "type": "system",
+            "message": event["message"],
+            "timestamp": timezone.localtime().isoformat(),
         }))
+
+    # =====================
+    # 참가자 상태 관리
+    # =====================
     async def add_online_user(self):
         key = f"chat_room_users_{self.room.slug}"
         await self.redis.sadd(key, self.user.id)
@@ -133,24 +130,39 @@ class ChatConsumer(AsyncWebsocketConsumer):
         key = f"chat_room_users_{self.room.slug}"
         await self.redis.srem(key, self.user.id)
 
-    # DB와 Redis 상태 동기화하여 온라인 상태 갱신
+    async def broadcast_participants_status(self):
+        participants = await self.get_participants_status()
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                "type": "participants_status",
+                "participants": participants,
+            }
+        )
+
+    async def participants_status(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "participants",
+            "participants": event["participants"],
+        }))
+
     async def get_participants_status(self):
-        meeting = await self.get_meeting()  # 미팅 정보를 가져오는 비동기 함수 호출
+        meeting = await self.get_meeting()
         if not meeting:
             return []
 
-        users = await self.get_confirmed_users(meeting)  # 확정된 사용자 목록 가져오기
+        users = await self.get_confirmed_users(meeting)
         key = f"chat_room_users_{self.room.slug}"
 
-        # Redis에서 온라인 상태 가져오기: AsyncGenerator를 리스트로 변환
-        online_ids = set(map(int, await self.redis.smembers(key)))
+        # Redis에서 온라인 유저 ID 셋 가져오기
+        online_members = await self.redis.smembers(key)
+        online_ids = {int(uid) for uid in online_members}
 
-        # 온라인 상태와 참가자 정보를 결합하여 리스트로 반환
         return [
             {
                 "id": user.id,
-                "username": user.nickname,
-                "online": user.id in online_ids,  # 온라인 여부 확인
+                "nickname": user.nickname, # HTML JS와 이름 맞춤
+                "online": user.id in online_ids,
             }
             for user in users
         ]
@@ -171,25 +183,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
         meeting = getattr(self.room, "meeting", None)
         if not meeting:
             return False
-
         now = timezone.localtime()
-        start = timezone.localtime(meeting.started_at)
-        end = timezone.localtime(meeting.finished_at)
-
-        return start <= now <= end
+        return meeting.started_at <= now <= meeting.finished_at
 
     @database_sync_to_async
     def get_confirmed_users(self, meeting):
-        users = [meeting.leader_id]
-
+        # 리더와 참가 확정자 합치기 (중복 제거)
+        users_dict = {meeting.leader_id.id: meeting.leader_id}
+        
         participants = Participate.objects.filter(
             meeting=meeting,
             result=True
         ).select_related("user_id")
 
-        users.extend(p.user_id for p in participants)
+        for p in participants:
+            users_dict[p.user_id.id] = p.user_id
 
-        return list({u.id: u for u in users}.values())
+        return list(users_dict.values())
 
 # =========================
 # 🔔 미팅 알림 Consumer
@@ -197,25 +207,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
 class MeetingAlertConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.group_name = "meeting_alerts"
-        
-        await self.channel_layer.group_add(
-            self.group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     async def send_meeting_alert(self, event):
-        # Debugging log to check if the method is being called
-        print("🔥 send_meeting_alert called:", event)  # <- 확인용
         await self.send(text_data=json.dumps({
             "title": event["title"],
-            "started_at": event["started_at"],  # 이미 KST
+            "started_at": event["started_at"],
             "meeting_id": event["meeting_id"],
             "join_url": event.get("join_url", "#"),
         }))

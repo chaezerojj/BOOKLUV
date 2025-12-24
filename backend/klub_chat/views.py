@@ -41,10 +41,14 @@ def room_list(request):
     if meetings_to_create_room.exists():
         with transaction.atomic():
             for meeting in meetings_to_create_room:
-                Room.objects.create(
-                    name=meeting.title,
-                    slug=f"{slugify(meeting.title)}-{meeting.id}",
-                    meeting=meeting
+                # 확실하게 유니크한 슬러그 생성
+                new_slug = f"{slugify(meeting.title)}-{meeting.id}"
+                Room.objects.get_or_create(
+                    meeting=meeting,
+                    defaults={
+                        'name': meeting.title,
+                        'slug': new_slug
+                    }
                 )
 
     # 3. 현재 유저가 참여 확정(result=True)된 미팅 ID 목록
