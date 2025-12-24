@@ -7,7 +7,7 @@ from rest_framework import status
 from .forms import MeetingForm, QuizForm
 from .serializers import BookSerializer, MeetingDetailSerializer, MeetingMiniSerializer, QuizSerializer
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
+from django.utils import timezone
 
 @api_view(["GET"])
 def index(request):
@@ -47,27 +47,25 @@ def book_detail(request, book_id):
         'book': book,
         'meetings': meetings,
     })
-    
-@api_view(["GET"])
+   @api_view(["GET"])
 def room_detail(request, pk):
-    meeting = get_object_or_404(Meeting, pk=pk)
+    # select_related를 사용하여 쿼리 횟수를 줄입니다 (N+1 문제 방지)
+    meeting = get_object_or_404(Meeting.objects.select_related("book_id", "leader_id"), pk=pk)
 
     # ✅ 세션 기반 조회수 증가 (사용자당 1회)
     session_key = f"viewed_meeting_{meeting.id}"
-
     if not request.session.get(session_key):
         meeting.views += 1
         meeting.save(update_fields=["views"])
         request.session[session_key] = True
 
-    # 참여 인원
+    # 참여 확정 인원 계산
     joined_count = Participate.objects.filter(
         meeting=meeting,
         result=True
     ).count()
 
     leader = meeting.leader_id
-
     participated = False
     can_participate = True
     remaining_chances = 3
@@ -91,12 +89,8 @@ def room_detail(request, pk):
             ).count()
 
             remaining_chances = max(0, 3 - wrong_count)
-
             if remaining_chances == 0:
                 can_participate = False
-
-    # 리더인 경우 수정/삭제 버튼을 템플릿에 전달
-    is_leader = request.user == leader
 
     return render(request, "talk/room_detail.html", {
         "meeting": meeting,
@@ -105,9 +99,8 @@ def room_detail(request, pk):
         "participated": participated,
         "can_participate": can_participate,
         "remaining_chances": remaining_chances,
-        "is_leader": is_leader,  # 리더인지 여부를 템플릿에 전달
+        "is_leader": (request.user == leader),
     })
-    
     
 @login_required
 def edit_meeting(request, pk):
@@ -241,21 +234,23 @@ def quiz_api(request, meeting_id):
         "result": result,
     }, status=status.HTTP_200_OK)
 
+
 def meeting_search(request):
     query = request.GET.get("q", "")
+    now = timezone.now() # 현재 시간 (KST 기준)
 
-    # 모임 queryset 준비
-    meetings = Meeting.objects.select_related("book_id", "leader_id")
+    # 1. 기본 필터링: 종료 시간이 현재보다 나중인 것 (진행 예정 + 진행 중)
+    meetings = Meeting.objects.filter(finished_at__gt=now).select_related("book_id", "leader_id")
 
-    # joined_count 계산
+    # 2. joined_count 계산 및 정렬
     meetings = meetings.annotate(
         joined_count=Count(
             "participations",
             filter=Q(participations__result=True)
         )
-    ).order_by("-created_at")
+    ).order_by("started_at") # 시작 시간이 임박한 순서대로 정렬하는 것이 보통 효율적입니다.
 
-    # 검색어가 있으면 필터링
+    # 3. 검색어가 있으면 추가 필터링
     if query:
         meetings = meetings.filter(
             Q(title__icontains=query) |

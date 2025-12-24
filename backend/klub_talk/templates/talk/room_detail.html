@@ -1,26 +1,79 @@
-<div class="card mb-4">
-  <div class="card-body">
-    <h1 class="card-title">{{ meeting.title }}</h1>
-    <p><strong>책 제목:</strong> {{ meeting.book_id.title }}</p>
-    <p><strong>리더:</strong> {{ leader.nickname }}</p>
-    <p><strong>👥 참여 인원:</strong> {{ joined_count }} / {{ meeting.members }} 명</p>
-    <p><strong>조회수:</strong> {{ meeting.views }}</p>
-    <p><strong>설명:</strong> {{ meeting.description }}</p>
-    <p><strong>시작일:</strong> {{ meeting.started_at }}</p>
-    <p><strong>종료일:</strong> {{ meeting.finished_at }}</p>
-  </div>
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 overflow-hidden">
+        <div class="row g-0">
+            <div class="col-md-4 bg-light d-flex align-items-center justify-content-center p-4">
+                {% if meeting.book_id.cover_url %}
+                    <img src="{{ meeting.book_id.cover_url }}" 
+                         class="img-fluid rounded shadow" 
+                         alt="{{ meeting.book_id.title }}"
+                         style="max-height: 450px; object-fit: contain;">
+                {% else %}
+                    <div class="text-muted text-center">
+                        <i class="bi bi-book" style="font-size: 4rem;"></i>
+                        <p>이미지가 없습니다</p>
+                    </div>
+                {% endif %}
+            </div>
 
-   {% if user == leader %}
-    <p style="color: gray;">개설자는 참여할 수 없습니다.</p>
-    <!-- 개설자에게 모임 수정 및 삭제 버튼을 표시 -->
-    <a href="{% url 'talk:edit-meeting' meeting.id %}" class="btn btn-warning">모임 수정</a>
-    <a href="{% url 'talk:delete-meeting' meeting.id %}" class="btn btn-danger" onclick="return confirm('정말로 이 모임을 삭제하시겠습니까?')">모임 삭제</a>
-  {% elif participated %}
-    <p style="color: green;">이미 참여 완료했습니다.</p>
-  {% elif not can_participate %}
-    <p style="color: red;">참여 기회를 모두 소진했습니다.</p>
-  {% else %}
-    <!-- 참여하기 버튼을 클릭하면 quiz-detail 페이지로 이동 -->
-    <a href="{% url 'talk:quiz-detail' meeting.id %}" class="btn btn-primary">참여하기</a>
-  {% endif %}
+            <div class="col-md-8">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h1 class="fw-bold text-primary">{{ meeting.title }}</h1>
+                        <span class="badge bg-secondary">조회수 {{ meeting.views }}</span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="text-dark fw-bold">📖 {{ meeting.book_id.title }}</h5>
+                        <p class="text-muted">✍️ 작가: <strong>{{ meeting.book_id.author|default:"정보 없음" }}</strong></p>
+                    </div>
+
+                    <div class="row mb-4 bg-light p-3 rounded">
+                        <div class="col-6 mb-2">
+                            <small class="text-muted d-block">👑 리더</small>
+                            <strong>{{ leader.nickname }}</strong>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <small class="text-muted d-block">👥 참여 현황</small>
+                            <span class="text-primary fw-bold">{{ joined_count }}</span> / {{ meeting.members }} 명
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">📅 시작</small>
+                            <span>{{ meeting.started_at|date:"Y-m-d H:i" }}</span>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">🏁 종료</small>
+                            <span>{{ meeting.finished_at|date:"Y-m-d H:i" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="fw-bold mb-2">💬 모임 설명</label>
+                        <p class="card-text text-secondary" style="line-height: 1.6;">
+                            {{ meeting.description|linebreaksbr }}
+                        </p>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 pt-3 border-top">
+                        {% if user == leader %}
+                            <div class="w-100 mb-2">
+                                <span class="badge bg-warning text-dark p-2">💡 개설자는 본인의 모임에 참여할 수 없습니다.</span>
+                            </div>
+                            <a href="{% url 'talk:edit-meeting' meeting.id %}" class="btn btn-outline-warning">모임 수정</a>
+                            <a href="{% url 'talk:delete-meeting' meeting.id %}" class="btn btn-outline-danger" onclick="return confirm('정말로 삭제하시겠습니까?')">모임 삭제</a>
+                        {% elif participated %}
+                            <button class="btn btn-success px-4" disabled>✅ 이미 참여 완료</button>
+                        {% elif not can_participate %}
+                            <button class="btn btn-danger px-4" disabled>🚫 참여 기회 소진 (3회 탈락)</button>
+                        {% else %}
+                            <a href="{% url 'talk:quiz-detail' meeting.id %}" class="btn btn-primary btn-lg px-5 shadow">
+                                참여하기 <span class="badge bg-white text-primary ms-2">{{ remaining_chances }}회 남음</span>
+                            </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'talk:meeting-search' %}" class="btn btn-link text-decoration-none ms-auto text-muted">목록으로 돌아가기</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

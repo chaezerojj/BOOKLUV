@@ -185,20 +185,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return False
         now = timezone.localtime()
         return meeting.started_at <= now <= meeting.finished_at
-
+    
     @database_sync_to_async
     def get_confirmed_users(self, meeting):
-        # 리더와 참가 확정자 합치기 (중복 제거)
-        users_dict = {meeting.leader_id.id: meeting.leader_id}
-        
+        # 1. 딕셔너리를 사용하여 ID를 키로 저장 (중복 자동 제거)
+        users_dict = {}
+
+        # 2. 리더 추가
+        if meeting.leader_id:
+            users_dict[meeting.leader_id.id] = meeting.leader_id
+
+        # 3. 참여 확정자(result=True)들만 가져오기
         participants = Participate.objects.filter(
             meeting=meeting,
             result=True
         ).select_related("user_id")
 
+        # 4. 참여자 추가 (이미 리더가 포함되어 있다면 덮어쓰기되어 중복 안 됨)
         for p in participants:
             users_dict[p.user_id.id] = p.user_id
 
+        # 5. 최종 리스트 반환
         return list(users_dict.values())
 
 # =========================
