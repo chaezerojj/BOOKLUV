@@ -40,7 +40,7 @@ export const useAiRecommendStore = defineStore("aiRecommend", {
       this.error = null;
 
       try {
-        const res = await http.post("/api/v1/recommendations/api/result/", this.answers);
+        const res = await http.post("/api/v1/recommendations/result/", this.answers);
         this.result = res.data;
         return res.data;
       } catch (err) {

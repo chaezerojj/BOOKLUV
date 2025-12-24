@@ -1,23 +1,36 @@
 <template>
   <div class="wrap">
-    <div v-if="store.loading">로딩중...</div>
-    <div v-else-if="store.error">에러가 발생했어요.</div>
+    <div v-if="store.loading" class="state">로딩중...</div>
+    <div v-else-if="store.error" class="state error">에러가 발생했어요.</div>
 
-    <div v-else-if="store.board">
+    <div v-else-if="store.board" class="card">
       <div class="header">
-        <div>
+        <div class="head-left">
           <h1 class="title">{{ store.board.title }}</h1>
           <div class="meta">
             <span>작성자: {{ store.board.user?.display_name ?? "Unknown" }}</span>
+            <span>·</span>
             <span>{{ formatDate(store.board.created_at) }}</span>
           </div>
         </div>
 
         <div class="header-actions">
-          <button type="button" :disabled="!canEditBoard" @click="onClickBoardEdit" :title="boardActionHint">
+          <button
+            class="btn"
+            type="button"
+            :disabled="!canEditBoard"
+            @click="onClickBoardEdit"
+            :title="boardActionHint"
+          >
             수정
           </button>
-          <button type="button" :disabled="!canEditBoard" @click="onClickBoardDelete" :title="boardActionHint">
+          <button
+            class="btn danger"
+            type="button"
+            :disabled="!canEditBoard"
+            @click="onClickBoardDelete"
+            :title="boardActionHint"
+          >
             삭제
           </button>
         </div>
@@ -27,8 +40,14 @@
 
       <hr class="line" />
 
-      <BoardComments :boardId="boardId" :comments="store.comments" :onCreateComment="store.createComment"
-        :onUpdateComment="store.updateComment" :onDeleteComment="store.deleteComment" @goList="goList" />
+      <BoardComments
+        :boardId="boardId"
+        :comments="store.comments"
+        :onCreateComment="store.createComment"
+        :onUpdateComment="store.updateComment"
+        :onDeleteComment="store.deleteComment"
+        @goList="goList"
+      />
     </div>
   </div>
 </template>
@@ -78,7 +97,6 @@ const boardActionHint = computed(() => {
 
 const goList = () => router.push({ name: "board" });
 
-// 게시글 액션
 const onClickBoardEdit = () => {
   if (!isAuthenticated.value) return alert("로그인 후 수정할 수 있어요.");
   if (!isBoardOwner.value) return alert("작성자만 수정할 수 있어요.");
@@ -101,6 +119,27 @@ const onClickBoardDelete = async () => {
   margin: 2rem auto;
 }
 
+.card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+}
+
+.state {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+  font-size: 13px;
+}
+.state.error {
+  background: #fff6f6;
+  border-color: #ffe1e1;
+}
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -110,14 +149,17 @@ const onClickBoardDelete = async () => {
 
 .title {
   margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.2px;
 }
 
 .meta {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   font-size: 12px;
-  opacity: .8;
-  margin-top: 6px;
+  opacity: 0.75;
+  margin-top: 8px;
+  flex-wrap: wrap;
 }
 
 .header-actions {
@@ -125,29 +167,34 @@ const onClickBoardDelete = async () => {
   gap: 8px;
 }
 
-button {
-  border: 1px solid #ddd;
-  background: white;
-  border-radius: 10px;
+.btn {
+  border: 1px solid #e3e3e3;
+  background: #fff;
+  border-radius: 12px;
   padding: 8px 12px;
   cursor: pointer;
+  font-size: 13px;
 }
-
-button:disabled {
-  opacity: .45;
+.btn:hover {
+  background: #fafafa;
+}
+.btn:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
+}
+.btn.danger:hover {
+  background: #fff6f6;
 }
 
 .content {
-  margin: 1rem 0;
+  margin: 14px 0 4px;
   white-space: pre-wrap;
-  border: 1px solid #eee;
-  border-radius: 12px;
   padding: 14px;
+  line-height: 1.6;
 }
 
 .line {
-  margin: 1.5rem 0;
+  margin-top: 3rem;
   border: 0;
   border-top: 1px solid #eee;
 }

@@ -7,15 +7,17 @@ function getCookie(name) {
   return null;
 }
 
+
 export const http = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000",
+  // use Vite dev proxy by default so requests are same-origin during development
+  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
   withCredentials: true,
 });
 
 http.interceptors.request.use((config) => {
   const method = (config.method || "get").toLowerCase();
   const unsafe = ["post", "put", "patch", "delete"].includes(method);
-
+  
   if (unsafe) {
     const csrftoken = getCookie("csrftoken");
     if (csrftoken) {
@@ -25,3 +27,5 @@ http.interceptors.request.use((config) => {
   }
   return config;
 });
+
+axios.defaults.withCredentials = true

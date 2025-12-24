@@ -30,6 +30,7 @@ export const useAuthStore = defineStore("auth", () => {
     const clientId = import.meta.env.VITE_KAKAO_REST_API_KEY;
     const redirectUri = import.meta.env.VITE_KAKAO_REDIRECT_URI; 
     // 여기 redirectUri는 "백엔드 callback" (예: http://localhost:8000/api/auth/callback/)
+    console.log("BASE:", http.defaults.baseURL);
 
     const params = new URLSearchParams({
       response_type: "code",
@@ -46,6 +47,13 @@ const logout = async () => {
   isReady.value = true;
 };
 
+// 회원정보수정
+const updateProfile = async (payload) => {
+  const res = await http.patch("/api/v1/auth/me/", payload);
+  user.value = res.data;
+  return res.data;
+};
+
   return {
     user,
     isLoading,
@@ -54,5 +62,6 @@ const logout = async () => {
     fetchMe,
     startKakaoLogin,
     logout,
+    updateProfile,
   };
 });

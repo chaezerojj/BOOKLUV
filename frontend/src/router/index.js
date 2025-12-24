@@ -9,7 +9,8 @@ import AiTestResultView from "@/views/AI/AiTestResultView.vue";
 import LoginView from "@/views/Auth/LoginView.vue";
 import SignUpView from "@/views/Auth/SignUpView.vue";
 
-import KluvTalkListView from "@/views/KluvTalk/KluvTalkListView.vue";
+// import KluvTalkListView from "@/views/KluvTalk/KluvTalkListView.vue";
+import KluvTalkChatListView from "@/views/KluvTalk/KluvTalkChatListView.vue";
 import KluvTalkDetailView from "@/views/KluvTalk/KluvTalkDetailView.vue";
 import KluvTalkCreateView from "@/views/KluvTalk/KluvTalkCreateView.vue";
 
@@ -77,9 +78,15 @@ const router = createRouter({
       component: LoginView,
     },
     {
-      path: "/kluvtalk",
-      name: "kluvtalk-list",
-      component: KluvTalkListView,
+      path: "/kluvtalk/chat",
+      name: "kluvtalk-chat-list",
+      component: () => import("@/views/KluvTalk/KluvTalkChatListView.vue"),
+    },
+    {
+      path: "/kluvtalk/chat/:roomSlug",
+      name: "kluvtalk-chat-room",
+      component: () => import("@/views/KluvTalk/KluvTalkChatRoomView.vue"),
+      props: true,
     },
     {
       path: "/kluvtalk/:id",
@@ -95,7 +102,7 @@ const router = createRouter({
     {
       path: "/kluvtalk",
       name: "kluvtalk-list",
-      component: KluvTalkListView,
+      component: KluvTalkChatListView,
     },
     {
       path: '/kluvtalk/:id',
