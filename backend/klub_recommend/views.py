@@ -5,6 +5,7 @@ from klub_talk.models import Book, Category
 from klub_user.models import User
 from .models import ReadingPreference, RecommendationResult
 from .services.openai_client import get_ai_recommendation
+from rest_framework.response import Response
 
 GENRE_MAP = {
     "A": "소설/시/희곡",
@@ -97,7 +98,19 @@ def result_view(request):
         except Exception:
             pass
 
-    return render(request, "recommend/result.html", {
-        "results": [final_book],
-        "ai_reason": ai_reason
-    })
+    payload = {
+        "ai_reason": ai_reason,
+        "books": [
+            {
+                "id": final_book.id,
+                "title": final_book.title,
+                "publisher": final_book.publisher,
+                "cover_url": final_book.cover_url,
+                "author_name": getattr(final_book.author_id, "name", None),
+                "category_name": getattr(final_book.category_id, "name", None),
+                "reason": getattr(final_book, "temp_reason", None),
+            }
+        ],
+    }
+    
+    return Response(payload, status=status.HTTP_200_OK)
