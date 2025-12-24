@@ -13,6 +13,9 @@ from rest_framework.response import Response
 
 from klub_talk.models import Participate
 
+from urllib.parse import urlparse, urljoin
+
+
 User = get_user_model()
 
 KAKAO_REST_API_KEY = settings.KAKAO_REST_API_KEY
@@ -30,7 +33,10 @@ def auth_login(request):
     context = {
         "KAKAO_REST_API_KEY": KAKAO_REST_API_KEY,
         "KAKAO_REDIRECT_URI": KAKAO_REDIRECT_URI,
-        "next": request.GET.get("next", ""),
+        
+        # next를 안전한 상대경로로 정리해서 템플릿에 전달
+        "next": _safe_next_url(request.GET.get("next", "")),
+        # "next": request.GET.get("next", ""),
     }
     return render(request, "auth/login.html", context)
 
@@ -105,44 +111,25 @@ def kakao_callback(request):
         )
 
         # 세션 로그인
+        # login(request, user, backend="django.contrib.auth.backends.ModelBackend")
         login(request, user, backend="django.contrib.auth.backends.ModelBackend")
 
         # 프론트에서 state를 next_url로 쓴다면 여기서 처리
-        next_url = request.GET.get("state")
-        if next_url:
-            return redirect(next_url)
+        # next_url = request.GET.get("state")
+        next_url = _safe_next_url(request.GET.get("state", ""))
 
-        return redirect(FRONT_URL + "/")
+        # 기본 프론트 도메인: settings.DOMAIN_URL이 있으면 우선 사용
+        base_front = getattr(settings, "DOMAIN_URL", FRONT_URL)
+        # 안전한 상대경로(next_url)가 있으면 이를 기준으로 절대 URL 생성
+        dest = urljoin(base_front, next_url or "/")
+        return redirect(dest)
 
     except Exception as e:
         return JsonResponse({"detail": "callback exception", "error": repr(e)}, status=500)
 
 
-# =========================
-# 프론트용 API (DRF)
-# =========================
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def me(request):
-    """
-    프론트에서 세션 로그인 여부 확인용
-    GET /api/v1/auth/me/
-    """
-    user = request.user
-    return Response(
-        {
-            "id": user.id,
-            "email": getattr(user, "email", None),
-            "kakao_id": getattr(user, "kakao_id", None),
-            "username": getattr(user, "username", None),
-            "nickname": getattr(user, "nickname", None),
-            "is_authenticated": True,
-        }
-    )
-
-
 @api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def logout_view(request):
     """
     세션 로그아웃
@@ -175,6 +162,9 @@ def mypage_edit(request):
     return render(request, "klub_user/mypage_edit.html")
 
 
+
+
+
 @login_required(login_url="/api/v1/auth/")
 def myroom(request):
     participations = (
@@ -202,28 +192,64 @@ def myroom(request):
                 "is_active": is_active,
             }
         )
-
     return render(request, "auth/myroom.html", {"room_infos": room_infos})
+
 
 @api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
 def me(request):
+    """
+    프론트에서 세션 로그인 여부 확인 + 닉네임 수정
+    GET   /api/v1/auth/me/
+    PATCH /api/v1/auth/me/  { "nickname": "새닉네임" }
+    """
     user = request.user
 
-    # 닉네임 수정
     if request.method == "PATCH":
         nickname = request.data.get("nickname")
         if nickname is not None:
+            nickname = str(nickname).strip()
+            if nickname == "":
+                return Response({"detail": "nickname cannot be empty"}, status=400)
             user.nickname = nickname
-            user.save()
+            user.save(update_fields=["nickname"])
 
     return Response(
         {
             "id": user.id,
             "email": getattr(user, "email", None),
             "kakao_id": getattr(user, "kakao_id", None),
+            "username": getattr(user, "username", None),
             "nickname": getattr(user, "nickname", None),
             "date_joined": getattr(user, "date_joined", None),
             "is_authenticated": True,
         }
     )
+
+
+def _safe_next_url(value: str) -> str:
+    """
+    - 절대 URL(http://127.0.0.1:8000/..., https://...)이 오면 path+query만 사용
+    - 상대경로만 허용(/something...)
+    - //evil.com 같은 scheme-less도 차단
+    """
+    if not value:
+        return ""
+
+    value = str(value).strip()
+
+    parsed = urlparse(value)
+
+    # 절대 URL이면 path/query만 살림 (도메인 섞임 방지)
+    if parsed.scheme or parsed.netloc:
+        value = parsed.path or "/"
+        if parsed.query:
+            value += "?" + parsed.query
+
+    # 상대경로만 허용
+    if not value.startswith("/"):
+        return ""
+    if value.startswith("//"):
+        return ""
+    return value
+

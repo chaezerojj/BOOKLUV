@@ -13,11 +13,9 @@ const app = createApp(App)
 const pinia = createPinia()
 
 pinia.use(piniaPluginPersistedstate)
-app.use(pinia)
-app.use(router)
 
-// 앱 시작 시 세션 로그인 여부 확인
-const authStore = useAuthStore();
-authStore.fetchMe();
-
-app.mount('#app')
+app.use(pinia);
+const authStore = useAuthStore(pinia); // pinia 인스턴스 명시
+await authStore.fetchMe();
+app.use(router);
+app.mount("#app");

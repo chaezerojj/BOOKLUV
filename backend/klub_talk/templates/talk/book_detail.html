@@ -1,3 +1,12 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ book.title }} - 독서 모임</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
 <div class="container my-5">
 
   <!-- 뒤로가기 버튼 -->
@@ -8,7 +17,10 @@
   <!-- 책 정보 카드 -->
   <div class="card mb-4">
     {% if book.cover_url %}
-    <img src="{{ book.cover_url }}" class="card-img-top" alt="{{ book.title }}">
+      <img src="{{ book.cover_url }}" 
+           class="card-img-top img-fluid" 
+           alt="{{ book.title }}" 
+           style="max-height: 300px; object-fit: contain;">
     {% endif %}
     <div class="card-body">
       <h1 class="card-title">{{ book.title }}</h1>
@@ -16,7 +28,8 @@
       <p class="card-text"><strong>출판사:</strong> {{ book.publisher }}</p>
       <p class="card-text">{{ book.description }}</p>
     </div>
-  </div>
+</div>
+✅ 설명:
 
   <!-- 관련 모임 -->
   <h2 class="mb-3">이 책과 관련된 모임</h2>
@@ -28,12 +41,20 @@
         <strong>{{ meeting.title }}</strong><br>
         멤버 수: {{ meeting.members }}
       </div>
-      <a href="{% url 'talk:room-detail' meeting.id %}" class="btn btn-primary btn-sm">자세히 보기</a>
+      <a href="{% url 'talk:meeting-detail' meeting.id %}" class="btn btn-primary btn-sm">자세히 보기</a>
 
     </li>
     {% endfor %}
   </ul>
   {% else %}
-  <div class="alert alert-info">등록된 모임이 없습니다.</div>
+    <div class="alert alert-info mb-3">등록된 모임이 없습니다.</div>
   {% endif %}
+
+  <!-- 모임 생성 버튼 -->
+  <a href="{% url 'talk:create-meeting' book.id %}" class="btn btn-success">
+    + 모임 만들기
+  </a>
+
 </div>
+</body>
+</html>

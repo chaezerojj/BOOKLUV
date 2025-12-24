@@ -21,6 +21,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# 로그인 페이지 URL
+LOGIN_URL = 'http://192.168.202.130:8000/api/v1/auth/'
+
+# 로그인 성공 후 기본 리다이렉트
+LOGIN_REDIRECT_URL = 'http://192.168.202.130:8000/api/v1/chat/rooms/'
+
 load_dotenv()
 
 # Application definition
@@ -75,7 +81,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -143,53 +148,55 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',  # 개발 중인 프론트엔드 서버
     'https://your-frontend-domain.com',  # 배포된 프론트엔드 서버
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://glycogenetic-stilted-sunshine.ngrok-free.dev",  # ngrok 도메인 추가
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://glycogenetic-stilted-sunshine.ngrok-free.dev",  # ngrok 도메인 추가
 ]
 
 
 # settings.py
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-    'file': {
-        'level': 'DEBUG',
-        'class': 'logging.handlers.RotatingFileHandler',
-        'filename': 'chat_log.txt',
-        'maxBytes': 10485760,  # 파일 최대 크기 10MB
-        'backupCount': 5,  # 최대 5개의 백업 파일 유지
-        },
-    },
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#     'file': {
+#         'level': 'DEBUG',
+#         'class': 'logging.handlers.RotatingFileHandler',
+#         'filename': 'chat_log.txt',
+#         'maxBytes': 10485760,  # 파일 최대 크기 10MB
+#         'backupCount': 5,  # 최대 5개의 백업 파일 유지
+#         },
+#     },
 
-    'loggers': {
-        'django': {
-            'handlers': ['file'],  # 콘솔과 파일 두 곳에 로그 기록
-            'level': 'DEBUG',  # DEBUG 레벨로 모든 로그 기록
-            'propagate': True,
-        },
-        'channels': {
-            'handlers': ['file'],  # channels 로그도 콘솔과 파일에 기록
-            'level': 'DEBUG',  # DEBUG 레벨로 기록
-            'propagate': True,
-        },
-    },
-}
+#     'loggers': {
+#         'django': {
+#             'handlers': ['file'],  # 콘솔과 파일 두 곳에 로그 기록
+#             'level': 'DEBUG',  # DEBUG 레벨로 모든 로그 기록
+#             'propagate': True,
+#         },
+#         'channels': {
+#             'handlers': ['file'],  # channels 로그도 콘솔과 파일에 기록
+#             'level': 'DEBUG',  # DEBUG 레벨로 기록
+#             'propagate': True,
+#         },
+#     },
+# }
 
-KAKAO_REST_API_KEY = '24dfa2917f81a949062310b5a12ad5ef'
-KAKAO_REDIRECT_URI = 'http://localhost:8000/api/v1/auth/callback/'
-KAKAO_CLIENT_SECRET = 'XBBTe14bpyFEoo7A2uRbR1BALzjpcZE4'
+KAKAO_REST_API_KEY = '4bf9c626d2f496b06164d72b26db4b81'
+KAKAO_REDIRECT_URI = 'https://dayle-preadherent-longly.ngrok-free.dev/api/v1/auth/callback/'
+KAKAO_CLIENT_SECRET = 'Py28EL9FRcSyE0PYtkz0TpKTCAjmdUwZ'
 
 
 SITE_ID = 1
@@ -203,8 +210,37 @@ AUTH_USER_MODEL = 'klub_user.User'
 CORS_ALLOW_CREDENTIALS = True
 
 # 개발환경(HTTP)에서 프론트<->백엔드 다른 포트면 SameSite 이슈 있어서 설정
-SESSION_COOKIE_SAMESITE = "Lax"
-CSRF_COOKIE_SAMESITE = "Lax"
-
 # 세션 쿠키를 프론트에서도 쓰게 할 때 (필요하다면..)
-SESSION_COOKIE_HTTPONLY = True
+
+
+#LOGIN_URL = "http://localhost:8000/api/v1/auth/"
+LOGIN_URL = "https://dayle-preadherent-longly.ngrok-free.dev/api/v1/auth/"
+
+ALLOWED_HOSTS = ['*']
+DOMAIN_URL = "https://dayle-preadherent-longly.ngrok-free.dev/"
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+}
+
+# settings.py (ngrok 쓸 때)
+SESSION_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SECURE = True
+
+CSRF_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SECURE = True
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://localhost:5173$",
+    r"^https://.*\.ngrok-free\.dev$",
+    r"^https://.*\.ngrok-free\.app$",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "https://*.ngrok-free.dev",
+    "https://*.ngrok-free.app",
+]

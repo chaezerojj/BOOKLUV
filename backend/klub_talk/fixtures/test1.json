@@ -1,0 +1,20 @@
+[
+    {
+        "model": "klub_talk.quiz",
+        "pk": 1,
+        "fields": {
+            "meeting_id": 1,
+            "question": "삼국지의 주인공 이름은?",
+            "answer": "유비"
+        }
+    },
+    {
+        "model": "klub_talk.quiz",
+        "pk": 2,
+        "fields": {
+            "meeting_id": 2,
+            "question": "『해석에 반하여』 책의 작가는 누구인가요?",
+            "answer": "수전 손택"
+        }
+    }
+]
