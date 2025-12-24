@@ -1,157 +1,124 @@
-<div style="display: flex; align-items: center; gap: 10px;">
+<div style="display: flex; align-items: center; gap: 10px; position: relative;">
     <h2>안녕하세요 {{ user.nickname }}님! 👋</h2>
     
-    <div id="alarm-bell-container" style="position: relative; cursor: pointer; display: inline-block;">
+    <div id="alarm-bell-container" style="position: relative; cursor: pointer; display: inline-block; padding: 5px;">
         <span style="font-size: 24px;">🔔</span>
         <span id="unread-dot" style="
-            position: absolute; top: 0; right: 0;
+            position: absolute; top: 5px; right: 5px;
             width: 10px; height: 10px;
             background-color: #ff4d4f; border-radius: 50%;
-            display: none; border: 2px solid white;"></span>
+            display: none; border: 2px solid white; z-index: 10;"></span>
+    </div>
+
+    <div id="alarm-box" style="
+        display: none; /* 처음엔 숨김 */
+        position: absolute; top: 50px; left: 0;
+        width: 320px; max-height: 400px; overflow-y: auto;
+        background: white; border: 1px solid #ddd;
+        border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        z-index: 1000; padding: 10px;">
+        
+        <h4 style="margin: 0 0 10px 0; border-bottom: 1px solid #eee; padding-bottom: 5px;">최근 미팅 알람</h4>
+        <div id="meeting-alerts">
+            </div>
+        <div id="empty-msg" style="text-align: center; color: #888; padding: 20px 0;">새로운 알람이 없습니다.</div>
     </div>
 </div>
 
-<h3>오늘의 미팅 알람</h3>
-<div id="meeting-alerts" style="margin-bottom: 20px;"></div>
-
-<ul>
-    {% for room in rooms %}
-    <li>
-        <strong>{{ room.name }}</strong>
-        {% load tz %}
-        {% if room.slug %}
-            <a href="{% url 'chat:room-detail' room.slug %}?nickname=익명" data-slug="{{ room.slug }}">참여</a>
-            <br>
-            시작: {{ room.meeting.started_at|localtime|date:"Y-m-d H:i" }}<br>
-            종료: {{ room.meeting.finished_at|localtime|date:"Y-m-d H:i" }}
-        {% else %}
-            (참여 불가)
-            <br>
-            시작: {{ room.meeting.started_at|localtime|date:"Y-m-d H:i" }}<br>
-            종료: {{ room.meeting.finished_at|localtime|date:"Y-m-d H:i" }}
-        {% endif %}
-    </li>
-    {% endfor %}
-</ul>
-
 <style>
-    /* 기존 스타일 유지 */
+    /* 알람 개별 아이템 스타일 */
     #meeting-alerts div {
         background-color: #f0f8ff;
         border-left: 4px solid #007bff;
         padding: 10px;
         margin-bottom: 8px;
         border-radius: 4px;
-        transition: all 0.3s ease;
+        font-size: 0.9em;
     }
     #meeting-alerts a {
-        margin-left: 10px;
+        display: inline-block;
+        margin-top: 5px;
         color: #007bff;
         text-decoration: none;
         font-weight: bold;
     }
-    #meeting-alerts a:hover {
-        text-decoration: underline;
-    }
-    
-    /* 새 알람이 올 때 깜빡이는 효과 (선택사항) */
-    .new-alarm-flash {
-        animation: flash 1.5s;
-    }
-    @keyframes flash {
-        from { background-color: #fff4b3; }
-        to { background-color: #f0f8ff; }
-    }
 </style>
 
 <script>
-// [상태 관리] 안 읽은 알람 여부에 따라 빨간 점 토글
-function updateUnreadDot() {
+// [상태 업데이트] 알람 유무에 따라 점 표시 및 메시지 전환
+function updateAlarmStatus() {
     const dot = document.getElementById('unread-dot');
     const container = document.getElementById('meeting-alerts');
+    const emptyMsg = document.getElementById('empty-msg');
     
-    // 알람 리스트에 자식이 하나라도 있으면 점을 표시
-    if (container && container.children.length > 0) {
+    if (container.children.length > 0) {
         dot.style.display = 'block';
+        if(emptyMsg) emptyMsg.style.display = 'none';
     } else {
         dot.style.display = 'none';
+        if(emptyMsg) emptyMsg.style.display = 'block';
     }
 }
 
-// 1. 이미 있는 오늘 미팅 로드 (API 호출)
-async function loadExistingMeetings() {
-    try {
-        const response = await fetch("{% url 'chat:today-meetings' %}"); 
-        const data = await response.json();
-        
-        console.log("기존 미팅 데이터 로드:", data);
-
-        if (data.meetings && data.meetings.length > 0) {
-            data.meetings.forEach(meeting => {
-                renderMeetingAlert({
-                    title: meeting.title,
-                    started_at: meeting.started_at,
-                    join_url: meeting.join_url,
-                    meeting_id: meeting.meeting_id || meeting.title
-                });
-            });
-        }
-        updateUnreadDot(); // 로드 후 점 표시 여부 확인
-    } catch (error) {
-        console.error("기존 미팅 로드 중 에러:", error);
-    }
-}
-
-// 2. 미팅을 화면에 그리는 함수
+// 미팅 렌더링 함수
 function renderMeetingAlert(data) {
     const meetingAlerts = document.getElementById('meeting-alerts');
-    if (!meetingAlerts) return;
-
     const alertId = `alert-${data.meeting_id}`;
     if (document.getElementById(alertId)) return;
 
     const div = document.createElement('div');
     div.id = alertId;
-    div.classList.add('new-alarm-flash'); // 새로 들어올 때 반짝이는 효과
     
     const linkHTML = data.join_url !== "#" 
         ? `<a href="${data.join_url}">참여하기</a>` 
-        : `<span style="color:gray; font-size:0.85em;">(방 준비중)</span>`;
+        : `<span style="color:gray; font-size:0.8em;">(방 준비중)</span>`;
 
     div.innerHTML = `
-        <strong>${data.title}</strong> 미팅이 
-        <span class="time" style="color: #007bff; font-weight: bold;">${data.started_at}</span>에 시작됩니다! 
+        <strong>${data.title}</strong><br>
+        <span class="time" style="color: #555;">${data.started_at} 시작</span> 
         ${linkHTML}
     `;
     
     meetingAlerts.prepend(div);
-    updateUnreadDot(); // 알람이 추가되었으니 점 띄우기
+    updateAlarmStatus();
 }
 
-// 3. 실시간 웹소켓 연결
-function createWebSocketConnection() {
-    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    const wsUrl = protocol + window.location.host + '/ws/meeting-alerts/';
-    const chatSocket = new WebSocket(wsUrl);
-
-    chatSocket.onmessage = function(e) {
-        const data = JSON.parse(e.data);
-        console.log("실시간 알람 수신:", data);
-        renderMeetingAlert(data);
-    };
-
-    chatSocket.onopen = function() { console.log("WebSocket connected successfully"); };
-    chatSocket.onclose = function() { setTimeout(createWebSocketConnection, 3000); };
-}
-
-// 4. 종 아이콘 클릭 시 빨간 점 사라지게 하기
-document.getElementById('alarm-bell-container').addEventListener('click', () => {
+// 종 클릭 시 리스트 보이기/숨기기 토글
+document.getElementById('alarm-bell-container').onclick = function(e) {
+    const alarmBox = document.getElementById('alarm-box');
     const dot = document.getElementById('unread-dot');
-    if (dot) dot.style.display = 'none';
-    // 만약 리스트도 토글하고 싶다면 여기에 추가 로직 작성 가능
-});
+    
+    // 보이기/숨기기 토글
+    if (alarmBox.style.display === 'none') {
+        alarmBox.style.display = 'block';
+        dot.style.display = 'none'; // 열면 빨간 점 사라짐
+    } else {
+        alarmBox.style.display = 'none';
+    }
+    
+    e.stopPropagation(); // 윈도우 클릭 이벤트 전파 방지
+};
 
-// 실행
-loadExistingMeetings();
-createWebSocketConnection();
+// 알람 박스 외의 영역 클릭 시 닫기
+window.onclick = function(event) {
+    const alarmBox = document.getElementById('alarm-box');
+    if (!event.target.closest('#alarm-bell-container') && !event.target.closest('#alarm-box')) {
+        alarmBox.style.display = 'none';
+    }
+};
+
+// 초기 데이터 로드 및 소켓 연결
+async function init() {
+    try {
+        const response = await fetch("{% url 'chat:today-meetings' %}"); 
+        const data = await response.json();
+        if (data.meetings) data.meetings.forEach(renderMeetingAlert);
+    } catch (e) { console.error(e); }
+
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const ws = new WebSocket(protocol + window.location.host + '/ws/meeting-alerts/');
+    ws.onmessage = (e) => renderMeetingAlert(JSON.parse(e.data));
+}
+
+init();
 </script>
