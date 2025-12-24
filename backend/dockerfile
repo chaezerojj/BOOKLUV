@@ -11,13 +11,6 @@ RUN python3 -m pip install --upgrade pip setuptools wheel
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# docker-compose 설치
-RUN apt-get update && apt-get install -y \
-    curl \
-    && curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" \
-    -o /usr/local/bin/docker-compose \
-    && chmod +x /usr/local/bin/docker-compose
-
 # 프로젝트 전체 복사
 COPY . .
 
