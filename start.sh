@@ -1,9 +1,20 @@
 #!/bin/bash
-# 백엔드 서버 실행 명령어
 
-# Django 서버 실행
+# 시작 메시지
+echo "Starting the backend services..."
+
+# Django 마이그레이션 실행
+echo "Running Django migrations..."
+python manage.py migrate
+
+# Django 서버 실행 (0.0.0.0은 외부에서 접근 가능하게 설정)
 echo "Starting Django server..."
-python manage.py migrate  # 마이그레이션 실행
-python manage.py runserver 0.0.0.0:8000  # Django 서버 실행 (0.0.0.0은 모든 외부 요청을 받도록 설정)
+python manage.py runserver 0.0.0.0:8000
 
-# WebSocket, Redis와 같은 서비스가 도커에서 이미 설정되어 있어야 함
+# Celery 워커 실행
+echo "Starting Celery worker..."
+celery -A backend worker -l info &
+
+# Celery Beat 실행
+echo "Starting Celery Beat..."
+celery -A backend beat -l info &
