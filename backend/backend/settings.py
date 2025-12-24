@@ -28,7 +28,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
 ]
 # 서비스 메인 도메인 설정 (리다이렉트 시 활용)
-BASE_URL = os.getenv('DOMAIN_URL', 'https://bookluv-production.up.railway.app/').rstrip('/')
+BASE_URL = "https://bookluv-production.up.railway.app"
 
 # 5. 애플리케이션 정의
 INSTALLED_APPS = [
@@ -141,7 +141,7 @@ LOGIN_REDIRECT_URL = f"{BASE_URL}/api/v1/chat/rooms/"
 # 카카오 로그인 설정
 KAKAO_REST_API_KEY = os.getenv('KAKAO_REST_API_KEY', '4bf9c626d2f496b06164d72b26db4b81')
 KAKAO_CLIENT_SECRET = os.getenv('KAKAO_CLIENT_SECRET', 'Py28EL9FRcSyE0PYtkz0TpKTCAjmdUwZ')
-KAKAO_REDIRECT_URI = os.getenv('KAKAO_REDIRECT_URI', f"{BASE_URL}/api/v1/auth/callback/")
+KAKAO_REDIRECT_URI = f"{BASE_URL}/api/v1/auth/callback/"
 
 # 12. CORS 및 CSRF 신뢰 도메인
 CORS_ALLOWED_ORIGINS = [
