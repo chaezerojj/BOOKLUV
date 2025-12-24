@@ -47,7 +47,7 @@ def book_detail(request, book_id):
         'book': book,
         'meetings': meetings,
     })
-   @api_view(["GET"])
+@api_view(["GET"])
 def room_detail(request, pk):
     # select_related를 사용하여 쿼리 횟수를 줄입니다 (N+1 문제 방지)
     meeting = get_object_or_404(Meeting.objects.select_related("book_id", "leader_id"), pk=pk)
