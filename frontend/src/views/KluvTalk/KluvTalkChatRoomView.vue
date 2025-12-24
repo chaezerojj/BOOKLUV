@@ -1,80 +1,72 @@
-<!-- src/views/KluvTalk/KluvTalkChatRoomView.vue -->
 <template>
-  <div class="wrap">
-    <div class="top">
-      <div class="left">
-        <RouterLink class="back" :to="{ name: 'kluvtalk-chat-list' }">← 목록</RouterLink>
-        <h1 class="title">{{ roomTitle }}</h1>
-        <p class="sub">
-          WS: <span :class="store.socketStatus">{{ store.socketStatus }}</span>
-          <span v-if="store.lastErrorMessage" class="err"> · {{ store.lastErrorMessage }}</span>
+  <div class="page">
+    <div class="head">
+      <RouterLink class="back" :to="{ name: 'kluvtalk-chat-list' }">← 목록</RouterLink>
+      <div class="title">
+        <h1 class="h1">{{ store.room?.name ?? "대기실" }}</h1>
+        <p class="sub" v-if="store.meeting">
+          {{ store.meeting.title }}
         </p>
-      </div>
-
-      <div class="right">
-        <div class="chip" :class="{ on: canChat }">
-          {{ canChat ? "회의 진행중" : "회의 시간이 아닙니다" }}
-        </div>
       </div>
     </div>
 
-    <div v-if="store.roomLoading" class="state">로딩중...</div>
-    <div v-else-if="store.roomError" class="state error">방 정보를 불러오지 못했어요.</div>
+    <div v-if="store.roomLoading" class="state">불러오는 중...</div>
+    <div v-else-if="store.roomError" class="state error">채팅방 정보를 불러오지 못했어요.</div>
 
-    <div v-else class="grid">
+    <div v-else class="container">
       <!-- chat -->
-      <section class="chat">
-        <div class="log" ref="logRef">
-          <div
-            v-for="(m, idx) in store.messages"
-            :key="idx"
-            class="msg"
-            :class="{ system: m.type === 'system' }"
-          >
-            <template v-if="m.type === 'system'">
-              <div class="sys">{{ m.message }}</div>
-              <div class="time">{{ formatTime(m.timestamp) }}</div>
-            </template>
+      <section class="chat-area">
+        <div ref="chatLog" class="chat-log">
+          <template v-for="(m, idx) in store.messages" :key="idx">
+            <div v-if="m.type === 'system'" class="system">
+              {{ m.message }}
+            </div>
 
-            <template v-else>
-              <div class="avatar">{{ (m.username?.[0] ?? "?").toUpperCase() }}</div>
-              <div class="body">
-                <div class="meta">
+            <div v-else class="message" :class="isSelf(m) ? 'self' : 'other'">
+              <div class="message-content">
+                <div class="message-header">
                   <strong>{{ m.username }}</strong>
-                  <span>{{ formatTime(m.timestamp) }}</span>
+                  <span>{{ time(m.timestamp) }}</span>
                 </div>
-                <div class="text">{{ m.message }}</div>
+                <div class="message-body">{{ m.message }}</div>
               </div>
-            </template>
-          </div>
+            </div>
+          </template>
         </div>
 
-        <div class="composer">
+        <div class="input-area">
           <input
             v-model="text"
             class="input"
-            :disabled="!canChat"
-            placeholder="메시지를 입력하세요"
-            @keydown.enter.prevent="onSend"
+            type="text"
+            placeholder="메시지 입력..."
+            :disabled="!store.canChat"
+            @keydown.enter="onSend"
           />
-          <button class="btn" :disabled="!canChat || !text.trim()" @click="onSend">
+          <button class="send" type="button" :disabled="!store.canChat" @click="onSend">
             전송
           </button>
+        </div>
+
+        <div v-if="!store.canChat" class="hint">
+          현재는 채팅 가능한 시간이 아니에요.
         </div>
       </section>
 
       <!-- participants -->
-      <aside class="side">
-        <div class="side-head">
-          <h3>참여자</h3>
-          <span class="count">{{ onlineCount }} / {{ totalMembers }}</span>
+      <aside class="participants">
+        <div class="p-head">
+          <h4>👥 참여자</h4>
+          <span class="count">({{ onlineCount }}/{{ store.participants.length }})</span>
         </div>
 
-        <ul class="people">
-          <li v-for="p in store.participants" :key="p.id" :class="{ online: p.online }">
-            <span class="role" v-if="p.isLeader">👑</span>
-            <span class="name">{{ p.username }}</span>
-            <span class="dot" />
+        <ul class="p-list">
+          <li v-for="p in store.participants" :key="p.id" class="p-item">
+            <span class="dot" :class="p.online ? 'online' : 'offline'"></span>
+            <span class="p-name" :class="{ on: p.online }">
+              <span v-if="p.isLeader" class="crown">👑</span>
+              {{ p.nickname }}
+            </span>
           </li>
         </ul>
       </aside>
@@ -84,250 +76,278 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { RouterLink, useRoute } from "vue-router";
+import { useRoute } from "vue-router";
 import { useKluvChatStore } from "@/stores/kluvChat";
 
 const route = useRoute();
 const store = useKluvChatStore();
 
-const roomSlug = computed(() => route.params.roomSlug);
+const roomSlug = computed(() => String(route.params.roomSlug ?? ""));
 const text = ref("");
+const chatLog = ref(null);
 
-const logRef = ref(null);
+const time = (ts) => store.fmtTime(ts);
 
-const canChat = computed(() => !!store.room?.can_chat);
-const roomTitle = computed(() => store.room?.name ?? `채팅방 (${roomSlug.value})`);
-
-const totalMembers = computed(() => {
-  // 백엔드 템플릿에서는 joined_members/total_members를 표시 :contentReference[oaicite:8]{index=8}
-  return store.room?.total_members ?? store.participants.length ?? 0;
-});
+const isSelf = (m) => {
+  const myId = store.currentUser?.id;
+  if (myId == null) return false;
+  return String(m.user_id) === String(myId);
+};
 
 const onlineCount = computed(() => store.participants.filter((p) => p.online).length);
 
-const formatTime = (ts) => {
-  if (!ts) return "";
-  // ts가 ISO든 "YYYY-mm-dd HH:MM:SS"든 최대한 안전하게 파싱
-  const d = new Date(ts);
-  if (!Number.isNaN(d.getTime())) {
-    return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
-  }
-  return String(ts).slice(11, 16); // fallback
-};
-
-const scrollToBottom = async () => {
+const scrollBottom = async () => {
   await nextTick();
-  const el = logRef.value;
-  if (!el) return;
-  el.scrollTop = el.scrollHeight;
+  if (!chatLog.value) return;
+  chatLog.value.scrollTop = chatLog.value.scrollHeight;
 };
 
 const onSend = () => {
-  if (!canChat.value) return;
-  const v = text.value.trim();
-  if (!v) return;
-  store.sendMessage(v);
+  if (!store.canChat) return;
+  const msg = text.value.trim();
+  if (!msg) return;
+  store.sendMessage(msg);
   text.value = "";
 };
 
+watch(
+  () => store.messages.length,
+  async () => {
+    await scrollBottom();
+  }
+);
+
 onMounted(async () => {
   await store.fetchRoomDetail(roomSlug.value);
+  await scrollBottom();
   store.connectRoomSocket(roomSlug.value);
-  await scrollToBottom();
 });
 
 onBeforeUnmount(() => {
   store.disconnectRoomSocket();
 });
-
-watch(
-  () => store.messages.length,
-  async () => {
-    await scrollToBottom();
-  }
-);
 </script>
 
 <style scoped>
-.wrap {
-  max-width: 1100px;
+.page {
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 18px 16px 60px;
 }
-
-.top {
+.head {
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
-
 .back {
-  display: inline-block;
-  color: #1a73e8;
   text-decoration: none;
-  font-weight: 800;
-  margin-bottom: 8px;
+  color: #1a73e8;
+  font-weight: 900;
+  padding: 8px 10px;
+  border-radius: 12px;
 }
-.back:hover { text-decoration: underline; }
-
-.title { margin: 0; font-size: 26px; }
-.sub { margin: 6px 0 0; color: #666; font-size: 13px; }
-.sub .open { color: #0a7a2f; font-weight: 800; }
-.sub .connecting { color: #8a6d00; font-weight: 800; }
-.sub .closed, .sub .error { color: #b00020; font-weight: 800; }
-.err { color: #b00020; }
-
-.chip {
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: 1px solid #eee;
-  color: #666;
-  font-size: 13px;
-  font-weight: 800;
+.back:hover {
+  background: rgba(26,115,232,0.08);
 }
-.chip.on {
-  color: #0a7a2f;
-  border-color: #bfe8c9;
-  background: #f3fff6;
-}
-
-.state { color: #666; padding: 18px 0; }
-.state.error { color: #b00020; }
-
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 14px;
-}
-@media (max-width: 860px) {
-  .grid { grid-template-columns: 1fr; }
-}
-
-.chat {
-  border: 1px solid #eee;
-  border-radius: 16px;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  min-height: 520px;
-}
-
-.log {
-  padding: 14px;
-  overflow-y: auto;
+.title {
   flex: 1;
 }
-
-.msg {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
-  align-items: flex-start;
-}
-.msg.system {
-  gap: 8px;
-  color: #777;
-  font-style: italic;
-}
-.sys { flex: 1; }
-.time { font-size: 12px; color: #999; white-space: nowrap; }
-
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  background: #4caf50; /* 템플릿 느낌 유지 */
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.h1 {
+  margin: 0;
+  font-size: 22px;
   font-weight: 900;
-  flex-shrink: 0;
 }
-
-.body {
-  background: #f6f6f6;
-  border-radius: 12px;
-  padding: 10px 12px;
-  max-width: 70%;
-}
-.meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 12px;
+.sub {
+  margin: 6px 0 0;
   color: #666;
-  margin-bottom: 6px;
+  font-size: 13px;
 }
-.text { white-space: pre-wrap; }
 
-.composer {
+.state {
+  padding: 14px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 14px;
+}
+.state.error {
+  background: #fff5f5;
+  border-color: #ffd6d6;
+  color: #b42318;
+}
+
+.container {
+  display: flex;
+  gap: 16px;
+  height: 78vh;
+}
+@media (max-width: 980px) {
+  .container { flex-direction: column; height: auto; }
+}
+
+.chat-area {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eee;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.chat-log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+  background: #f9f9fb;
+  display: flex;
+  flex-direction: column;
+}
+
+.message {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+.message.self {
+  justify-content: flex-end;
+}
+.message-content {
+  padding: 10px 14px;
+  border-radius: 14px;
+  max-width: 65%;
+  font-size: 14px;
+}
+.message.self .message-content {
+  background: #fee500;
+  color: #3c1e1e;
+  border-top-right-radius: 6px;
+  margin-right: 8px;
+}
+.message.other .message-content {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-top-left-radius: 6px;
+  margin-left: 8px;
+}
+
+.message-header {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 4px;
+  display: flex;
+  gap: 8px;
+}
+.message-body {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.system {
+  align-self: center;
+  color: #777;
+  font-size: 12px;
+  margin: 10px 0;
+  background: #eee;
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+.input-area {
+  padding: 14px;
+  background: #fff;
+  border-top: 1px solid #eee;
   display: flex;
   gap: 10px;
-  padding: 12px;
-  border-top: 1px solid #eee;
 }
 .input {
   flex: 1;
-  border: 1px solid #eee;
+  padding: 11px 12px;
+  border: 1px solid #ddd;
   border-radius: 12px;
-  padding: 12px;
   outline: none;
 }
-.btn {
-  border: 0;
+.send {
+  padding: 11px 16px;
   border-radius: 12px;
-  padding: 12px 14px;
-  cursor: pointer;
+  border: none;
+  background: #1a73e8;
+  color: #fff;
   font-weight: 900;
+  cursor: pointer;
 }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.side {
-  border: 1px solid #eee;
-  border-radius: 16px;
+.send:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.hint {
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #888;
   background: #fff;
-  padding: 14px;
-  height: fit-content;
+  border-top: 1px dashed #eee;
 }
 
-.side-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 10px;
+/* participants */
+.participants {
+  flex: 1;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eee;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+  padding: 16px;
 }
-.side-head h3 { margin: 0; }
-.count { color: #777; font-size: 13px; }
-
-.people {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 8px;
-}
-.people li {
+.p-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 10px;
-  border: 1px solid #f1f1f1;
-  border-radius: 12px;
-  color: #888;
+  gap: 8px;
 }
-.people li.online { color: #0a7a2f; font-weight: 800; }
+.p-head h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 900;
+}
+.count {
+  color: #888;
+  font-size: 12px;
+}
 
-.role { margin-right: 6px; }
-.name { flex: 1; }
-
+.p-list {
+  list-style: none;
+  padding: 0;
+  margin: 14px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.p-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
 .dot {
   width: 10px;
   height: 10px;
-  border-radius: 999px;
-  background: #ccc;
+  border-radius: 50%;
+  display: inline-block;
 }
-.people li.online .dot { background: #0a7a2f; }
+.dot.online {
+  background: #4caf50;
+  box-shadow: 0 0 6px #4caf50;
+}
+.dot.offline {
+  background: #cfcfcf;
+}
+.p-name {
+  color: #888;
+}
+.p-name.on {
+  color: #2e7d32;
+  font-weight: 900;
+}
+.crown {
+  margin-right: 4px;
+}
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div class="header-right-user">
-    <RouterLink :to="{name: 'notification'}">
+    <RouterLink :to="{name: 'alarm'}">
       <img src="@/assets/images/notification_bell.png" alt="notification-bell" class="notification-bell">
     </RouterLink>
     <UserMenu />

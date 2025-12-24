@@ -3,40 +3,27 @@ import { defineStore } from "pinia";
 import { chatApi } from "@/api/chat";
 import { useAuthStore } from "@/stores/auth";
 
-/**
- * 서버 WS 메시지 타입(consumer 기준)
- * - { type: "chat", message, username, timestamp }
- * - { type: "system", message, timestamp }
- * - { type: "participants", participants: [{id, username, online}] }
- * - { type: "error", message }
- * (participants_status -> "participants"로 내려옴) :contentReference[oaicite:3]{index=3}
- */
-
-function wsBaseUrl() {
-  const proto = window.location.protocol === "https:" ? "wss://" : "ws://";
-  return proto + window.location.host;
+function wsBaseUrlFromApiBase() {
+  const apiBase = import.meta.env.VITE_API_BASE_URL;
+  // 예: https://bookluv-production.up.railway.app  -> wss://bookluv-production.up.railway.app
+  const u = new URL(apiBase);
+  const wsProto = u.protocol === "https:" ? "wss:" : "ws:";
+  return `${wsProto}//${u.host}`;
 }
 
-function normalizeInitialMessages(rawMessages) {
-  // 백엔드가 Redis에 쌓아둔 형태가 프로젝트마다 다를 수 있어서 방어적으로 매핑
-  // views.py에서 msg를 json.loads 후 그대로 messages 배열에 append 함 :contentReference[oaicite:4]{index=4}
-  if (!Array.isArray(rawMessages)) return [];
-  return rawMessages.map((m) => {
-    const username = m.username ?? m.nickname ?? "Unknown";
-    const message = m.message ?? m.content ?? "";
-    const timestamp = m.timestamp ?? null;
-    return {
-      type: m.type ?? "chat",
-      username,
-      message,
-      timestamp,
-    };
-  });
+function fmtTime(ts) {
+  if (!ts) return "";
+  try {
+    const d = new Date(ts);
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  } catch {
+    return String(ts);
+  }
 }
 
 export const useKluvChatStore = defineStore("kluvChat", {
   state: () => ({
-    // rooms list
+    // rooms
     roomsLoading: false,
     roomsError: null,
     rooms: [],
@@ -44,35 +31,40 @@ export const useKluvChatStore = defineStore("kluvChat", {
     // room detail
     roomLoading: false,
     roomError: null,
-    room: null, // { slug, name, can_chat, leader, participants, total_members, joined_members, ... }
-    messages: [],
-    participants: [],
+    room: null, // {slug,name}
+    meeting: null,
+    canChat: false,
+    currentUser: null,
+    leader: null,
+
+    messages: [], // {type, username, message, timestamp, user_id}
+    participants: [], // {id, nickname, online, isLeader?}
 
     // ws
     socket: null,
     socketStatus: "idle", // idle | connecting | open | closed | error
     lastErrorMessage: null,
 
-    // meeting alerts (ws)
+    // alarms
+    alarmsLoading: false,
+    alarmsError: null,
+    meetingAlerts: [], // [{meeting_id,title,started_at,join_url, room_slug?}]
+    unread: false,
     alertsSocket: null,
     alertsStatus: "idle",
-    meetingAlerts: [], // {title, started_at, meeting_id, join_url}
     shownMeetingIds: new Set(),
   }),
 
   actions: {
     // -----------------------------
-    // Rooms
+    // Rooms list
     // -----------------------------
     async fetchRooms() {
       this.roomsLoading = true;
       this.roomsError = null;
       try {
         const data = await chatApi.fetchRooms();
-
-        // 기대 형태(추천)
-        // { rooms: [{slug,name, started_at, finished_at, meeting_title, can_chat}, ...] }
-        this.rooms = data.rooms ?? data ?? [];
+        this.rooms = data.rooms ?? [];
       } catch (e) {
         this.roomsError = e;
         this.rooms = [];
@@ -82,56 +74,44 @@ export const useKluvChatStore = defineStore("kluvChat", {
     },
 
     // -----------------------------
-    // Room detail + initial state
+    // Room detail (REST)
     // -----------------------------
     async fetchRoomDetail(roomSlug) {
       this.roomLoading = true;
       this.roomError = null;
+
       this.room = null;
+      this.meeting = null;
+      this.canChat = false;
+      this.currentUser = null;
+      this.leader = null;
       this.messages = [];
       this.participants = [];
+
       try {
         const data = await chatApi.fetchRoomDetail(roomSlug);
 
-        // 기대 형태(추천)
-        // {
-        //   room: {slug,name},
-        //   can_chat: boolean,
-        //   leader: {id, nickname},
-        //   participants: [{id, nickname, online?}],
-        //   total_members, joined_members,
-        //   messages: [...]
-        // }
-        this.room = data.room ?? data;
-        this.room.can_chat = data.can_chat ?? this.room.can_chat ?? false;
+        this.room = data.room;
+        this.meeting = data.meeting ?? null;
+        this.canChat = !!data.can_chat;
+        this.currentUser = data.current_user ?? null;
+        this.leader = data.leader ?? null;
 
-        const leader = data.leader ?? this.room.leader ?? null;
-        const participants = data.participants ?? this.room.participants ?? [];
-
-        // participants를 WS 형태({id, username, online})로 정규화
-        const mapped = participants.map((p) => ({
-          id: p.id ?? p.user_id?.id,
-          username: p.username ?? p.nickname ?? p.user_id?.nickname ?? "Unknown",
-          online: p.online ?? false,
+        this.participants = (data.participants ?? []).map((p) => ({
+          id: p.id,
+          nickname: p.nickname,
+          online: !!p.online,
+          isLeader: !!p.isLeader || (this.leader?.id != null && p.id === this.leader.id),
         }));
 
-        // leader도 participants에 포함시켜 표시하고 싶으면 여기서 합치기
-        if (leader?.id) {
-          const leaderItem = {
-            id: leader.id,
-            username: leader.nickname ?? leader.username ?? "Leader",
-            online: mapped.find((x) => x.id === leader.id)?.online ?? false,
-            isLeader: true,
-          };
-          // leader가 participants에 이미 포함돼 있으면 중복 제거
-          const withoutDup = mapped.filter((x) => x.id !== leader.id);
-          this.participants = [leaderItem, ...withoutDup];
-        } else {
-          this.participants = mapped;
-        }
-
-        const rawMessages = data.messages ?? this.room.messages ?? [];
-        this.messages = normalizeInitialMessages(rawMessages);
+        // messages는 Redis 형식 그대로 올 수도 있어서 최소 정규화
+        this.messages = (data.messages ?? []).map((m) => ({
+          type: m.type ?? "chat",
+          username: m.username ?? m.nickname ?? "Unknown",
+          message: m.message ?? "",
+          timestamp: m.timestamp ?? null,
+          user_id: m.user_id ?? null,
+        }));
       } catch (e) {
         this.roomError = e;
       } finally {
@@ -140,21 +120,21 @@ export const useKluvChatStore = defineStore("kluvChat", {
     },
 
     // -----------------------------
-    // WebSocket: chat room
+    // WebSocket: room
     // -----------------------------
     connectRoomSocket(roomSlug) {
-      // 이미 연결돼 있으면 끊고 다시
       this.disconnectRoomSocket();
 
       const authStore = useAuthStore();
       if (!authStore?.isAuthenticated) {
-        this.lastErrorMessage = "로그인 후 채팅에 참여할 수 있어요.";
         this.socketStatus = "error";
+        this.lastErrorMessage = "로그인 후 채팅에 참여할 수 있어요.";
         return;
       }
 
       this.socketStatus = "connecting";
-      const url = `${wsBaseUrl()}/ws/chat/${roomSlug}/`;
+      const wsBase = wsBaseUrlFromApiBase();
+      const url = `${wsBase}/ws/chat/${roomSlug}/`;
       const socket = new WebSocket(url);
       this.socket = socket;
 
@@ -170,14 +150,6 @@ export const useKluvChatStore = defineStore("kluvChat", {
 
       socket.onclose = () => {
         this.socketStatus = "closed";
-        // 자동 재연결(발표용 안정)
-        // room 페이지가 유지되는 동안만 재연결되게: socket이 still this.socket일 때만
-        const current = this.socket;
-        setTimeout(() => {
-          if (this.socket === current) return; // 이미 새 소켓이 생겼으면 무시
-          // 페이지가 살아있으면 재연결
-          // (roomSlug는 view에서 다시 connectRoomSocket을 호출하는 방식으로도 OK)
-        }, 3000);
       };
 
       socket.onmessage = (e) => {
@@ -198,28 +170,24 @@ export const useKluvChatStore = defineStore("kluvChat", {
             username: data.username,
             message: data.message,
             timestamp: data.timestamp ?? null,
+            user_id: data.user_id ?? null,
           });
           return;
         }
 
         if (data.type === "participants") {
-          // [{id, username, online}]
           const incoming = Array.isArray(data.participants) ? data.participants : [];
-          // 기존 leader 표시 유지
-          const leaderId = this.participants.find((p) => p.isLeader)?.id;
+          const leaderId = this.leader?.id ?? null;
 
           const mapped = incoming.map((p) => ({
             id: p.id,
-            username: p.username,
+            nickname: p.nickname ?? p.username ?? "Unknown",
             online: !!p.online,
-            isLeader: leaderId === p.id,
+            isLeader: leaderId != null && p.id === leaderId,
           }));
 
-          // leader 먼저
-          if (leaderId) {
-            mapped.sort((a, b) => (b.isLeader ? 1 : 0) - (a.isLeader ? 1 : 0));
-          }
-
+          // leader first
+          mapped.sort((a, b) => (b.isLeader ? 1 : 0) - (a.isLeader ? 1 : 0));
           this.participants = mapped;
           return;
         }
@@ -232,9 +200,10 @@ export const useKluvChatStore = defineStore("kluvChat", {
     },
 
     sendMessage(text) {
-      if (!text?.trim()) return;
+      const msg = (text ?? "").trim();
+      if (!msg) return;
       if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
-      this.socket.send(JSON.stringify({ message: text.trim() })); // consumer receive expects {message} :contentReference[oaicite:5]{index=5}
+      this.socket.send(JSON.stringify({ message: msg }));
     },
 
     disconnectRoomSocket() {
@@ -248,14 +217,38 @@ export const useKluvChatStore = defineStore("kluvChat", {
     },
 
     // -----------------------------
-    // WebSocket: meeting alerts (global-ish)
+    // Alarms: REST + WS
     // -----------------------------
+    async fetchTodayMeetings() {
+      this.alarmsLoading = true;
+      this.alarmsError = null;
+      try {
+        const data = await chatApi.fetchTodayMeetings();
+        const list = data.meetings ?? [];
+
+        // 최신이 위로
+        this.meetingAlerts = list.map((x) => ({
+          meeting_id: x.meeting_id,
+          title: x.title,
+          started_at: x.started_at,
+          join_url: x.join_url ?? "#",
+        }));
+
+        this.unread = this.meetingAlerts.length > 0;
+      } catch (e) {
+        this.alarmsError = e;
+        this.meetingAlerts = [];
+      } finally {
+        this.alarmsLoading = false;
+      }
+    },
+
     connectMeetingAlertsSocket() {
       this.disconnectMeetingAlertsSocket();
       this.alertsStatus = "connecting";
 
-      // 기존 템플릿은 ip를 하드코딩해둠 → Vue에서는 location.host로 가야 함 :contentReference[oaicite:6]{index=6}
-      const url = `${wsBaseUrl()}/ws/meeting-alerts/`;
+      const wsBase = wsBaseUrlFromApiBase();
+      const url = `${wsBase}/ws/meeting-alerts/`;
       const socket = new WebSocket(url);
       this.alertsSocket = socket;
 
@@ -280,17 +273,22 @@ export const useKluvChatStore = defineStore("kluvChat", {
         if (meetingId != null) this.shownMeetingIds.add(meetingId);
 
         this.meetingAlerts.unshift({
+          meeting_id: data.meeting_id,
           title: data.title,
           started_at: data.started_at,
-          meeting_id: data.meeting_id,
           join_url: data.join_url ?? "#",
         });
 
-        // 너무 많이 쌓이지 않게
-        if (this.meetingAlerts.length > 5) {
-          this.meetingAlerts = this.meetingAlerts.slice(0, 5);
+        this.unread = true;
+
+        if (this.meetingAlerts.length > 10) {
+          this.meetingAlerts = this.meetingAlerts.slice(0, 10);
         }
       };
+    },
+
+    markAlarmsRead() {
+      this.unread = false;
     },
 
     disconnectMeetingAlertsSocket() {
@@ -302,5 +300,8 @@ export const useKluvChatStore = defineStore("kluvChat", {
       this.alertsSocket = null;
       this.alertsStatus = "idle";
     },
+
+    // helper
+    fmtTime,
   },
 });

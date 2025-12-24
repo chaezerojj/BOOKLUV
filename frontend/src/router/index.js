@@ -18,10 +18,11 @@ import BoardListView from "@/views/Board/BoardListView.vue";
 import BoardCreateView from "@/views/Board/BoardCreateView.vue";
 import BoardDetailView from "@/views/Board/BoardDetailView.vue";
 import BookDetailView from "@/views/Books/BookDetailView.vue";
-import Notification from "@/views/MyPage/Notification.vue";
 import BoardUpdateView from "@/views/Board/BoardUpdateView.vue";
 import SearchResultView from "@/views/Search/SearchResultView.vue";
 import AuthCallBackView from "@/views/Auth/AuthCallBackView.vue";
+
+import ChatAlarmBell from "@/components/ChatAlarmBell.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -165,9 +166,9 @@ const router = createRouter({
       ],
     },
     {
-      path: "/notification",
-      name: "notification",
-      component: Notification,
+      path: "/alarm",
+      name: "alarm",
+      component: ChatAlarmBell,
     },
   ],
 });

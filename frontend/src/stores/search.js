@@ -41,12 +41,10 @@ export const useSearchStore = defineStore("search", {
             headers: { Accept: "application/json" },
           });
 
-          // 혹시라도 HTML 문자열이 오는 경우 방어
           if (isProbablyHtmlString(res.data)) {
             throw new Error("책 검색 API가 JSON이 아니라 HTML을 반환했어요. (백엔드 라우팅 확인 필요)");
           }
 
-          // 배열만 허용 (페이지네이션이면 results도 허용)
           const list = Array.isArray(res.data)
             ? res.data
             : Array.isArray(res.data?.results)
@@ -55,10 +53,22 @@ export const useSearchStore = defineStore("search", {
 
           this.books = list.map(normalizeBook);
           this.kluvTalks = [];
-        } else {
-          this.kluvTalks = [];
+        } else if (type === "kluvtalk") {
+          const res = await http.get("/api/v1/books/meetings/", {
+            params: { q: keyword },
+            headers: { Accept: "application/json" },
+          });
+
+          if (isProbablyHtmlString(res.data)) {
+            throw new Error("모임 검색 API가 JSON이 아니라 HTML을 반환했어요. (백엔드 라우팅 확인 필요)");
+          }
+
+          const list = Array.isArray(res.data) ? res.data : [];
+          this.kluvTalks = list.map(normalizeTalk);
           this.books = [];
-          this.error = new Error("모임 검색은 아직 준비 중이에요.");
+        } else {
+          this.books = [];
+          this.kluvTalks = [];
         }
       } catch (e) {
         this.error = e;
