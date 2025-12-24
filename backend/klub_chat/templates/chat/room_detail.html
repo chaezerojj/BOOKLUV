@@ -6,21 +6,15 @@
     <title>{{ room.name }} - 대기실</title>
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
-        h1 { color: #1a73e8; font-size: 24px; }
-        .container { display: flex; gap: 20px; max-width: 1200px; margin: 0 auto; height: 80vh; }
+        .container { display: flex; gap: 20px; max-width: 1200px; margin: 0 auto; height: 85vh; }
 
         /* 채팅 영역 */
         .chat-area { flex: 3; display: flex; flex-direction: column; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
-        .status-bar { padding: 10px 20px; border-bottom: 1px solid #eee; font-size: 14px; font-weight: bold; }
-        
         #chat-log { flex: 1; overflow-y: auto; padding: 20px; background-color: #f9f9f9; display: flex; flex-direction: column; }
         
-        /* 메시지 스타일 */
         .message { display: flex; align-items: flex-start; margin-bottom: 15px; }
         .message.self { justify-content: flex-end; }
-        .message.other { justify-content: flex-start; }
-        
-        .message-content { padding: 10px 14px; border-radius: 12px; max-width: 60%; position: relative; font-size: 14px; line-height: 1.5; }
+        .message-content { padding: 10px 14px; border-radius: 12px; max-width: 60%; font-size: 14px; position: relative; }
         .message.self .message-content { background: #fee500; color: #3c1e1e; border-top-right-radius: 2px; margin-right: 8px; }
         .message.other .message-content { background: white; border: 1px solid #ddd; border-top-left-radius: 2px; margin-left: 8px; }
 
@@ -28,21 +22,17 @@
         .message-header { font-size: 11px; color: #888; margin-bottom: 4px; display: flex; gap: 8px; }
         .system { text-align: center; color: #888; font-size: 12px; margin: 10px 0; background: #eee; border-radius: 20px; padding: 2px 10px; align-self: center; }
 
-        /* 입력창 */
         .input-area { padding: 15px; background: white; border-top: 1px solid #eee; display: flex; gap: 10px; }
-        #chat-message-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; outline: none; }
+        #chat-message-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
         #chat-message-submit { padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        #chat-message-submit:disabled { background: #ccc; }
 
         /* 참여자 패널 */
         .participants-area { flex: 1; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .participants-area h4 { margin-top: 0; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px; }
-        #participants { padding: 0; }
-        .participant-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .online { background: #4CAF50; }
+        .participant-item { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 14px; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .online { background: #4CAF50; border: 2px solid #e8f5e9; }
         .offline { background: #ccc; }
-        .leader-crown { color: #f1c40f; font-weight: bold; }
+        .leader-crown { color: #f1c40f; margin-right: 4px; }
     </style>
 </head>
 <body>
@@ -51,58 +41,47 @@
 
 <div class="container">
     <div class="chat-area">
-        <div class="status-bar">
-            {% if can_chat %}
-                <span style="color: #2e7d32;">● 회의 진행 중</span>
-            {% else %}
-                <span style="color: #d32f2f;">○ 회의 시간 아님</span>
-            {% endif %}
-        </div>
-
         <div id="chat-log">
             {% for msg in messages %}
-                {% if msg.type == "system" %}
-                    <div class="system">{{ msg.message }}</div>
-                {% else %}
-                    <div class="message {% if msg.user_id|slugify == user.id|slugify %}self{% else %}other{% endif %}">
-                        {% if msg.user_id|slugify != user.id|slugify %}
-                            <div class="avatar">{{ msg.username|first }}</div>
-                        {% endif %}
-                        <div class="message-content">
-                            <div class="message-header">
-                                <strong>{{ msg.username }}</strong>
-                                <span>{{ msg.timestamp }}</span>
-                            </div>
-                            <div class="message-body">{{ msg.message }}</div>
+                <div class="message {% if msg.user_id|slugify == user.id|slugify %}self{% else %}other{% endif %}">
+                    <div class="message-content">
+                        <div class="message-header">
+                            <strong>{{ msg.username }}</strong>
+                            <span>{{ msg.timestamp }}</span>
                         </div>
-                        {% if msg.user_id|slugify == user.id|slugify %}
-                            <div class="avatar">{{ msg.username|first }}</div>
-                        {% endif %}
+                        <div class="message-body">{{ msg.message }}</div>
                     </div>
-                {% endif %}
+                </div>
             {% endfor %}
         </div>
-
         <div class="input-area">
-            <input id="chat-message-input" type="text" placeholder="메시지를 입력하세요..." {% if not can_chat %}disabled{% endif %}>
+            <input id="chat-message-input" type="text" placeholder="메시지 입력..." {% if not can_chat %}disabled{% endif %}>
             <button id="chat-message-submit" {% if not can_chat %}disabled{% endif %}>전송</button>
         </div>
     </div>
 
     <div class="participants-area">
-        <h4>👥 참여자 <span id="count" style="color:#888; font-weight:normal;">(0/{{ total_members }})</span></h4>
-        <ul id="participants">
-            </ul>
+        <h4>👥 참여자 <span id="count" style="color:#888;">(0/{{ total_members }})</span></h4>
+        <ul id="participants" style="list-style: none; padding: 0;">
+            {% for p in participants %}
+                <li class="participant-item" id="p-{{ p.id }}">
+                    <span class="status-dot offline"></span>
+                    <span>
+                        {% if p.id|slugify == leader.id|slugify %}<span class="leader-crown">👑</span>{% endif %}
+                        {{ p.nickname }}
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
     </div>
 </div>
 
 <script>
     const roomName = "{{ room.slug }}";
-    const currentUserId = "{{ user.id }}";
-    const leaderId = "{{ leader.id }}";
+    const currentUserId = String("{{ user.id }}");
+    const leaderId = String("{{ leader.id }}");
     let chatSocket = null;
 
-    // 스크롤 하단 고정
     const chatLog = document.querySelector('#chat-log');
     chatLog.scrollTop = chatLog.scrollHeight;
 
@@ -112,7 +91,8 @@
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            
+            console.log("수신 데이터:", data); // 디버깅용
+
             if (data.type === "chat" || data.type === "system") {
                 renderMessage(data);
             } else if (data.type === "participants") {
@@ -120,38 +100,35 @@
             }
         };
 
-        chatSocket.onclose = function(e) {
-            console.log('소켓이 닫혔습니다. 3초 후 재연결...');
-            setTimeout(connect, 3000);
-        };
+        chatSocket.onclose = function() { setTimeout(connect, 3000); };
     }
 
     function renderMessage(data) {
+        const div = document.createElement('div');
         if (data.type === "system") {
-            const div = document.createElement('div');
             div.className = 'system';
             div.textContent = data.message;
-            chatLog.appendChild(div);
         } else {
-            const isSelf = String(data.user_id) === String(currentUserId);
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${isSelf ? 'self' : 'other'}`;
+            const isSelf = String(data.user_id) === currentUserId;
+            div.className = `message ${isSelf ? 'self' : 'other'}`;
+            
+            // 타임스탬프 처리
+            let timeStr = "";
+            try {
+                timeStr = new Date(data.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            } catch(e) { timeStr = data.timestamp; }
 
-            const time = new Date(data.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-            msgDiv.innerHTML = `
-                ${!isSelf ? `<div class="avatar">${data.username[0]}</div>` : ''}
+            div.innerHTML = `
                 <div class="message-content">
                     <div class="message-header">
                         <strong>${data.username}</strong>
-                        <span>${time}</span>
+                        <span>${timeStr}</span>
                     </div>
                     <div class="message-body">${data.message}</div>
                 </div>
-                ${isSelf ? `<div class="avatar">${data.username[0]}</div>` : ''}
             `;
-            chatLog.appendChild(msgDiv);
         }
+        chatLog.appendChild(div);
         chatLog.scrollTop = chatLog.scrollHeight;
     }
 
@@ -162,15 +139,22 @@
         let onlineCount = 0;
 
         participants.forEach(p => {
-            if (p.online) onlineCount++;
-            const isLeader = String(p.id) === String(leaderId);
+            // 서버에서 username 또는 nickname으로 올 수 있으므로 둘 다 체크
+            const displayName = p.username || p.nickname;
+            const isOnline = p.online;
+            const isLeader = String(p.id) === leaderId;
             
+            if (isOnline) onlineCount++;
+
             const li = document.createElement('li');
             li.className = 'participant-item';
             li.innerHTML = `
-                <span class="status-dot ${p.online ? 'online' : 'offline'}"></span>
-                <span>${isLeader ? '<span class="leader-crown">👑</span> ' : ''}${p.username}</span>
-                <span style="font-size: 10px; color: #888;">${p.online ? '(온라인)' : ''}</span>
+                <span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>
+                <span>
+                    ${isLeader ? '<span class="leader-crown">👑</span>' : ''}
+                    ${displayName}
+                </span>
+                ${isOnline ? '<span style="font-size:10px; color:green;"> (온라인)</span>' : ''}
             `;
             pList.appendChild(li);
         });
@@ -179,20 +163,16 @@
 
     function sendMessage() {
         const input = document.querySelector('#chat-message-input');
-        const message = input.value;
-        if (message.trim()) {
-            chatSocket.send(jsonStr = JSON.stringify({ 'message': message }));
+        if (input.value.trim() && chatSocket) {
+            chatSocket.send(JSON.stringify({ 'message': input.value }));
             input.value = '';
         }
     }
 
     document.querySelector('#chat-message-submit').onclick = sendMessage;
-    document.querySelector('#chat-message-input').onkeyup = function(e) {
-        if (e.key === 'Enter') sendMessage();
-    };
+    document.querySelector('#chat-message-input').onkeypress = e => { if(e.key === 'Enter') sendMessage(); };
 
     connect();
 </script>
-
 </body>
 </html>
