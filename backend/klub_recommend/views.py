@@ -19,84 +19,85 @@ def quiz_view(request):
 
 @api_view(["GET", "POST"])
 def result_view(request):
-    if request.method != "POST":
+    if request.method == "GET":
         return render(request, "recommend/quiz.html")
 
-    # 🔹 1. 퀴즈 응답 수집
+    data = request.data or request.POST  # 폼/JSON 둘 다 대응
+
     quiz_answers = {
-        "목적": request.POST.get("q1"),
-        "신간_고전": request.POST.get("q2"),
-        "선호_장르": request.POST.get("q4"),
-        "분량": request.POST.get("q7"),
-        "독서스타일": request.POST.get("q8"),
-        "필요한책": request.POST.get("q10"),
+        "목적": data.get("q1"),
+        "신간_고전": data.get("q2"),
+        "선호_장르": data.get("q4"),
+        "분량": data.get("q7"),
+        "독서스타일": data.get("q8"),
+        "필요한책": data.get("q10"),
     }
 
-    # 🔹 2. 카테고리 필터링 및 후보군 추출
-    category_name = GENRE_MAP.get(request.POST.get("q4"))
-    quiz_answers["선호_장르_이름"] = category_name # 프롬프트용 이름 저장
-    
+    category_name = GENRE_MAP.get(data.get("q4"))
+    if not category_name:
+        return render(request, "recommend/result.html", {
+            "results": [],
+            "ai_reason": "장르 선택값이 올바르지 않습니다.",
+        })
+
     categories = Category.objects.filter(name=category_name)
-    # 원본 쿼리셋 (슬라이싱 전) - 여기서 필터링해야 에러가 안 납니다.
     all_candidate_books = Book.objects.filter(category_id__in=categories)
 
     if not all_candidate_books.exists():
-        return render(request, "recommend/result.html", {"results": [], "ai_reason": "현재 추천 가능한 도서가 없습니다."})
+        return render(request, "recommend/result.html", {
+            "results": [],
+            "ai_reason": "현재 추천 가능한 도서가 없습니다."
+        })
 
-    # AI에게 보낼 후보군 (상위 20권)
-    books_for_ai = all_candidate_books[:20]
+    # ✅ 기본 fallback
+    final_book = all_candidate_books.first()
+    ai_reason = "사용자님의 성향을 분석한 결과입니다."
+    reco_data = []
 
-    # 🔹 3. GPT 추천 요청
-    ai_response = get_ai_recommendation(quiz_answers, books_for_ai)
-    parsed = json.loads(ai_response)
-    
-    ai_reason = parsed.get("ai_reason", "사용자님의 성향을 분석한 결과입니다.")
-    reco_data = parsed.get("recommendations", [])
-    
-    # 🔹 4. AI가 추천한 첫 번째 book_id 검증
-    suggested_id = reco_data[0].get("book_id") if reco_data else None
-    
-    # ⚠️ 핵심 수정: 슬라이싱 에러 방지를 위해 .first() 대신 필터링 후 리스트로 변환하여 추출
-    recommended_book_qs = all_candidate_books.filter(id=suggested_id).select_related('author_id', 'category_id')
+    # ✅ AI 실패해도 500 안나게
+    try:
+        ai_response = get_ai_recommendation(quiz_answers, all_candidate_books[:20])
+        parsed = json.loads(ai_response)
+        ai_reason = parsed.get("ai_reason", ai_reason)
+        reco_data = parsed.get("recommendations", []) or []
 
-    if recommended_book_qs.exists():
-        final_book = recommended_book_qs[0] # 인덱싱 사용
-    else:
-        # AI가 준 ID가 없으면 후보군 중 첫 번째 책을 리스트로 변환해 가져옴
-        final_book = list(all_candidate_books[:1])[0]
+        suggested_id = reco_data[0].get("book_id") if reco_data else None
+        if suggested_id:
+            pick = all_candidate_books.filter(id=suggested_id).first()
+            if pick:
+                final_book = pick
+    except Exception as e:
+        ai_reason = f"AI 추천에 실패하여 기본 추천을 보여드립니다. ({type(e).__name__})"
 
-    # 🔹 5. DB 저장 로직
-    user = request.user if request.user.is_authenticated else User.objects.first()
-    
-    pref = ReadingPreference.objects.create(
-        user=user,
-        purpose=quiz_answers["목적"],
-        new_vs_classic=quiz_answers["신간_고전"],
-        category=quiz_answers["선호_장르"],
-        mood=request.POST.get("q5"),
-        reading_style=quiz_answers["독서스타일"],
-        length_pref=quiz_answers["분량"],
-        difficulty_pref=request.POST.get("q6"),
-    )
-
-    result_obj = RecommendationResult.objects.create(
-        user=user, preference=pref, ai_reason=ai_reason
-    )
-    result_obj.books.set([final_book])
-
-    # 🔹 6. 템플릿용 개별 코멘트 매핑
-    # AI가 보낸 구체적인 추천 코멘트(reason)를 객체에 주입
-    if reco_data and final_book.id == reco_data[0].get("book_id"):
+    # 템플릿용 추천 이유
+    if reco_data and final_book and final_book.id == reco_data[0].get("book_id"):
         final_book.temp_reason = reco_data[0].get("reason")
     else:
-        # AI 응답 실패 시 사용자 요청 양식에 맞춘 기본 문구
         final_book.temp_reason = (
-            f"사용자님이 선호하시는 장르는 {category_name}입니다. "
-            f"이 책은 사용자의 취향을 반영한 깊이 있는 이야기를 담고 있습니다. "
-            f"새로운 영감이 필요하다면 오늘 '{final_book.title}'은 어떠실까요?"
+            f"선호 장르({category_name}) 기반 기본 추천입니다."
         )
 
+    # ✅ DB 저장은 로그인일 때만(또는 게스트 유저를 확실히 보장)
+    if request.user.is_authenticated:
+        try:
+            pref = ReadingPreference.objects.create(
+                user=request.user,
+                purpose=quiz_answers["목적"],
+                new_vs_classic=quiz_answers["신간_고전"],
+                category=quiz_answers["선호_장르"],
+                mood=data.get("q5"),
+                reading_style=quiz_answers["독서스타일"],
+                length_pref=quiz_answers["분량"],
+                difficulty_pref=data.get("q6"),
+            )
+            result_obj = RecommendationResult.objects.create(
+                user=request.user, preference=pref, ai_reason=ai_reason
+            )
+            result_obj.books.set([final_book])
+        except Exception:
+            pass
+
     return render(request, "recommend/result.html", {
-        "results": [final_book], # 1권만 리스트로 감싸서 전달
+        "results": [final_book],
         "ai_reason": ai_reason
     })
