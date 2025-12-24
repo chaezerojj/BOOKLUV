@@ -28,7 +28,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
 ]
 # 서비스 메인 도메인 설정 (리다이렉트 시 활용)
-BASE_URL = os.getenv('DOMAIN_URL', 'https://bookluv.railway.app').rstrip('/')
+BASE_URL = os.getenv('DOMAIN_URL', 'https://bookluv-production.up.railway.app/').rstrip('/')
 
 # 5. 애플리케이션 정의
 INSTALLED_APPS = [
