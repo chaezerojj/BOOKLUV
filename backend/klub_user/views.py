@@ -19,7 +19,7 @@ KAKAO_REST_API_KEY = settings.KAKAO_REST_API_KEY
 KAKAO_REDIRECT_URI = settings.KAKAO_REDIRECT_URI
 KAKAO_CLIENT_SECRET = settings.KAKAO_CLIENT_SECRET
 
-FRONT_URL = "http://localhost:5173"  # 프론트 주소
+FRONT_URL = "https://bookluv.netlify.app/"  # 프론트 주소
 
 
 def auth_login(request):
