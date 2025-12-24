@@ -45,7 +45,7 @@ def room_list(request):
             for meeting in meetings_to_create_room:
                 Room.objects.create(
                     name=meeting.title,
-                    slug=slugify(meeting.title),
+                    slug=f"{slugify(meeting.title)}-{meeting.id}", # 제목-ID 형태
                     meeting=meeting  # 미팅과 외래키 연결
                 )
 
@@ -149,32 +149,26 @@ def room_detail(request, room_name):
 # =====================
 # 오늘의 미팅 (알림/목록용)
 # =====================
+from datetime import timedelta
 
 @login_required
 def today_meetings(request):
     user = request.user
     now = timezone.localtime()
-
-    today_start_local = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    today_end_local = now.replace(hour=23, minute=59, second=59, microsecond=999999)
-
-    # UTC 기준으로 변환
-    today_start_utc = timezone.make_aware(
-        today_start_local.replace(tzinfo=None),
-        timezone.get_current_timezone()
-    ).astimezone(timezone.utc)
-
-    today_end_utc = timezone.make_aware(
-        today_end_local.replace(tzinfo=None),
-        timezone.get_current_timezone()
-    ).astimezone(timezone.utc)
-
-    # 오늘 시작~끝 범위 내 미팅 조회
+    
+    # 1. 필터링 기준 시간 설정
+    # 시작 10분 전 미팅들을 포함하기 위해 미래 시간 설정
+    ten_minutes_later = now + timedelta(minutes=10)
+    
+    # 2. 미팅 조건:
+    # - 시작 시간(started_at)이 지금으로부터 10분 후보다 이전일 것 (시작 10분 전 진입)
+    # - 종료 시간(finished_at)이 아직 지나지 않았을 것 (진행 중인 미팅 포함)
     meetings_today = Meeting.objects.filter(
-        started_at__range=(today_start_utc, today_end_utc)
+        started_at__lte=ten_minutes_later,
+        finished_at__gte=now
     ).select_related("room")
 
-    # 🔥 참여자 혹은 리더 필터링
+    # 3. 참여자 혹은 리더 필터링 (기존 로직 유지)
     filtered_meetings = []
     for m in meetings_today:
         is_leader = m.leader_id == user
@@ -182,12 +176,15 @@ def today_meetings(request):
         if is_leader or is_participant:
             filtered_meetings.append(m)
 
-    # JSON 데이터 구성
+    # 4. JSON 응답 구성
     data = []
     for m in filtered_meetings:
         start_local = timezone.localtime(m.started_at)
+        # 방이 있을 경우에만 올바른 URL 반환
         join_url = f"/api/v1/chat/rooms/{m.room.slug}/" if hasattr(m, "room") and m.room else "#"
+        
         data.append({
+            "meeting_id": m.id,
             "title": m.title,
             "started_at": start_local.strftime("%H:%M"),
             "join_url": join_url,
