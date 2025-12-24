@@ -8,51 +8,63 @@ import AiTestResultView from "@/views/AI/AiTestResultView.vue";
 
 import LoginView from "@/views/Auth/LoginView.vue";
 import SignUpView from "@/views/Auth/SignUpView.vue";
-
-// import KluvTalkListView from "@/views/KluvTalk/KluvTalkListView.vue";
-import KluvTalkChatListView from "@/views/KluvTalk/KluvTalkChatListView.vue";
-import KluvTalkDetailView from "@/views/KluvTalk/KluvTalkDetailView.vue";
-import KluvTalkCreateView from "@/views/KluvTalk/KluvTalkCreateView.vue";
+import AuthCallBackView from "@/views/Auth/AuthCallBackView.vue";
 
 import BoardListView from "@/views/Board/BoardListView.vue";
 import BoardCreateView from "@/views/Board/BoardCreateView.vue";
 import BoardDetailView from "@/views/Board/BoardDetailView.vue";
-import BookDetailView from "@/views/Books/BookDetailView.vue";
 import BoardUpdateView from "@/views/Board/BoardUpdateView.vue";
+
 import SearchResultView from "@/views/Search/SearchResultView.vue";
-import AuthCallBackView from "@/views/Auth/AuthCallBackView.vue";
 
 import ChatAlarmBell from "@/components/ChatAlarmBell.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // -----------------------------
+    // Home
+    // -----------------------------
     {
       path: "/",
       name: "home",
       component: HomeView,
     },
+
+    // -----------------------------
+    // Auth 
+    // -----------------------------
     {
-      path: "/auth/login", 
-      name: "login", 
-      component: LoginView,
+      path: "/login",
+      alias: "/auth/login",
+      name: "login",
+      component: () => import("@/views/Auth/LoginView.vue"),
     },
     {
-      path: "/auth/signup",
+      path: "/signup",
+      alias: "/auth/signup",
       name: "signup",
-      component: SignUpView,
+      component: () => import("@/views/Auth/SignUpView.vue"),
     },
-    // 백엔드에서 redirect로 보내는 곳
     {
+      // 백엔드에서 redirect로 보내는 곳
       path: "/auth/callback",
       name: "auth-callback",
       component: AuthCallBackView,
     },
+
+    // -----------------------------
+    // Search
+    // -----------------------------
     {
       path: "/search",
-      name: 'search',
+      name: "search",
       component: SearchResultView,
     },
+
+    // -----------------------------
+    // AI
+    // -----------------------------
     {
       path: "/ai",
       name: "ai-recommend",
@@ -60,23 +72,27 @@ const router = createRouter({
     },
     {
       path: "/ai/test",
-      name: 'ai-test',
+      name: "ai-test",
       component: AiTestView,
     },
     {
       path: "/ai/result",
-      name: 'ai-result',
+      name: "ai-result",
       component: AiTestResultView,
     },
+
+    // -----------------------------
+    // KluvTalk (고정 경로 먼저, :id는 마지막)
+    // -----------------------------
     {
-      path: "/signup",
-      name: "signup",
-      component: SignUpView,
+      path: "/kluvtalk",
+      name: "kluvtalk-list",
+      component: () => import("@/views/KluvTalk/KluvTalkListView.vue"),
     },
     {
-      path: "/login",
-      name: "login",
-      component: LoginView,
+      path: "/kluvtalk/create",
+      name: "kluvtalk-create",
+      component: () => import("@/views/KluvTalk/KluvTalkCreateView.vue"),
     },
     {
       path: "/kluvtalk/chat",
@@ -90,34 +106,21 @@ const router = createRouter({
       props: true,
     },
     {
+      path: "/kluvtalk/:id/quiz",
+      name: "kluvtalk-quiz",
+      component: () => import("@/views/KluvTalk/QuizView.vue"),
+      props: true,
+    },
+    {
       path: "/kluvtalk/:id",
       name: "kluvtalk-detail",
-      component: KluvTalkDetailView,
-      props: true,
-    },
-    {
-      path: "/kluvtalk/create",
-      name: "kluvtalk-create",
-      component: KluvTalkCreateView,
-    },
-    {
-      path: "/kluvtalk",
-      name: "kluvtalk-list",
-      component: KluvTalkChatListView,
-    },
-    {
-      path: '/kluvtalk/:id',
-      name: 'kluvtalk-detail',
-      component: () => import('@/views/KluvTalk/KluvTalkDetailView.vue'),
-      props: true,
-    },
-    {
-      path: '/kluvtalk/:id/quiz',
-      name: 'kluvtalk-quiz',
-      component: () => import('@/views/KluvTalk/QuizView.vue'),
+      component: () => import("@/views/KluvTalk/KluvTalkDetailView.vue"),
       props: true,
     },
 
+    // -----------------------------
+    // Board
+    // -----------------------------
     {
       path: "/board",
       name: "board",
@@ -141,13 +144,19 @@ const router = createRouter({
       props: true,
     },
 
+    // -----------------------------
+    // Books
+    // -----------------------------
     {
       path: "/books/:id",
       name: "book-detail",
-      component: () => import('@/views/Books/BookDetailView.vue'),
-      // props: true,
+      component: () => import("@/views/Books/BookDetailView.vue"),
+      props: true, // BookDetailView에서 route.params.id 쓰기보다 이게 편함
     },
-    
+
+    // -----------------------------
+    // MyPage
+    // -----------------------------
     {
       path: "/mypage",
       name: "mypage",
@@ -165,11 +174,24 @@ const router = createRouter({
         },
       ],
     },
+
+    // -----------------------------
+    // Alarm (chat meeting alerts)
+    // -----------------------------
     {
       path: "/alarm",
       name: "alarm",
       component: ChatAlarmBell,
     },
+
+    // -----------------------------
+    // 404 (선택)
+    // -----------------------------
+    // {
+    //   path: "/:pathMatch(.*)*",
+    //   name: "not-found",
+    //   component: () => import("@/views/NotFoundView.vue"),
+    // },
   ],
 });
 

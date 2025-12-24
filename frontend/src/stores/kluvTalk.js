@@ -1,12 +1,19 @@
 import { defineStore } from "pinia";
 import { http } from "@/api/http";
 
-export const useKluvTalkStore = defineStore('meeting', {
+export const useKluvTalkStore = defineStore("meeting", {
   state: () => ({
+    // detail
     loading: false,
     error: null,
     meeting: null,
 
+    // list
+    listLoading: false,
+    listError: null,
+    popularMeetings: [],
+
+    // quiz
     quizLoading: false,
     quizError: null,
     quiz: null,
@@ -15,46 +22,65 @@ export const useKluvTalkStore = defineStore('meeting', {
 
   actions: {
     async fetchKluvTalk(meetingId) {
-      this.loading = true
-      this.error = null
+      this.loading = true;
+      this.error = null;
       try {
-        const res = await http.get(`/api/v1/room/${meetingId}`)
-        this.meeting = res.data
+        // ✅ 기존 /api/v1/room/:id (없음) → /api/v1/books/meetings/:id/
+        const res = await http.get(`/api/v1/books/meetings/${meetingId}/`);
+        this.meeting = res.data;
       } catch (err) {
-        this.error = err
-        this.meeting = null
+        this.error = err;
+        this.meeting = null;
       } finally {
-        this.loading = false
+        this.loading = false;
+      }
+    },
+
+    async fetchPopularMeetings(limit = 10) {
+      this.listLoading = true;
+      this.listError = null;
+      try {
+        const res = await http.get(`/api/v1/books/meetings/`, {
+          params: { sort: "views", limit },
+          headers: { Accept: "application/json" },
+        });
+        this.popularMeetings = Array.isArray(res.data) ? res.data : [];
+      } catch (err) {
+        this.listError = err;
+        this.popularMeetings = [];
+      } finally {
+        this.listLoading = false;
       }
     },
 
     async fetchQuiz(meetingId) {
-      this.quizLoading = true
-      this.quizError = null
-      this.quizResult = null
+      this.quizLoading = true;
+      this.quizError = null;
+      this.quizResult = null;
       try {
-        const res = await http.get(`/api/v1/quiz/${meetingId}`)
-        this.quiz = res.data
-      } catch (err){
-        this.quizError = err
-        this.quiz = null
+        // ✅ 기존 /api/v1/quiz/:id → /api/v1/books/meetings/:id/quiz/
+        const res = await http.get(`/api/v1/books/meetings/${meetingId}/quiz/`);
+        this.quiz = res.data;
+      } catch (err) {
+        this.quizError = err;
+        this.quiz = null;
       } finally {
-        this.quizLoading = false
+        this.quizLoading = false;
       }
     },
 
     async submitQuiz(meetingId, answer) {
-      this.quizLoading = true
-      this.quizError = null
+      this.quizLoading = true;
+      this.quizError = null;
       try {
-        const res = await http.post(`/api/v1/quiz/${meetingId}`, { answer })
-        this.quizResult = res.data
+        const res = await http.post(`/api/v1/books/meetings/${meetingId}/quiz/`, { answer });
+        this.quizResult = res.data;
       } catch (err) {
-        this.quizError = err
-        this.quizResult = null
+        this.quizError = err;
+        this.quizResult = null;
       } finally {
-        this.quizLoading = false
+        this.quizLoading = false;
       }
     },
   },
-})
+});
