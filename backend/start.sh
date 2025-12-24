@@ -1,11 +1,21 @@
-#!/bin/sh
-set -e
+#!/bin/bash
 
-echo "Running migrations..."
-python3 manage.py migrate
+# PYTHONPATH 설정
+export PYTHONPATH=/app:$PYTHONPATH
 
+echo "======================"
+echo "Current working directory: $(pwd)"
+echo "======================"
+
+# 1. DB 마이그레이션
+echo "Running Django migrations..."
+python manage.py migrate --noinput || { echo "Migration failed"; exit 1; }
+
+# 2. 정적 파일 수집
 echo "Collecting static files..."
-python3 manage.py collectstatic --noinput
+python manage.py collectstatic --noinput || { echo "Collectstatic failed"; exit 1; }
 
-echo "Starting Django server..."
-python3 manage.py runserver 0.0.0.0:${PORT:-8000}
+# 3. 서버 실행 (Gunicorn + Uvicorn worker 조합 또는 Daphne)
+# 여기서는 웹소켓 처리가 가능한 Daphne를 사용합니다.
+echo "Starting Daphne server for WebSockets..."
+exec daphne -b 0.0.0.0 -p $PORT backend.asgi:application

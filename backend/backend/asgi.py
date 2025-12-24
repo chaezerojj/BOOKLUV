@@ -1,22 +1,30 @@
-# asgi.py
 import os
-from channels.routing import ProtocolTypeRouter, URLRouter
+import django
 from django.core.asgi import get_asgi_application
-from django.urls import path
+
+# 1. 환경 변수 설정 (반드시 가장 먼저!)
+# 'your_project.settings'를 실제 프로젝트 명인 'backend.settings'로 수정함
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+
+# 2. Django 초기화 (앱 로딩 완료)
+django.setup()
+
+# 3. HTTP ASGI 애플리케이션 미리 생성
+django_asgi_app = get_asgi_application()
+
+# 4. 앱 로딩 후 컨슈머 및 라우팅 임포트 (중요!)
+from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
+from django.urls import path
 from klub_chat.consumers import ChatConsumer, MeetingAlertConsumer
 
-# 환경 변수 설정
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project.settings')
-
+# 5. 프로토콜 라우팅 설정
 application = ProtocolTypeRouter({
-    "http": get_asgi_application(),  # HTTP 요청 처리
+    "http": django_asgi_app,
     "websocket": AuthMiddlewareStack(
-        URLRouter(
-            [
-                path('ws/chat/<room_name>/', ChatConsumer.as_asgi()),  # 채팅 WebSocket 경로
-                path('ws/meeting-alerts/', MeetingAlertConsumer.as_asgi())  # 미팅 알람 WebSocket 경로
-            ]
-        )
-    ),  # WebSocket 요청 처리
+        URLRouter([
+            path('ws/chat/<room_name>/', ChatConsumer.as_asgi()),
+            path('ws/meeting-alerts/', MeetingAlertConsumer.as_asgi()),
+        ])
+    ),
 })
