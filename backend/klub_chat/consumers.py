@@ -120,9 +120,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
     async def participants_status(self, event):
+        print("🔥 Participants Status:", event["participants"])  # 디버그 로그
         await self.send(text_data=json.dumps({
             "type": "participants",
-            "participants": event["participants"],
+            "participants": event["participants"],  # 최신 참여자 목록
         }))
 
     async def add_online_user(self):
@@ -133,35 +134,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
         key = f"chat_room_users_{self.room.slug}"
         await self.redis.srem(key, self.user.id)
 
-    # DB와 Redis 상태를 동기화하여 온라인 상태를 갱신
+    # DB와 Redis 상태 동기화하여 온라인 상태 갱신
     async def get_participants_status(self):
-        meeting = await self.get_meeting()
+        meeting = await self.get_meeting()  # 미팅 정보를 가져오는 비동기 함수 호출
         if not meeting:
             return []
 
-        users = await self.get_confirmed_users(meeting)
-    
-    # Redis에서 온라인 상태를 가져옴
+        users = await self.get_confirmed_users(meeting)  # 확정된 사용자 목록 가져오기
         key = f"chat_room_users_{self.room.slug}"
+
+        # Redis에서 온라인 상태 가져오기: AsyncGenerator를 리스트로 변환
         online_ids = set(map(int, await self.redis.smembers(key)))
 
-    # 유저 정보와 온라인 상태 결합
+        # 온라인 상태와 참가자 정보를 결합하여 리스트로 반환
         return [
             {
                 "id": user.id,
                 "username": user.nickname,
-                "online": user.id in online_ids,  # Redis에서 온라인 여부 확인
+                "online": user.id in online_ids,  # 온라인 여부 확인
             }
             for user in users
         ]
-
-    # 참가자 상태 전송
-    async def participants_status(self, event):
-        print("🔥 Participants Status:", event["participants"])  # 디버그 로그
-        await self.send(text_data=json.dumps({
-            "type": "participants",
-            "participants": event["participants"],  # 최신 참여자 목록
-        }))
 
     # =====================
     # DB helpers
@@ -198,6 +191,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         users.extend(p.user_id for p in participants)
 
         return list({u.id: u for u in users}.values())
+
 # =========================
 # 🔔 미팅 알림 Consumer
 # =========================
