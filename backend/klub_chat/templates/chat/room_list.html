@@ -52,47 +52,61 @@
 </style>
 
 <script>
+// 1. 이미 있는 오늘 미팅 로드 (API 호출)
 async function loadExistingMeetings() {
     try {
-        // 'alarms' 경로로 데이터 호출
+        // urls.py 설정에 따라 'alarms' 경로 호출
         const response = await fetch("{% url 'chat:today-meetings' %}"); 
         const data = await response.json();
         
-        console.log("받은 데이터:", data); // 브라우저 콘솔에서 확인용
+        console.log("기존 미팅 데이터:", data);
 
         if (data.meetings && data.meetings.length > 0) {
             data.meetings.forEach(meeting => {
-                renderMeetingAlert(meeting);
+                // API 데이터 구조에 맞춰서 렌더링
+                renderMeetingAlert({
+                    title: meeting.title,
+                    started_at: meeting.started_at,
+                    join_url: meeting.join_url,
+                    meeting_id: meeting.meeting_id || meeting.title // ID가 없으면 제목 사용
+                });
             });
         }
     } catch (error) {
-        console.error("미팅 로드 실패:", error);
+        console.error("기존 미팅 로드 중 에러:", error);
     }
 }
 
+// 2. 미팅을 화면에 그리는 함수 (공통)
 function renderMeetingAlert(data) {
     const meetingAlerts = document.getElementById('meeting-alerts');
-    if (!meetingAlerts) return;
+    if (!meetingAlerts) {
+        console.error("ID가 'meeting-alerts'인 div를 찾을 수 없습니다.");
+        return;
+    }
 
-    // 제목을 기준으로 중복 생성 방지
-    const alertId = `alert-${data.title.replace(/\s+/g, '-')}`;
+    // 중복 방지: 동일한 미팅은 두 번 그리지 않음
+    const alertId = `alert-${data.meeting_id}`;
     if (document.getElementById(alertId)) return;
 
     const div = document.createElement('div');
     div.id = alertId;
-    // join_url이 #이면 클릭해도 이동하지 않으므로, 링크 대신 안내 문구 출력 가능
-    const linkTag = data.join_url !== "#" 
+    
+    // join_url이 '#'이면 링크를 비활성화하거나 안내 메시지 출력
+    const linkHTML = data.join_url !== "#" 
         ? `<a href="${data.join_url}">참여하기</a>` 
-        : `<span style="color:gray; font-size:0.8em;">(방 생성 전)</span>`;
+        : `<span style="color:gray; font-size:0.85em;">(방 준비중)</span>`;
 
     div.innerHTML = `
         <strong>${data.title}</strong> 미팅이 
         <span class="time">${data.started_at}</span>에 시작됩니다! 
-        ${linkTag}
+        ${linkHTML}
     `;
-    meetingAlerts.prepend(div);
+    
+    meetingAlerts.prepend(div); // 최신 알람이 위로
 }
 
+// 3. 실시간 웹소켓 연결
 function createWebSocketConnection() {
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const wsUrl = protocol + window.location.host + '/ws/meeting-alerts/';
@@ -100,14 +114,15 @@ function createWebSocketConnection() {
 
     chatSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
+        console.log("실시간 알람 수신:", data);
         renderMeetingAlert(data);
     };
 
-    chatSocket.onopen = function() { console.log("WebSocket connected"); };
+    chatSocket.onopen = function() { console.log("WebSocket connected successfully"); };
     chatSocket.onclose = function() { setTimeout(createWebSocketConnection, 3000); };
 }
 
-// 실행
+// 4. 실행
 loadExistingMeetings();
 createWebSocketConnection();
 </script>

@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.http import JsonResponse
 from django.db.models import Q
-
+from django.db import transaction
 from .models import Room
 from klub_talk.models import Meeting, Participate
 
@@ -25,30 +25,46 @@ REDIS_DB = 0
 
 @login_required
 def room_list(request):
-    if request.method == "POST":
-        room_name = request.POST.get("room_name")
-        if room_name and not Room.objects.filter(name=room_name).exists():
-            Room.objects.create(
-                name=room_name,
-                slug=slugify(room_name)
-            )
-        return redirect("chat:room-list")
+    user = request.user
+    now = timezone.localtime()
 
-    # 🔥 현재 유저가 참여 신청한 모임 ID
+    # 1. 오늘 날짜 범위 설정 (00:00:00 ~ 23:59:59)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    today_end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+    # 2. 오늘 미팅 중 방(room)이 없는 미팅들만 조회
+    # (이미 방이 있는 미팅은 제외하여 중복 생성 방지)
+    meetings_to_create_room = Meeting.objects.filter(
+        started_at__range=(today_start, today_end),
+        room__isnull=True
+    )
+
+    # 3. 데이터베이스 트랜잭션을 사용하여 방 일괄 생성
+    if meetings_to_create_room.exists():
+        with transaction.atomic():
+            for meeting in meetings_to_create_room:
+                Room.objects.create(
+                    name=meeting.title,
+                    slug=slugify(meeting.title),
+                    meeting=meeting  # 미팅과 외래키 연결
+                )
+
+    # 현재 유저가 참여 확정된 미팅 ID들
     participated_meetings = Participate.objects.filter(
-        user_id=request.user, result=True
+        user_id=user, result=True
     ).values_list("meeting", flat=True)
 
-    # 🔥 참여하거나 리더인 Room만 가져오기
+    # 내가 리더이거나 참여자인 '오늘'의 방들만 필터링해서 보여주기
     rooms = Room.objects.filter(
-        Q(meeting_id__in=participated_meetings) | Q(meeting__leader_id=request.user)
+        Q(meeting_id__in=participated_meetings) | Q(meeting__leader_id=user)
+    ).filter(
+        meeting__started_at__range=(today_start, today_end)
     ).select_related("meeting")
 
     return render(request, "chat/room_list.html", {
         "rooms": rooms,
-        "user": request.user,
+        "user": user,
     })
-
 # =====================
 # 채팅방 상세
 # =====================
