@@ -52,49 +52,53 @@
 </style>
 
 <script>
-function createWebSocketConnection() {
-    // 1. 현재 페이지의 프로토콜에 따라 ws 또는 wss 결정
-    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    
-    // 2. ngrok 주소 대신 현재 접속한 도메인(window.location.host)을 사용하도록 수정
-    const wsUrl = protocol + window.location.host + '/ws/meeting-alerts/';
-    console.log("Connecting to WebSocket:", wsUrl);
-    
-    const chatSocket = new WebSocket(wsUrl);
+// 1. 기존에 이미 예정된 미팅들을 가져오는 함수
+async function loadExistingMeetings() {
+    try {
+        const response = await fetch('/api/v1/chat/today-meetings/'); // views.py의 today_meetings 연결
+        const data = await response.json();
+        
+        data.meetings.forEach(meeting => {
+            renderMeetingAlert(meeting);
+        });
+    } catch (error) {
+        console.error("기존 미팅 로드 실패:", error);
+    }
+}
 
-    let shownMeetingIds = new Set();
+// 2. 미팅 알람을 화면에 그리는 공통 함수
+function renderMeetingAlert(data) {
+    const meetingAlerts = document.getElementById('meeting-alerts');
+    
+    // 중복 방지 (id가 있다면 체크)
+    const alertId = `alert-${data.meeting_id || data.title}`;
+    if (document.getElementById(alertId)) return;
+
+    const div = document.createElement('div');
+    div.id = alertId;
+    div.innerHTML = `
+        <strong>${data.title}</strong> 미팅이 
+        <span class="time">${data.started_at}</span>에 시작됩니다! 
+        <a href="${data.join_url}">참여하기</a>
+    `;
+    meetingAlerts.prepend(div);
+}
+
+function createWebSocketConnection() {
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const wsUrl = protocol + window.location.host + '/ws/meeting-alerts/';
+    const chatSocket = new WebSocket(wsUrl);
 
     chatSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
-
-        if (shownMeetingIds.has(data.meeting_id)) return;
-        shownMeetingIds.add(data.meeting_id);
-
-        const meetingAlerts = document.getElementById('meeting-alerts');
-        const div = document.createElement('div');
-        div.innerHTML = `
-            <strong>${data.title}</strong> 미팅이 
-            <span class="time">${data.started_at}</span>에 시작됩니다! 
-            <a href="${data.join_url}">참여하기</a>
-        `;
-        meetingAlerts.prepend(div);
+        renderMeetingAlert(data); // 실시간 메시지도 같은 함수로 처리
     };
 
-    chatSocket.onopen = function() { 
-        console.log("WebSocket connected successfully"); 
-    };
-
-    chatSocket.onerror = function(e) { 
-        console.error("WebSocket error observed:", e); 
-    };
-
-    chatSocket.onclose = function(event) { 
-        console.log("WebSocket closed", event);
-        // 연결이 끊기면 3초 후 재연결 시도
-        setTimeout(createWebSocketConnection, 3000);
-    };
+    chatSocket.onopen = function() { console.log("WebSocket connected"); };
+    chatSocket.onclose = function() { setTimeout(createWebSocketConnection, 3000); };
 }
 
-// 딱 한 번만 실행되도록 설정
-createWebSocketConnection();
+// 초기 실행
+loadExistingMeetings(); // 1. 페이지 뜨자마자 오늘 미팅들 먼저 보여주기
+createWebSocketConnection(); // 2. 그 다음 실시간 소켓 대기
 </script>
