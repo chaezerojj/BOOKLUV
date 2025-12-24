@@ -236,5 +236,5 @@ CORS_ALLOW_CREDENTIALS = True
 #LOGIN_URL = "http://localhost:8000/api/v1/auth/"
 LOGIN_URL = 'https://bookluv.railway.app/api/v1/auth/callback/'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['bookluv.railway.app', '127.0.0.1', 'localhost']
 DOMAIN_URL = "https://bookluv.railway.app/"
