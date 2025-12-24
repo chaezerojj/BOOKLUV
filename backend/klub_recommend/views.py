@@ -6,6 +6,7 @@ from klub_user.models import User
 from .models import ReadingPreference, RecommendationResult
 from .services.openai_client import get_ai_recommendation
 from rest_framework.response import Response
+from rest_framework import status
 
 GENRE_MAP = {
     "A": "소설/시/희곡",
