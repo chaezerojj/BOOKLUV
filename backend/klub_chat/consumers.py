@@ -88,16 +88,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 "user_id": self.user.id
             }
         )
-
-    async def chat_message(self, event):
-        await self.send(text_data=json.dumps({
-            "type": "chat",
-            "message": event["message"],
-            "username": event["username"],
-            "timestamp": event["timestamp"],
-            "user_id": event["user_id"],
-        }))
-
     async def system_message(self, event):
         await self.send(text_data=json.dumps({
             "type": "system",
@@ -119,13 +109,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
         )
 
-    async def participants_status(self, event):
-        print("🔥 Participants Status:", event["participants"])  # 디버그 로그
+    async def chat_message(self, event):
+    # 그룹에서 보낸 메시지를 개별 클라이언트의 웹소켓으로 전송
         await self.send(text_data=json.dumps({
-            "type": "participants",
-            "participants": event["participants"],  # 최신 참여자 목록
+            "type": "chat",
+            "message": event["message"],
+            "username": event["username"],
+            "timestamp": event["timestamp"],
+            "user_id": event["user_id"],
         }))
 
+    async def participants_status(self, event):
+    # 그룹에서 보낸 참여자 목록을 개별 클라이언트의 웹소켓으로 전송
+        await self.send(text_data=json.dumps({
+            "type": "participants",
+            "participants": event["participants"],
+        }))
     async def add_online_user(self):
         key = f"chat_room_users_{self.room.slug}"
         await self.redis.sadd(key, self.user.id)

@@ -28,7 +28,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
 ]
 # 서비스 메인 도메인 설정 (리다이렉트 시 활용)
-BASE_URL = "https://bookluv-production.up.railway.app"
+BASE_URL = os.getenv('DOMAIN_URL', 'https://bookluv-production.up.railway.app/').rstrip('/')
 
 # 5. 애플리케이션 정의
 INSTALLED_APPS = [
@@ -105,12 +105,13 @@ else:
     }
 
 # 9. Redis 및 채널 레이어 설정 (웹소켓용)
-REDIS_URL = os.getenv('REDIS_URL', 'redis://redis:6379/0')
+REDIS_URL = os.getenv('REDIS_URL', 'redis://default:bGBSgqYKpfUrphgGUScwxHlFkdvRIKYh@redis.railway.internal:6379')
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [REDIS_URL],
+            "hosts": [REDIS_URL], # 여기서 비밀번호가 포함된 URL이 들어가야 합니다.
         },
     },
 }
@@ -141,7 +142,7 @@ LOGIN_REDIRECT_URL = f"{BASE_URL}/api/v1/chat/rooms/"
 # 카카오 로그인 설정
 KAKAO_REST_API_KEY = os.getenv('KAKAO_REST_API_KEY', '4bf9c626d2f496b06164d72b26db4b81')
 KAKAO_CLIENT_SECRET = os.getenv('KAKAO_CLIENT_SECRET', 'Py28EL9FRcSyE0PYtkz0TpKTCAjmdUwZ')
-KAKAO_REDIRECT_URI = f"{BASE_URL}/api/v1/auth/callback/"
+KAKAO_REDIRECT_URI = os.getenv('KAKAO_REDIRECT_URI', f"{BASE_URL}/api/v1/auth/callback/")
 
 # 12. CORS 및 CSRF 신뢰 도메인
 CORS_ALLOWED_ORIGINS = [

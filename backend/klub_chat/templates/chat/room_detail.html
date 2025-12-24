@@ -132,34 +132,34 @@
         chatLog.scrollTop = chatLog.scrollHeight;
     }
 
-    function updateParticipantsList(participants) {
-        const pList = document.querySelector('#participants');
-        const countSpan = document.querySelector('#count');
-        pList.innerHTML = '';
-        let onlineCount = 0;
+    ffunction updateParticipantsList(participants) {
+    const pList = document.querySelector('#participants');
+    const countSpan = document.querySelector('#count');
+    pList.innerHTML = ''; 
+    let onlineCount = 0;
 
-        participants.forEach(p => {
-            // 서버에서 username 또는 nickname으로 올 수 있으므로 둘 다 체크
-            const displayName = p.username || p.nickname;
-            const isOnline = p.online;
-            const isLeader = String(p.id) === leaderId;
-            
-            if (isOnline) onlineCount++;
+    participants.forEach(p => {
+        const isOnline = p.online === true || p.online === "true"; // 불리언 체크 강화
+        if (isOnline) onlineCount++;
+        
+        const isLeader = String(p.id) === leaderId;
+        const displayName = p.username || p.nickname;
 
-            const li = document.createElement('li');
-            li.className = 'participant-item';
-            li.innerHTML = `
-                <span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>
-                <span>
-                    ${isLeader ? '<span class="leader-crown">👑</span>' : ''}
-                    ${displayName}
-                </span>
-                ${isOnline ? '<span style="font-size:10px; color:green;"> (온라인)</span>' : ''}
-            `;
-            pList.appendChild(li);
-        });
-        countSpan.textContent = `(${onlineCount}/${participants.length})`;
-    }
+        const li = document.createElement('li');
+        li.className = 'participant-item';
+        
+        // 초록색 불(online 클래스) 적용
+        li.innerHTML = `
+            <span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>
+            <span style="${isOnline ? 'color: #2e7d32; font-weight: bold;' : 'color: #888;'}">
+                ${isLeader ? '<span class="leader-crown">👑</span>' : ''}
+                ${displayName}
+            </span>
+        `;
+        pList.appendChild(li);
+    });
+    countSpan.textContent = `(${onlineCount}/${participants.length})`;
+}
 
     function sendMessage() {
         const input = document.querySelector('#chat-message-input');
