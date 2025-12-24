@@ -41,7 +41,7 @@
         <strong>{{ meeting.title }}</strong><br>
         멤버 수: {{ meeting.members }}
       </div>
-      <a href="{% url 'talk:meeting-detail' meeting.id %}" class="btn btn-primary btn-sm">자세히 보기</a>
+      <a href="{% url 'talk:meeting-test-detail' meeting.id %}" class="btn btn-primary btn-sm">자세히 보기</a>
 
     </li>
     {% endfor %}
