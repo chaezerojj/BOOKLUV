@@ -124,24 +124,51 @@ def kakao_callback(request):
 # 프론트용 API (DRF)
 # =========================
 
-@api_view(["GET"])
+@api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
 def me(request):
-    """
-    프론트에서 세션 로그인 여부 확인용
-    GET /api/v1/auth/me/
-    """
     user = request.user
-    return Response(
-        {
+
+    # 조회
+    if request.method == "GET":
+        return Response({
             "id": user.id,
             "email": getattr(user, "email", None),
             "kakao_id": getattr(user, "kakao_id", None),
             "username": getattr(user, "username", None),
             "nickname": getattr(user, "nickname", None),
+            "date_joined": getattr(user, "date_joined", None),
             "is_authenticated": True,
-        }
-    )
+        })
+
+    # 수정 (PATCH)
+    nickname = request.data.get("nickname", None)
+
+    if nickname is None:
+        return Response(
+            {"detail": "nickname is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    nickname = str(nickname).strip()
+    if len(nickname) == 0:
+        return Response(
+            {"detail": "nickname cannot be empty"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user.nickname = nickname
+    user.save(update_fields=["nickname"])
+
+    return Response({
+        "id": user.id,
+        "email": getattr(user, "email", None),
+        "kakao_id": getattr(user, "kakao_id", None),
+        "username": getattr(user, "username", None),
+        "nickname": getattr(user, "nickname", None),
+        "date_joined": getattr(user, "date_joined", None),
+        "is_authenticated": True,
+    })
 
 
 @api_view(["POST"])
