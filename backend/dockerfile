@@ -11,6 +11,13 @@ RUN python3 -m pip install --upgrade pip setuptools wheel
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
+# docker-compose 설치
+RUN apt-get update && apt-get install -y \
+    curl \
+    && curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" \
+    -o /usr/local/bin/docker-compose \
+    && chmod +x /usr/local/bin/docker-compose
+
 # 프로젝트 전체 복사
 COPY . .
 
@@ -20,6 +27,5 @@ RUN rm -f /usr/local/bin/python && ln -s /usr/local/bin/python3 /usr/local/bin/p
 # 포트 열기 (Django 기본 포트 8000)
 EXPOSE 8000
 
-
 # Django 서버 실행 및 Celery 작업 실행 (백그라운드에서)
-CMD ["bash", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000 & celery -A backend worker -l info & celery -A backend beat -l info"]
+CMD ["bash", "-c", "python manage.py runserver 0.0.0.0:8000 & celery -A backend worker -l info & celery -A backend beat -l info"]
