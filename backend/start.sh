@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "Running Django migrations..."
+echo "Running migrations..."
 python3 manage.py migrate
 
 echo "Collecting static files..."
