@@ -175,15 +175,13 @@ CORS_ALLOWED_ORIGINS = [
     'https://your-frontend-domain.com',  # 배포된 프론트엔드 서버
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://glycogenetic-stilted-sunshine.ngrok-free.dev",  # ngrok 도메인 추가
-    "https://dayle-preadherent-longly.ngrok-free.dev",
+    "https://bookluv.railway.app/"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://glycogenetic-stilted-sunshine.ngrok-free.dev",  # ngrok 도메인 추가
-    "https://dayle-preadherent-longly.ngrok-free.dev",
+    "https://bookluv.railway.app/"
 ]
 
 
@@ -217,7 +215,7 @@ CSRF_TRUSTED_ORIGINS = [
 # }
 
 KAKAO_REST_API_KEY = '4bf9c626d2f496b06164d72b26db4b81'
-KAKAO_REDIRECT_URI = 'https://dayle-preadherent-longly.ngrok-free.dev/api/v1/auth/callback/'
+KAKAO_REDIRECT_URI = 'https://bookluv.railway.app/api/v1/auth/callback/'
 KAKAO_CLIENT_SECRET = 'Py28EL9FRcSyE0PYtkz0TpKTCAjmdUwZ'
 
 
@@ -236,7 +234,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 
 #LOGIN_URL = "http://localhost:8000/api/v1/auth/"
-LOGIN_URL = "https://dayle-preadherent-longly.ngrok-free.dev/api/v1/auth/"
+LOGIN_URL = 'https://bookluv.railway.app/api/v1/auth/callback/'
 
 ALLOWED_HOSTS = ['*']
-DOMAIN_URL = "https://dayle-preadherent-longly.ngrok-free.dev/"
+DOMAIN_URL = "https://bookluv.railway.app/"
