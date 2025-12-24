@@ -139,17 +139,29 @@ AUTHENTICATION_BACKENDS = (
 LOGIN_URL = f"{BASE_URL}/api/v1/auth/"
 LOGIN_REDIRECT_URL = f"{BASE_URL}/api/v1/chat/rooms/"
 
+# 프론트 주소 (OAuth 콜백 후 리다이렉트용)
+FRONT_URL = os.getenv('FRONT_URL', 'https://bookluv.netlify.app').rstrip('/')
+
 # 카카오 로그인 설정
 KAKAO_REST_API_KEY = os.getenv('KAKAO_REST_API_KEY', '4bf9c626d2f496b06164d72b26db4b81')
 KAKAO_CLIENT_SECRET = os.getenv('KAKAO_CLIENT_SECRET', 'Py28EL9FRcSyE0PYtkz0TpKTCAjmdUwZ')
 KAKAO_REDIRECT_URI = os.getenv('KAKAO_REDIRECT_URI', f"{BASE_URL}/api/v1/auth/callback/")
+
+# 콜백 URI에 'callback'이 포함되어 있지 않으면 자동으로 추가
+if 'callback' not in KAKAO_REDIRECT_URI:
+    if KAKAO_REDIRECT_URI.endswith('/'):
+        KAKAO_REDIRECT_URI = KAKAO_REDIRECT_URI + 'callback/'
+    else:
+        KAKAO_REDIRECT_URI = KAKAO_REDIRECT_URI + '/callback/'
+
 
 # 12. CORS 및 CSRF 신뢰 도메인
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
-    "https://*.railway.app"
+    "https://*.railway.app",
+    "https://bookluv.netlify.app", 
 ]
 CORS_ALLOW_CREDENTIALS = True
 
@@ -157,6 +169,11 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://*.railway.app"
+    "https://bookluv.netlify.app",
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.railway\.app$",
 ]
 
 # 13. 국제화 설정
@@ -172,6 +189,14 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    # Allow cross-site cookies for session and CSRF when frontend is on different origin
+    SESSION_COOKIE_SAMESITE = 'None'
+    CSRF_COOKIE_SAMESITE = 'None'
+    
+SESSION_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # GMS API 등 외부 서비스 설정
 GMS_API_KEY = os.getenv("GMS_KEY")

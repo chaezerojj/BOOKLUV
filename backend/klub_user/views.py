@@ -19,9 +19,6 @@ KAKAO_REST_API_KEY = settings.KAKAO_REST_API_KEY
 KAKAO_REDIRECT_URI = settings.KAKAO_REDIRECT_URI
 KAKAO_CLIENT_SECRET = settings.KAKAO_CLIENT_SECRET
 
-FRONT_URL = "https://bookluv.netlify.app/"  # 프론트 주소
-
-
 def auth_login(request):
     """
     로그인 페이지 렌더링
@@ -112,7 +109,7 @@ def kakao_callback(request):
         if next_url:
             return redirect(next_url)
 
-        return redirect(FRONT_URL + "/")
+        return redirect(settings.FRONT_URL + "/")
 
     except Exception as e:
         return JsonResponse({"detail": "callback exception", "error": repr(e)}, status=500)

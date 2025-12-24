@@ -28,31 +28,33 @@ export const useAuthStore = defineStore("auth", () => {
   // 카카오 로그인 시작 (프론트에서 카카오 authorize로 보내는 역할)
   const startKakaoLogin = () => {
     const clientId = import.meta.env.VITE_KAKAO_REST_API_KEY;
-    const redirectUri = import.meta.env.VITE_KAKAO_REDIRECT_URI; 
-    // 여기 redirectUri는 "백엔드 callback" (예: http://localhost:8000/api/auth/callback/)
-    console.log("BASE:", http.defaults.baseURL);
-
+    const redirectUri = import.meta.env.VITE_KAKAO_REDIRECT_URI;
+    // 여기 redirectUri는 "백엔드 callback" (예: https://bookluv-production.up.railway.app/api/v1/auth/callback/)
+    // state에 프론트의 콜백 경로를 넣어 백에서 콜백 후 로컬 프론트로 돌아오게 한다.
+    console.log("Kakao redirectUri:", redirectUri);
+    const state = `${window.location.origin}/auth/callback`;
     const params = new URLSearchParams({
       response_type: "code",
       client_id: clientId,
       redirect_uri: redirectUri,
+      state,
     });
 
     window.location.href = `https://kauth.kakao.com/oauth/authorize?${params.toString()}`;
   };
 
-const logout = async () => {
-  await http.post("/api/v1/auth/logout/");
-  user.value = null;
-  isReady.value = true;
-};
+  const logout = async () => {
+    await http.post("/api/v1/auth/logout/");
+    user.value = null;
+    isReady.value = true;
+  };
 
-// 회원정보수정
-const updateProfile = async (payload) => {
-  const res = await http.patch("/api/v1/auth/me/", payload);
-  user.value = res.data;
-  return res.data;
-};
+  // 회원정보수정
+  const updateProfile = async (payload) => {
+    const res = await http.patch("/api/v1/auth/me/", payload);
+    user.value = res.data;
+    return res.data;
+  };
 
   return {
     user,
