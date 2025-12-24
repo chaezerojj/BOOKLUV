@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -113,16 +113,19 @@ os.environ.setdefault("PGPASSWORD", "")
 os.environ.setdefault("PGHOST", "localhost")
 os.environ.setdefault("PGPORT", "5432")
 
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ["PGDATABASE"],
-        'USER': os.environ["PGUSER"],
-        'PASSWORD': os.environ["PGPASSWORD"],
-        'HOST': os.environ["PGHOST"],
-        'PORT': os.environ["PGPORT"],
+        'NAME': 'railway',  # 데이터베이스 이름 (Railway에서 제공하는 이름)
+        'USER': 'postgres',  # 사용자명
+        'PASSWORD': 'DPFVjyYdmBOGUSeMikjNwIlzmZwDEprQ',  # 비밀번호
+        'HOST': 'centerbeam.proxy.rlwy.net',  # PostgreSQL 호스트 (Railway에서 제공하는 호스트)
+        'PORT': '12483',  # PostgreSQL 포트 (Railway에서 제공하는 포트)
     }
 }
+
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
@@ -175,13 +178,13 @@ CORS_ALLOWED_ORIGINS = [
     'https://your-frontend-domain.com',  # 배포된 프론트엔드 서버
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://bookluv.railway.app/"
+    "https://bookluv.railway.app"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://bookluv.railway.app/"
+    "https://bookluv.railway.app"
 ]
 
 
@@ -238,3 +241,7 @@ LOGIN_URL = 'https://bookluv.railway.app/api/v1/auth/callback/'
 
 ALLOWED_HOSTS = ['bookluv.railway.app', '127.0.0.1', 'localhost']
 DOMAIN_URL = "https://bookluv.railway.app/"
+
+DATABASE_URL='postgresql://postgres:DPFVjyYdmBOGUSeMikjNwIlzmZwDEprQ@centerbeam.proxy.rlwy.net:12483/railway'
+DEBUG=True
+SECRET_KEY='admin123'

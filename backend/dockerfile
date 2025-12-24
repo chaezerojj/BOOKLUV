@@ -5,7 +5,7 @@ FROM python:3.11.7
 WORKDIR /code
 
 # pip, setuptools, wheel을 최신 버전으로 업그레이드
-RUN python -m pip install --upgrade pip setuptools wheel
+RUN python3 -m pip install --upgrade pip setuptools wheel
 
 # requirements.txt 복사 및 설치
 COPY requirements.txt .
@@ -14,8 +14,11 @@ RUN pip install -r requirements.txt
 # 프로젝트 전체 복사
 COPY . .
 
+# 기존 python 명령어를 삭제하고 python3에 대한 심볼릭 링크 생성
+RUN rm -f /usr/local/bin/python && ln -s /usr/local/bin/python3 /usr/local/bin/python
+
 # 포트 열기 (Django 기본 포트 8000)
 EXPOSE 8000
 
-# Celery와 Django 서버 실행
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Django 서버 실행 및 Celery 작업 실행 (백그라운드에서)
+CMD ["bash", "-c", "python manage.py runserver 0.0.0.0:8000 & celery -A backend worker -l info & celery -A backend beat -l info"]

@@ -1,5 +1,18 @@
 
 services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_DB: yourdbname
+    ports:
+      - "5432:5432"
+    networks:
+      - backend  # backend 네트워크에 연결
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   web:
     build: .
     command: bash start.sh  # start.sh 스크립트 실행
@@ -9,13 +22,16 @@ services:
       - "8000:8000"
     depends_on:
       - redis
+      - db
     env_file:
       - .env
     environment:
       - TZ=Asia/Seoul
-      # Django가 .env를 못 읽는 상황 대비(확실하게)
+      - DATABASE_URL=postgresql://postgres:DPFVjyYdmBOGUSeMikjNwIlzmZwDEprQ@centerbeam.proxy.rlwy.net:12483/railway
       - DJANGO_SETTINGS_MODULE=backend.settings
-      - PYTHONUNBUFFERED=1  # 따옴표 필요 없으므로 제거
+      - PYTHONUNBUFFERED=1
+    networks:
+      - backend  # backend 네트워크에 연결
 
   redis:
     image: redis:7
@@ -23,10 +39,12 @@ services:
       - "6380:6379"
     environment:
       - TZ=Asia/Seoul
+    networks:
+      - backend  # backend 네트워크에 연결
 
   celery:
     build: .
-    command: bash start.sh  # start.sh 스크립트 실행
+    command: celery -A backend worker -l info  # Celery worker 실행
     volumes:
       - .:/code
     depends_on:
@@ -35,10 +53,12 @@ services:
       - .env
     environment:
       - TZ=Asia/Seoul
+    networks:
+      - backend  # backend 네트워크에 연결
 
   celery-beat:
     build: .
-    command: bash start.sh  # start.sh 스크립트 실행
+    command: celery -A backend beat -l info  # Celery Beat 실행
     volumes:
       - .:/code
     depends_on:
@@ -47,3 +67,12 @@ services:
       - .env
     environment:
       - TZ=Asia/Seoul
+    networks:
+      - backend  # backend 네트워크에 연결
+
+networks:
+  backend:  # 네트워크 정의
+    driver: bridge  # 기본 브리지 네트워크 사용
+
+volumes:
+  postgres_data:
