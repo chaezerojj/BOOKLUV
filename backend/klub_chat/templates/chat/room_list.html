@@ -1,109 +1,131 @@
-<h2>오늘의 미팅 알람</h2>
+<div style="display: flex; align-items: center; gap: 10px;">
+    <h2>안녕하세요 {{ user.nickname }}님! 👋</h2>
+    
+    <div id="alarm-bell-container" style="position: relative; cursor: pointer; display: inline-block;">
+        <span style="font-size: 24px;">🔔</span>
+        <span id="unread-dot" style="
+            position: absolute; top: 0; right: 0;
+            width: 10px; height: 10px;
+            background-color: #ff4d4f; border-radius: 50%;
+            display: none; border: 2px solid white;"></span>
+    </div>
+</div>
+
+<h3>오늘의 미팅 알람</h3>
 <div id="meeting-alerts" style="margin-bottom: 20px;"></div>
 
 <ul>
-<h2>안녕하세요 {{ user.nickname }}님! 👋</h2>
-<h3>오늘의 미팅 알람</h3>
-<div id="meeting-alerts" style="margin-bottom: 20px;"></div>
-{% for room in rooms %}
-<li>
-    <strong>{{ room.name }}</strong>
-    {% load tz %}
-    {% if room.slug %}
-    <a href="{% url 'chat:room-detail' room.slug %}?nickname=익명"
-       data-slug="{{ room.slug }}">
-        참여
-    </a>
-    <br>
-    시작:
-    {{ room.meeting.started_at|localtime|date:"Y-m-d H:i" }}<br>
-    종료:
-    {{ room.meeting.finished_at|localtime|date:"Y-m-d H:i" }}
-{% else %}
-    (참여 불가)
-    <br>
-    시작:
-    {{ room.meeting.started_at|localtime|date:"Y-m-d H:i" }}<br>
-    종료:
-    {{ room.meeting.finished_at|localtime|date:"Y-m-d H:i" }}
-{% endif %}
-
-</li>
-{% endfor %}
+    {% for room in rooms %}
+    <li>
+        <strong>{{ room.name }}</strong>
+        {% load tz %}
+        {% if room.slug %}
+            <a href="{% url 'chat:room-detail' room.slug %}?nickname=익명" data-slug="{{ room.slug }}">참여</a>
+            <br>
+            시작: {{ room.meeting.started_at|localtime|date:"Y-m-d H:i" }}<br>
+            종료: {{ room.meeting.finished_at|localtime|date:"Y-m-d H:i" }}
+        {% else %}
+            (참여 불가)
+            <br>
+            시작: {{ room.meeting.started_at|localtime|date:"Y-m-d H:i" }}<br>
+            종료: {{ room.meeting.finished_at|localtime|date:"Y-m-d H:i" }}
+        {% endif %}
+    </li>
+    {% endfor %}
 </ul>
 
 <style>
-#meeting-alerts div {
-    background-color: #f0f8ff;
-    border-left: 4px solid #007bff;
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 4px;
-}
-#meeting-alerts a {
-    margin-left: 10px;
-    color: #007bff;
-    text-decoration: none;
-    font-weight: bold;
-}
-#meeting-alerts a:hover {
-    text-decoration: underline;
-}
+    /* 기존 스타일 유지 */
+    #meeting-alerts div {
+        background-color: #f0f8ff;
+        border-left: 4px solid #007bff;
+        padding: 10px;
+        margin-bottom: 8px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+    }
+    #meeting-alerts a {
+        margin-left: 10px;
+        color: #007bff;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    #meeting-alerts a:hover {
+        text-decoration: underline;
+    }
+    
+    /* 새 알람이 올 때 깜빡이는 효과 (선택사항) */
+    .new-alarm-flash {
+        animation: flash 1.5s;
+    }
+    @keyframes flash {
+        from { background-color: #fff4b3; }
+        to { background-color: #f0f8ff; }
+    }
 </style>
 
 <script>
+// [상태 관리] 안 읽은 알람 여부에 따라 빨간 점 토글
+function updateUnreadDot() {
+    const dot = document.getElementById('unread-dot');
+    const container = document.getElementById('meeting-alerts');
+    
+    // 알람 리스트에 자식이 하나라도 있으면 점을 표시
+    if (container && container.children.length > 0) {
+        dot.style.display = 'block';
+    } else {
+        dot.style.display = 'none';
+    }
+}
+
 // 1. 이미 있는 오늘 미팅 로드 (API 호출)
 async function loadExistingMeetings() {
     try {
-        // urls.py 설정에 따라 'alarms' 경로 호출
         const response = await fetch("{% url 'chat:today-meetings' %}"); 
         const data = await response.json();
         
-        console.log("기존 미팅 데이터:", data);
+        console.log("기존 미팅 데이터 로드:", data);
 
         if (data.meetings && data.meetings.length > 0) {
             data.meetings.forEach(meeting => {
-                // API 데이터 구조에 맞춰서 렌더링
                 renderMeetingAlert({
                     title: meeting.title,
                     started_at: meeting.started_at,
                     join_url: meeting.join_url,
-                    meeting_id: meeting.meeting_id || meeting.title // ID가 없으면 제목 사용
+                    meeting_id: meeting.meeting_id || meeting.title
                 });
             });
         }
+        updateUnreadDot(); // 로드 후 점 표시 여부 확인
     } catch (error) {
         console.error("기존 미팅 로드 중 에러:", error);
     }
 }
 
-// 2. 미팅을 화면에 그리는 함수 (공통)
+// 2. 미팅을 화면에 그리는 함수
 function renderMeetingAlert(data) {
     const meetingAlerts = document.getElementById('meeting-alerts');
-    if (!meetingAlerts) {
-        console.error("ID가 'meeting-alerts'인 div를 찾을 수 없습니다.");
-        return;
-    }
+    if (!meetingAlerts) return;
 
-    // 중복 방지: 동일한 미팅은 두 번 그리지 않음
     const alertId = `alert-${data.meeting_id}`;
     if (document.getElementById(alertId)) return;
 
     const div = document.createElement('div');
     div.id = alertId;
+    div.classList.add('new-alarm-flash'); // 새로 들어올 때 반짝이는 효과
     
-    // join_url이 '#'이면 링크를 비활성화하거나 안내 메시지 출력
     const linkHTML = data.join_url !== "#" 
         ? `<a href="${data.join_url}">참여하기</a>` 
         : `<span style="color:gray; font-size:0.85em;">(방 준비중)</span>`;
 
     div.innerHTML = `
         <strong>${data.title}</strong> 미팅이 
-        <span class="time">${data.started_at}</span>에 시작됩니다! 
+        <span class="time" style="color: #007bff; font-weight: bold;">${data.started_at}</span>에 시작됩니다! 
         ${linkHTML}
     `;
     
-    meetingAlerts.prepend(div); // 최신 알람이 위로
+    meetingAlerts.prepend(div);
+    updateUnreadDot(); // 알람이 추가되었으니 점 띄우기
 }
 
 // 3. 실시간 웹소켓 연결
@@ -122,7 +144,14 @@ function createWebSocketConnection() {
     chatSocket.onclose = function() { setTimeout(createWebSocketConnection, 3000); };
 }
 
-// 4. 실행
+// 4. 종 아이콘 클릭 시 빨간 점 사라지게 하기
+document.getElementById('alarm-bell-container').addEventListener('click', () => {
+    const dot = document.getElementById('unread-dot');
+    if (dot) dot.style.display = 'none';
+    // 만약 리스트도 토글하고 싶다면 여기에 추가 로직 작성 가능
+});
+
+// 실행
 loadExistingMeetings();
 createWebSocketConnection();
 </script>
