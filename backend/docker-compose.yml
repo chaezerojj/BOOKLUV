@@ -27,7 +27,6 @@ services:
       - .env
     environment:
       - TZ=Asia/Seoul
-      - DATABASE_URL=postgresql://postgres:DPFVjyYdmBOGUSeMikjNwIlzmZwDEprQ@centerbeam.proxy.rlwy.net:12483/railway
       - DJANGO_SETTINGS_MODULE=backend.settings
       - PYTHONUNBUFFERED=1
     networks:

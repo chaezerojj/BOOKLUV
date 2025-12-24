@@ -3,6 +3,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 
+# Load .env early so os.getenv picks up local variables during development
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -11,28 +14,34 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-v%7qnd++txo72rj^2akf2*)o0(2t7_whrcgcpli6hfp1$g#fvh'
+# Read sensitive settings from environment for safety. Provide safe
+# defaults for local development only.
+SECRET_KEY = os.getenv(
+    'SECRET_KEY',
+    'django-insecure-v%7qnd++txo72rj^2akf2*)o0(2t7_whrcgcpli6hfp1$g#fvh'
+)
 
-CELERY_BROKER_URL = 'redis://redis:6379/0'  # 'localhost'를 'redis'로 변경
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'  # 'localhost'를 'redis'로 변경
+# DEBUG should be disabled in production. Set DEBUG=True in env for dev.
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('1', 'true', 'yes')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Hosts can be provided as a comma separated list in the env.
+ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'bookluv.railway.app,127.0.0.1,localhost').split(',')]
 
-ALLOWED_HOSTS = ['*']
+# Redis / Celery settings from env with sensible defaults for local dev
+REDIS_URL = os.getenv('REDIS_URL', 'redis://redis:6379/0')
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', REDIS_URL)
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', CELERY_BROKER_URL)
 
 # 로그인 페이지 URL
-LOGIN_URL = 'http://192.168.202.130:8000/api/v1/auth/'
+LOGIN_URL = os.getenv('LOGIN_URL', 'http://192.168.202.130:8000/api/v1/auth/')
 
 # 로그인 성공 후 기본 리다이렉트
-LOGIN_REDIRECT_URL = 'http://192.168.202.130:8000/api/v1/chat/rooms/'
-
-load_dotenv()
+LOGIN_REDIRECT_URL = os.getenv('LOGIN_REDIRECT_URL', 'http://192.168.202.130:8000/api/v1/chat/rooms/')
 
 # Application definition
 
 GMS_API_KEY = os.getenv("GMS_KEY")
-GMS_OPENAI_URL = "https://gms.ssafy.io/gmsapi/api.openai.com/v1/chat/completions"
+GMS_OPENAI_URL = os.getenv("GMS_OPENAI_URL", "https://gms.ssafy.io/gmsapi/api.openai.com/v1/chat/completions")
 
 INSTALLED_APPS = [
     'drf_yasg',
@@ -65,7 +74,8 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("redis", 6379)],  # 로컬 환경에서는 이렇게 설정해야 합니다.
+            # channels_redis accepts a redis URL in the hosts list
+            "hosts": [REDIS_URL],
         },
     },
 }
@@ -106,35 +116,23 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-os.environ.setdefault("PGDATABASE", "liftoff_dev")
-os.environ.setdefault("PGUSER", "username")
-os.environ.setdefault("PGPASSWORD", "")
-os.environ.setdefault("PGHOST", "localhost")
-os.environ.setdefault("PGPORT", "5432")
-
-
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',  # 데이터베이스 이름 (Railway에서 제공하는 이름)
-        'USER': 'postgres',  # 사용자명
-        'PASSWORD': 'DPFVjyYdmBOGUSeMikjNwIlzmZwDEprQ',  # 비밀번호
-        'HOST': 'centerbeam.proxy.rlwy.net',  # PostgreSQL 호스트 (Railway에서 제공하는 호스트)
-        'PORT': '12483',  # PostgreSQL 포트 (Railway에서 제공하는 포트)
+# Prefer a single DATABASE_URL env var (Railway provides this). Fallback to sqlite for local dev.
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600),
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 
 
 # Password validation
@@ -202,7 +200,7 @@ CSRF_TRUSTED_ORIGINS = [
 #         'backupCount': 5,  # 최대 5개의 백업 파일 유지
 #         },
 #     },
-
+#
 #     'loggers': {
 #         'django': {
 #             'handlers': ['file'],  # 콘솔과 파일 두 곳에 로그 기록
@@ -217,12 +215,12 @@ CSRF_TRUSTED_ORIGINS = [
 #     },
 # }
 
-KAKAO_REST_API_KEY = '4bf9c626d2f496b06164d72b26db4b81'
-KAKAO_REDIRECT_URI = 'https://bookluv.railway.app/api/v1/auth/callback/'
-KAKAO_CLIENT_SECRET = 'Py28EL9FRcSyE0PYtkz0TpKTCAjmdUwZ'
+KAKAO_REST_API_KEY = os.getenv('KAKAO_REST_API_KEY', '4bf9c626d2f496b06164d72b26db4b81')
+KAKAO_REDIRECT_URI = os.getenv('KAKAO_REDIRECT_URI', 'https://bookluv.railway.app/api/v1/auth/callback/')
+KAKAO_CLIENT_SECRET = os.getenv('KAKAO_CLIENT_SECRET', 'Py28EL9FRcSyE0PYtkz0TpKTCAjmdUwZ')
 
 
-SITE_ID = 1
+SITE_ID = int(os.getenv('SITE_ID', '1'))
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -236,12 +234,8 @@ CORS_ALLOW_CREDENTIALS = True
 # 세션 쿠키를 프론트에서도 쓰게 할 때 (필요하다면..)
 
 
-#LOGIN_URL = "http://localhost:8000/api/v1/auth/"
-LOGIN_URL = 'https://bookluv.railway.app/api/v1/auth/callback/'
+LOGIN_URL = os.getenv('LOGIN_URL', 'https://bookluv.railway.app/api/v1/auth/callback/')
 
-ALLOWED_HOSTS = ['bookluv.railway.app', '127.0.0.1', 'localhost']
-DOMAIN_URL = "https://bookluv.railway.app/"
+DOMAIN_URL = os.getenv('DOMAIN_URL', 'https://bookluv.railway.app/')
 
-DATABASE_URL='postgresql://postgres:DPFVjyYdmBOGUSeMikjNwIlzmZwDEprQ@centerbeam.proxy.rlwy.net:12483/railway'
-DEBUG=True
-SECRET_KEY='admin123'
+# Final configuration values are read from environment variables above.
