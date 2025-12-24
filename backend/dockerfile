@@ -20,5 +20,6 @@ RUN rm -f /usr/local/bin/python && ln -s /usr/local/bin/python3 /usr/local/bin/p
 # 포트 열기 (Django 기본 포트 8000)
 EXPOSE 8000
 
-# `start.sh` 실행
-CMD ["bash", "start.sh"]
+
+# Django 서버 실행 및 Celery 작업 실행 (백그라운드에서)
+CMD ["bash", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000 & celery -A backend worker -l info & celery -A backend beat -l info"]

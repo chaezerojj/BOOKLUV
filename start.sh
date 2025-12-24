@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "Checking Python version..."
+python3 --version || { echo "Python3 is not installed"; exit 1; }
+
 echo "Running Django migrations..."
 python3 manage.py migrate || { echo "Django migration failed"; exit 1; }
 
