@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모임 수정</title>
+</head>
+<body>
+
+    <div class="container">
+        <h1>모임 수정</h1>
+        
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">저장</button>
+        </form>
+
+        <a href="{% url 'talk:meeting-detail' meeting.id %}" class="btn btn-secondary">뒤로 가기</a>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 KlubTalk</p>
+    </footer>
+</body>
+</html>

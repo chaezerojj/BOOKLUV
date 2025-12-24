@@ -1,0 +1,16 @@
+<h2>{{ quiz.question }}</h2>
+<p>당신의 답: {{ request.POST.answer }}</p>
+<p>정답: {{ quiz.answer }}</p>
+
+{% if result is not None %}
+    {% if result %}
+        <p class="text-success">정답! 모임 참여가 완료되었습니다.</p>
+    {% else %}
+        <p class="text-danger">틀렸습니다. 남은 기회: {{ remaining_chances }}회</p>
+    {% endif %}
+{% endif %}
+
+
+<a href="{% url 'talk:meeting-test-detail' meeting.id %}" class="btn btn-primary mt-3">
+    모임 정보로 돌아가기
+</a>

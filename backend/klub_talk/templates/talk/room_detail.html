@@ -1,0 +1,26 @@
+<div class="card mb-4">
+  <div class="card-body">
+    <h1 class="card-title">{{ meeting.title }}</h1>
+    <p><strong>책 제목:</strong> {{ meeting.book_id.title }}</p>
+    <p><strong>리더:</strong> {{ leader.nickname }}</p>
+    <p><strong>👥 참여 인원:</strong> {{ joined_count }} / {{ meeting.members }} 명</p>
+    <p><strong>조회수:</strong> {{ meeting.views }}</p>
+    <p><strong>설명:</strong> {{ meeting.description }}</p>
+    <p><strong>시작일:</strong> {{ meeting.started_at }}</p>
+    <p><strong>종료일:</strong> {{ meeting.finished_at }}</p>
+  </div>
+
+   {% if user == leader %}
+    <p style="color: gray;">개설자는 참여할 수 없습니다.</p>
+    <!-- 개설자에게 모임 수정 및 삭제 버튼을 표시 -->
+    <a href="{% url 'talk:edit-meeting' meeting.id %}" class="btn btn-warning">모임 수정</a>
+    <a href="{% url 'talk:delete-meeting' meeting.id %}" class="btn btn-danger" onclick="return confirm('정말로 이 모임을 삭제하시겠습니까?')">모임 삭제</a>
+  {% elif participated %}
+    <p style="color: green;">이미 참여 완료했습니다.</p>
+  {% elif not can_participate %}
+    <p style="color: red;">참여 기회를 모두 소진했습니다.</p>
+  {% else %}
+    <!-- 참여하기 버튼을 클릭하면 quiz-detail 페이지로 이동 -->
+    <a href="{% url 'talk:quiz-detail' meeting.id %}" class="btn btn-primary">참여하기</a>
+  {% endif %}
+</div>

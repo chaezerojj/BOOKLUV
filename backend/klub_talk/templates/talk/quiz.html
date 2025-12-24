@@ -1,0 +1,10 @@
+<h2>{{ quiz.question }}</h2>
+<form method="post" action="{% url 'talk:quiz-detail' meeting.id %}">
+  {% csrf_token %}
+  <input type="text" name="answer" placeholder="답을 입력하세요">
+  <button type="submit">제출</button>
+</form>
+
+<a href="{% url 'talk:meeting-test-detail' meeting.id %}" class="btn btn-secondary mt-3">
+    모임 정보로 돌아가기
+</a>

@@ -1,13 +1,13 @@
 <template>
-  <div>
-    <p>회원가입 + 로그인 (비로그인 시)</p>
+  <div class="guest">
+    <RouterLink :to="{ name: 'login' }" class="link">로그인</RouterLink>
+    <RouterLink :to="{ name: 'signup' }" class="link">회원가입</RouterLink>
   </div>
 </template>
 
-<script setup>
-
-</script>
+<script setup></script>
 
 <style scoped>
-
+.guest { display: flex; gap: 12px; align-items: center; }
+.link { text-decoration: none; }
 </style>

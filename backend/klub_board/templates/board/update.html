@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>게시판 수정 페이지</title>
+</head>
+<body>
+<h1>Edit</h1>
+
+<form action="{% url "board:update" board.pk%}" method='POST' enctype = 'multipart/form-data'>
+    {% csrf_token %}
+    {{form.as_p}}
+        
+    <input type="submit">
+
+</form>
+
+<hr>
+{% comment %} HOME 버튼 {% endcomment %}
+<a href="{% url "board:index" %}">HOME</a>
+
+</body>
+</html>

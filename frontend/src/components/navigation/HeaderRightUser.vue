@@ -1,20 +1,31 @@
 <template>
-  <div>
-    <p>알림 + 마이페이지 (로그인 시)</p>
-    <NotificationBell />
-    <UserMenuDropdown />
+  <div class="header-right-user">
+    <RouterLink :to="{name: 'notification'}">
+      <img src="@/assets/images/notification_bell.png" alt="notification-bell" class="notification-bell">
+    </RouterLink>
+    <UserMenu />
   </div>
 </template>
 
 <script setup>
-import NotificationBell from './NotificationBell.vue';
-import UserMenuDropdown from './UserMenuDropdown.vue';
-
+import { RouterLink } from 'vue-router';
+import UserMenu from './UserMenu.vue';
 
 </script>
 
+
 <style scoped>
-div {
-  background-color: lightblue;
+.header-right-user {
+  display: flex;
+  margin: 1.5rem;
+  margin-right: 3rem;
+  width: 80px;
+  align-items: center;
+  justify-content: space-between;
 }
+
+.notification-bell {
+  width: 20px;
+}
+
 </style>

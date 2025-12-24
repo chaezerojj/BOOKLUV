@@ -10,25 +10,38 @@
       <SearchResultsPanel />
     </section>
 
-    <!-- 큰 배너 -->
-    <HomeHeroSection />
-
-    <!-- 카드 2개 -->
-    <HomeCardsSection />
+    <div class="home-container">
+      <HomeHeroSlider />
+      <HomeCardsSection />
+    </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 import GlobalSearchBar from '@/components/search/GlobalSearchBar.vue'
 import SearchResultsPanel from '@/components/search/results/SearchResultsPanel.vue'
 
 import HomeCardsSection from '@/components/home/HomeCardsSection.vue'
-import HomeHeroSection from '@/components/home/HomeHeroSection.vue'
+import HomeHeroSlider from '@/components/home/HomeHeroSlider.vue'
 
 
 const route = useRoute()
 const hasQuery = computed(() => !!route.query.q && !!route.query.type)
+
+const authStore = useAuthStore()
+
+onMounted(() => {
+  authStore.fetchMe()
+})
 </script>
+
+<style scoped>
+.home-container{
+  margin: 1rem auto;
+}
+
+</style>

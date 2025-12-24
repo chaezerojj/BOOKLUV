@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ room.name }} 대기실</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { display: flex; gap: 20px; }
+
+        /* 채팅 영역 */
+        .chat-area { flex: 3; }
+        #chat-log { border: 1px solid #ccc; height: 300px; overflow-y: auto; padding: 10px; }
+        .message { display: flex; align-items: flex-start; margin-bottom: 10px; }
+        /* 내 메시지 */
+        .message.self { justify-content: flex-end; }
+        .message.self .message-content { background: #FFF9C4; text-align: right; }  /* 연노란색 배경 */
+        .message.other { justify-content: flex-start; }
+        .message-content { background: #f5f5f5; padding: 6px 10px; border-radius: 8px; max-width: 70%; }
+
+        .avatar { width: 36px; height: 36px; border-radius: 50%; background: #4CAF50; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; margin-right: 8px; }
+        .message-header { display: flex; justify-content: space-between; font-size: 12px; color: #555; }
+        .system { color: gray; font-style: italic; }
+
+        /* 참여자 패널 */
+        .participants-area { flex: 1; border: 1px solid #ddd; padding: 10px; }
+        .participants-area h4 { margin-top: 0; }
+        .participants-area li { list-style: none; margin-bottom: 6px; }
+        .leader { color: gold; font-weight: bold; } /* 방장 표시 */
+    </style>
+</head>
+<body>
+<h1>{{ room.name }} 대기실</h1>
+
+<div class="container">
+
+    <!-- 💬 채팅 -->
+    <div class="chat-area">
+        {% if can_chat %}
+            <p style="color:green;">회의가 시작되었습니다.</p>
+        {% else %}
+            <p style="color:red;">회의 시간이 아닙니다.</p>
+        {% endif %}
+
+        <div id="chat-log"></div>
+        <input id="chat-message-input" {% if not can_chat %}disabled{% endif %}>
+        <button id="chat-message-submit" {% if not can_chat %}disabled{% endif %}>전송</button>
+    </div>
+
+    <!-- 👥 참여자 -->
+    <div class="participants-area">
+        <h4>👥 참여자
+            <span id="count" style="font-size:14px; color:gray;">
+                ({{ joined_members }}/{{ total_members }})
+            </span>
+        </h4>
+
+        <ul id="participants">
+            <li data-user-id="{{ leader.id }}" class="leader">👑 {{ leader.nickname }}</li>  <!-- 방장 표시 -->
+            {% for p in participants %}
+                <li data-user-id="{{ p.user_id.id }}" {% if p.user_id.id == leader.id %}class="leader"{% endif %}> 
+                    {% if p.user_id.id == leader.id %}👑 {% endif %}{{ p.user_id.nickname }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+</div>
+
+<script>
+const roomName = "{{ room.slug }}";
+const currentUserId = "{{ user.id }}"; // 현재 접속한 유저 ID
+const canChat = {{ can_chat|yesno:"true,false" }}; // 회의 가능 여부
+let socket = null;
+
+// 시간 포맷
+function formatTime(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+}
+
+// WebSocket 연결
+function connect() {
+    const protocol = location.protocol === "https:" ? "wss://" : "ws://";
+    socket = new WebSocket(protocol + location.host + "/ws/chat/" + roomName + "/");
+
+    socket.onmessage = e => {
+        const data = JSON.parse(e.data);
+        console.log("WebSocket 메시지:", data);  // 데이터 로그 확인
+        const chatLog = document.getElementById("chat-log");
+
+        // 시스템 메시지
+        if (data.type === "system") {
+            const p = document.createElement("p");
+            p.className = "system";
+            p.textContent = data.message;
+            chatLog.appendChild(p);
+        }
+
+        // 일반 채팅
+        if (data.type === "chat") {
+            const wrapper = document.createElement("div");
+            wrapper.className = data.user_id == currentUserId ? "message self" : "message other";
+
+            const avatar = document.createElement("div");
+            avatar.className = "avatar";
+            avatar.textContent = data.username[0];
+
+            const content = document.createElement("div");
+            content.className = "message-content";
+
+            const header = document.createElement("div");
+            header.className = "message-header";
+            header.innerHTML = `<span>${data.username}</span>
+                                <span>${formatTime(data.timestamp)}</span>`;
+
+            const body = document.createElement("div");
+            body.textContent = data.message;
+
+            content.appendChild(header);
+            content.appendChild(body);
+
+            if (data.user_id == currentUserId) {
+                wrapper.appendChild(content);
+                wrapper.appendChild(avatar);
+            } else {
+                wrapper.appendChild(avatar);
+                wrapper.appendChild(content);
+            }
+
+            chatLog.appendChild(wrapper);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        // 참여자 상태
+        if (data.type === "participants") {
+            console.log("참여자 상태 업데이트:", data.participants); // 데이터 로그 확인
+            updateParticipants(data.participants);
+        }
+    };
+
+    socket.onclose = () => setTimeout(connect, 3000);
+}
+
+connect();
+
+// 메시지 전송 함수
+function sendMessage() {
+    const input = document.getElementById("chat-message-input");
+    if (!input.value) return;
+    socket.send(JSON.stringify({ message: input.value }));
+    input.value = "";
+}
+
+// 버튼 클릭 전송
+document.getElementById("chat-message-submit").addEventListener("click", sendMessage);
+
+// Enter 키 전송
+document.getElementById("chat-message-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+// 참여자 온라인 상태 업데이트
+function updateParticipants(participants) {
+    const ul = document.getElementById("participants");
+    ul.innerHTML = '';  // 기존 참여자 목록을 비움
+
+    let onlineCount = 0;
+
+    participants.forEach(p => {
+        const li = document.createElement("li");
+        li.dataset.userId = p.id;
+        li.textContent = p.username;
+
+        // 방장 표시
+        if (p.id === {{ leader.id }}) {
+            li.classList.add("leader");  // 방장 클래스 추가
+            li.textContent = `👑 ${p.username}`; // 방장 앞에 👑 표시
+        }
+
+        // 온라인 여부에 따른 스타일 변경
+        if (p.online) {
+            li.style.color = "green";  // 온라인은 초록색
+            li.style.fontWeight = "bold";  // 온라인은 굵은 글씨
+            onlineCount++;
+        } else {
+            li.style.color = "gray";  // 오프라인은 회색
+            li.style.fontWeight = "normal";  // 오프라인은 보통 글씨
+        }
+
+        ul.appendChild(li);
+    });
+
+    document.getElementById("count").textContent = `(${onlineCount} / {{ total_members }})`;
+}
+</script>
+
+</body>
+</html>
