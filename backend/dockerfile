@@ -1,19 +1,21 @@
-# Python 3.11.7 사용
+# Python 3.11.7 이미지 사용
 FROM python:3.11.7
 
-# 작업 디렉토리
+# 작업 디렉토리 설정
 WORKDIR /code
 
-# pip 최신화
+# pip, setuptools, wheel을 최신 버전으로 업그레이드
 RUN python -m pip install --upgrade pip setuptools wheel
 
-# requirements 복사 및 설치
+# requirements.txt 복사 및 설치
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 # 프로젝트 전체 복사
 COPY . .
 
-# 장고 기본 포트
+# 포트 열기 (Django 기본 포트 8000)
 EXPOSE 8000
 
+# Celery와 Django 서버 실행
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
