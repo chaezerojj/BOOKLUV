@@ -53,9 +53,14 @@
 
 <script>
 function createWebSocketConnection() {
-    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://'; 
-    const chatSocket = new WebSocket(protocol + 'dayle-preadherent-longly.ngrok-free.dev/ws/meeting-alerts/');
-
+    // 1. 현재 페이지의 프로토콜에 따라 ws 또는 wss 결정
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    
+    // 2. ngrok 주소 대신 현재 접속한 도메인(window.location.host)을 사용하도록 수정
+    const wsUrl = protocol + window.location.host + '/ws/meeting-alerts/';
+    console.log("Connecting to WebSocket:", wsUrl);
+    
+    const chatSocket = new WebSocket(wsUrl);
 
     let shownMeetingIds = new Set();
 
@@ -66,31 +71,30 @@ function createWebSocketConnection() {
         shownMeetingIds.add(data.meeting_id);
 
         const meetingAlerts = document.getElementById('meeting-alerts');
-        console.log(meetingAlerts)
         const div = document.createElement('div');
         div.innerHTML = `
             <strong>${data.title}</strong> 미팅이 
             <span class="time">${data.started_at}</span>에 시작됩니다! 
             <a href="${data.join_url}">참여하기</a>
         `;
-        meetingAlerts.prepend(div); // 새 알람이 위로
+        meetingAlerts.prepend(div);
     };
 
     chatSocket.onopen = function() { 
-        console.log("WebSocket connected"); 
+        console.log("WebSocket connected successfully"); 
     };
 
     chatSocket.onerror = function(e) { 
-        console.error("WebSocket error", e); 
+        console.error("WebSocket error observed:", e); 
     };
 
     chatSocket.onclose = function(event) { 
         console.log("WebSocket closed", event);
-        // WebSocket이 닫히면 재연결 시도
-        setTimeout(createWebSocketConnection, 3000); // 3초 후 재연결
+        // 연결이 끊기면 3초 후 재연결 시도
+        setTimeout(createWebSocketConnection, 3000);
     };
 }
 
-createWebSocketConnection();
+// 딱 한 번만 실행되도록 설정
 createWebSocketConnection();
 </script>
