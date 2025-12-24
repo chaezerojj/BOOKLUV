@@ -231,6 +231,21 @@ connect();
 
 document.getElementById("chat-message-submit").onclick = () => {
     const input = document.getElementById("chat-message-input");
+    const submitBtn = document.getElementById("chat-message-submit");
+
+    submitBtn.onclick = () => {
+    if (!input.value) return;
+        socket.send(JSON.stringify({ message: input.value }));
+        input.value = "";
+    };
+
+    // 🔥 Enter 키 눌러도 전송
+    input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault(); // 줄바꿈 방지
+        submitBtn.click();
+        }
+    });
     if (!input.value) return;
 
     socket.send(JSON.stringify({ message: input.value }));

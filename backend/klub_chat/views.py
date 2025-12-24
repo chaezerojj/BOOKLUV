@@ -1,14 +1,15 @@
 import json
 import redis
-
+from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.text import slugify
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.http import JsonResponse
+from django.db.models import Q
 
 from .models import Room
-from klub_talk.models import Meeting
+from klub_talk.models import Meeting, Participate
 
 # =====================
 # Redis 설정
@@ -21,43 +22,59 @@ REDIS_DB = 0
 # =====================
 # 채팅방 목록
 # =====================
+
+@login_required
 def room_list(request):
     if request.method == "POST":
         room_name = request.POST.get("room_name")
-
         if room_name and not Room.objects.filter(name=room_name).exists():
             Room.objects.create(
                 name=room_name,
                 slug=slugify(room_name)
             )
-
         return redirect("chat:room-list")
 
-    rooms = Room.objects.select_related("meeting").all()
+    # 🔥 현재 유저가 참여 신청한 모임 ID
+    participated_meetings = Participate.objects.filter(
+        user_id=request.user, result=True
+    ).values_list("meeting", flat=True)
+
+    # 🔥 참여하거나 리더인 Room만 가져오기
+    rooms = Room.objects.filter(
+        Q(meeting_id__in=participated_meetings) | Q(meeting__leader_id=request.user)
+    ).select_related("meeting")
 
     return render(request, "chat/room_list.html", {
         "rooms": rooms,
         "user": request.user,
     })
 
-
 # =====================
 # 채팅방 상세
 # =====================
+
 @login_required
 def room_detail(request, room_name):
     room = get_object_or_404(Room, slug=room_name)
     meeting = getattr(room, "meeting", None)
+    user = request.user
 
-    nickname = request.user.nickname
+    # 🔥 접근 권한 체크
+    if meeting:
+        is_participant = meeting.participations.filter(user_id=user, result=True).exists()
+        is_leader = meeting.leader_id == user
+        if not (is_participant or is_leader):
+            return HttpResponseForbidden("채팅방에 접근할 권한이 없습니다.")
+    else:
+        # 미팅이 없는 Room은 기본적으로 접근 불가 처리
+        return HttpResponseForbidden("채팅방에 접근할 권한이 없습니다.")
 
+    nickname = user.nickname
     can_chat = False
     leader = None
     participants = []
-
     total_members = 0
     joined_members = 0
-
     now = timezone.localtime()
 
     if meeting:
@@ -78,6 +95,7 @@ def room_detail(request, room_name):
         joined_members = participants.count()
         total_members = joined_members + 1  # 리더 포함
 
+    # Redis 메시지 로드
     r = redis.Redis(
         host=REDIS_HOST,
         port=REDIS_PORT,
@@ -88,18 +106,13 @@ def room_detail(request, room_name):
     messages_raw = r.lrange(f"chat_{room.slug}", 0, -1)
     messages = []
     
-    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-    print(start, end)
-    
     for m in messages_raw:
         msg = json.loads(m)
-        # 🔥 timestamp가 있으면 KST 변환
         if "timestamp" in msg:
             msg["timestamp"] = timezone.localtime(
                 timezone.datetime.fromisoformat(msg["timestamp"])
             ).strftime("%Y-%m-%d %H:%M:%S")
         messages.append(msg)
-
 
     return render(
         request,
@@ -120,14 +133,16 @@ def room_detail(request, room_name):
 # =====================
 # 오늘의 미팅 (알림/목록용)
 # =====================
+
 @login_required
 def today_meetings(request):
+    user = request.user
     now = timezone.localtime()
 
     today_start_local = now.replace(hour=0, minute=0, second=0, microsecond=0)
     today_end_local = now.replace(hour=23, minute=59, second=59, microsecond=999999)
 
-    # 🔥 UTC 기준으로 변환해서 조회
+    # UTC 기준으로 변환
     today_start_utc = timezone.make_aware(
         today_start_local.replace(tzinfo=None),
         timezone.get_current_timezone()
@@ -138,21 +153,24 @@ def today_meetings(request):
         timezone.get_current_timezone()
     ).astimezone(timezone.utc)
 
-    meetings = Meeting.objects.filter(
+    # 오늘 시작~끝 범위 내 미팅 조회
+    meetings_today = Meeting.objects.filter(
         started_at__range=(today_start_utc, today_end_utc)
     ).select_related("room")
 
+    # 🔥 참여자 혹은 리더 필터링
+    filtered_meetings = []
+    for m in meetings_today:
+        is_leader = m.leader_id == user
+        is_participant = m.participations.filter(user_id=user, result=True).exists()
+        if is_leader or is_participant:
+            filtered_meetings.append(m)
+
+    # JSON 데이터 구성
     data = []
-
-    for m in meetings:
+    for m in filtered_meetings:
         start_local = timezone.localtime(m.started_at)
-
-        join_url = (
-            f"/api/v1/chat/rooms/{m.room.slug}/"
-            if hasattr(m, "room") and m.room
-            else "#"
-        )
-
+        join_url = f"/api/v1/chat/rooms/{m.room.slug}/" if hasattr(m, "room") and m.room else "#"
         data.append({
             "title": m.title,
             "started_at": start_local.strftime("%H:%M"),

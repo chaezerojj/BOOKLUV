@@ -149,7 +149,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',  # 개발 중인 프론트엔드 서버
@@ -213,6 +213,8 @@ CORS_ALLOW_CREDENTIALS = True
 # 개발환경(HTTP)에서 프론트<->백엔드 다른 포트면 SameSite 이슈 있어서 설정
 # 세션 쿠키를 프론트에서도 쓰게 할 때 (필요하다면..)
 
+
+#LOGIN_URL = "http://localhost:8000/api/v1/auth/"
 LOGIN_URL = "https://dayle-preadherent-longly.ngrok-free.dev/api/v1/auth/"
 
 ALLOWED_HOSTS = ['*']
