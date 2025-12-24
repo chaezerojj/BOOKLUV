@@ -27,6 +27,10 @@ class Book(models.Model):
     def __str__(self):
         return self.title
     
+    @property
+    def author_name(self):
+        return self.author_id.name if self.author_id else "정보 없음"
+    
 # 모임 정보
 
 class Meeting(models.Model):

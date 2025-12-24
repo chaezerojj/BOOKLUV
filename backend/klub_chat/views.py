@@ -90,20 +90,31 @@ def room_detail(request, room_name):
 
     # 참여자 목록 구성
     participants_qs = meeting.participations.filter(result=True).select_related("user_id")
-    participants_list = []
+    # 1. 딕셔너리를 사용하여 중복 제거 (Key: 유저ID, Value: 정보)
+    participants_dict = {}
+
+    # 2. 참여 확정자 먼저 추가
+    participants_qs = meeting.participations.filter(result=True).select_related("user_id")
     for p in participants_qs:
-        participants_list.append({
+        participants_dict[p.user_id.id] = {
             "id": p.user_id.id,
             "nickname": p.user_id.nickname,
             "online": False
-        })
+        }
 
-    if meeting.leader_id and not any(p["id"] == meeting.leader_id.id for p in participants_list):
-        participants_list.insert(0, {
+    # 3. 리더 추가 (이미 존재한다면 덮어쓰기되므로 중복되지 않음)
+    if meeting.leader_id:
+        participants_dict[meeting.leader_id.id] = {
             "id": meeting.leader_id.id,
             "nickname": meeting.leader_id.nickname,
             "online": False
-        })
+        }
+
+    # 4. 최종 리스트로 변환
+    participants_list = list(participants_dict.values())
+    
+    # 리더를 리스트 맨 앞으로 보내고 싶다면 (선택 사항)
+    participants_list.sort(key=lambda x: x['id'] != meeting.leader_id.id)
 
     # 채팅 가능 여부 (현재 시간 기준)
     now = timezone.localtime()
