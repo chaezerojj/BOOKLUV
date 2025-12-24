@@ -1,153 +1,170 @@
+<!-- src/components/ChatAlarmBell.vue -->
 <template>
-  <div class="alarm-wrap" ref="root">
-    <div class="bell" @click="toggle">
-      <span class="icon">🔔</span>
-      <span v-if="store.unread" class="dot" />
-    </div>
-
-    <div v-if="open" class="box">
-      <div class="box-head">
-        <div class="title">최근 미팅 알람</div>
+  <div class="wrap">
+    <div class="panel">
+      <div class="head">
+        <h3 class="title">최근 미팅 알람</h3>
+        <button class="refresh" type="button" @click="refresh">새로고침</button>
       </div>
 
-      <div v-if="store.meetingAlerts.length === 0" class="empty">
+      <div v-if="store.alarmsLoading" class="state">불러오는 중...</div>
+      <div v-else-if="store.alarmsError" class="state error">알람을 불러오지 못했어요.</div>
+
+      <div v-else-if="store.meetingAlerts.length === 0" class="empty">
         새로운 알람이 없습니다.
       </div>
 
-      <div v-else class="items">
+      <div v-else class="list">
         <div v-for="a in store.meetingAlerts" :key="a.meeting_id" class="item">
-          <div class="item-title">{{ a.title }}</div>
-          <div class="item-sub">
-            <span class="time">{{ a.started_at }} 시작</span>
-            <a v-if="a.join_url && a.join_url !== '#'" class="link" :href="a.join_url">참여하기</a>
-            <span v-else class="disabled">(방 준비중)</span>
+          <div class="left">
+            <div class="name">{{ a.title }}</div>
+            <div class="time">{{ a.started_at }} 시작</div>
           </div>
+
+          <RouterLink
+            v-if="a.room_slug"
+            class="btn"
+            :to="{ name: 'kluvtalk-chat-room', params: { roomSlug: a.room_slug } }"
+            @click="store.markAlarmsRead()"
+          >
+            참여하기
+          </RouterLink>
+
+          <button v-else class="btn disabled" type="button" disabled>
+            방 준비중
+          </button>
         </div>
+      </div>
+
+      <div class="hint">
+        ※ 채팅방은 시작 10분 전부터 자동 생성/노출돼요.
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { onMounted } from "vue";
 import { useKluvChatStore } from "@/stores/kluvChat";
 
 const store = useKluvChatStore();
-const open = ref(false);
-const root = ref(null);
 
-const toggle = async () => {
-  open.value = !open.value;
-  if (open.value) store.markAlarmsRead();
-};
-
-const onClickOutside = (e) => {
-  if (!root.value) return;
-  if (!root.value.contains(e.target)) open.value = false;
+const refresh = async () => {
+  await store.fetchTodayMeetings();
 };
 
 onMounted(async () => {
-  window.addEventListener("click", onClickOutside);
   await store.fetchTodayMeetings();
   store.connectMeetingAlertsSocket();
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener("click", onClickOutside);
-  store.disconnectMeetingAlertsSocket();
 });
 </script>
 
 <style scoped>
-.alarm-wrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-.bell {
-  position: relative;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 10px;
-}
-.bell:hover {
-  background: rgba(0, 0, 0, 0.04);
-}
-.icon {
-  font-size: 22px;
-}
-.dot {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 9px;
-  height: 9px;
-  background: #ff4d4f;
-  border-radius: 999px;
-  border: 2px solid #fff;
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 16px;
 }
 
-.box {
-  position: absolute;
-  top: 44px;
-  right: 0;
-  width: 340px;
-  max-height: 420px;
-  overflow: auto;
+.panel {
+  width: 360px;
   background: #fff;
   border: 1px solid #eee;
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.10);
-  z-index: 1000;
+  border-radius: 16px;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+  padding: 14px;
 }
-.box-head {
-  padding: 12px 14px;
-  border-bottom: 1px solid #f1f1f1;
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
 }
+
 .title {
-  font-weight: 800;
+  margin: 0;
   font-size: 14px;
+  font-weight: 900;
 }
+
+.refresh {
+  border: 1px solid #e5e5e5;
+  background: #fafafa;
+  border-radius: 10px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.state {
+  padding: 12px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  font-size: 13px;
+}
+.state.error {
+  background: #fff5f5;
+  border-color: #ffd6d6;
+  color: #b42318;
+}
+
 .empty {
-  padding: 18px 14px;
-  color: #888;
+  padding: 18px 10px;
   text-align: center;
+  color: #888;
+  font-size: 13px;
 }
-.items {
-  padding: 10px;
+
+.list {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
+
 .item {
-  background: #f5f9ff;
-  border-left: 4px solid #1a73e8;
-  padding: 10px 10px 10px 12px;
-  border-radius: 10px;
-}
-.item-title {
-  font-weight: 800;
-  font-size: 14px;
-}
-.item-sub {
-  margin-top: 6px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
-  font-size: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f7fbff;
+  border-left: 4px solid #1a73e8;
+}
+
+.name {
+  font-size: 13px;
+  font-weight: 900;
 }
 .time {
-  color: #555;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #666;
 }
-.link {
-  color: #1a73e8;
-  font-weight: 800;
+
+.btn {
   text-decoration: none;
+  background: #1a73e8;
+  color: #fff;
+  font-weight: 900;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
 }
-.link:hover {
-  text-decoration: underline;
+.btn:hover {
+  opacity: 0.92;
 }
-.disabled {
-  color: #999;
+.btn.disabled {
+  background: #e5e5e5;
+  color: #888;
+  cursor: not-allowed;
+}
+
+.hint {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #888;
 }
 </style>

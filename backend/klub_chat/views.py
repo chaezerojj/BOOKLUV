@@ -10,6 +10,8 @@ from django.utils import timezone
 from django.db.models import Q
 from django.db import transaction
 
+from django.core.exceptions import ObjectDoesNotExist
+
 from .models import Room
 from klub_talk.models import Meeting, Participate
 
@@ -155,27 +157,32 @@ def today_meetings(request):
     user = request.user
     now = timezone.localtime()
     ten_minutes_later = now + timedelta(minutes=10)
-    
-    # 시작 10분 전 ~ 아직 종료되지 않은 미팅 조회
+
     meetings_today = Meeting.objects.filter(
         started_at__lte=ten_minutes_later,
         finished_at__gte=now
-    ).select_related("room")
+    ).select_related("room", "leader_id")
 
     data = []
     for m in meetings_today:
         is_leader = m.leader_id == user
         is_participant = m.participations.filter(user_id=user, result=True).exists()
-        
-        if is_leader or is_participant:
-            # 방이 아직 자동 생성되지 않았을 경우를 대비해 처리
-            join_url = f"/api/v1/chat/rooms/{m.room.slug}/" if hasattr(m, "room") and m.room else "#"
-            
-            data.append({
-                "meeting_id": m.id,
-                "title": m.title,
-                "started_at": timezone.localtime(m.started_at).strftime("%H:%M"),
-                "join_url": join_url,
-            })
+
+        if not (is_leader or is_participant):
+            continue
+
+        room = None
+        try:
+            room = m.room  # OneToOne 없으면 예외
+        except ObjectDoesNotExist:
+            room = None
+
+        data.append({
+            "meeting_id": m.id,
+            "title": m.title,
+            "started_at": timezone.localtime(m.started_at).strftime("%H:%M"),
+            "room_slug": room.slug if room else None,
+            "join_url": f"/api/v1/chat/rooms/{room.slug}/" if room else "#",
+        })
 
     return JsonResponse({"meetings": data})

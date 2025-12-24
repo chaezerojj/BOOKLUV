@@ -1,49 +1,25 @@
+// src/stores/search.js
 import { defineStore } from "pinia";
-import { http } from "@/api/http"; // axios 인스턴스
+import { http } from "@/api/http";
 
 const normalizeBook = (b) => ({
   ...b,
   id: b?.id ?? b?.pk ?? b?.book_id ?? null,
 });
 
-// ✅ 추가: 모임(kluvTalk) 정규화
-const normalizeTalk = (t) => {
-  const id = t?.id ?? t?.pk ?? t?.meeting_id ?? null;
-
-  const hostName =
-    t?.host_name ??
-    t?.leader_name ??
-    t?.leader_nickname ??
-    t?.leader?.nickname ??
-    t?.leader?.name ??
-    t?.leader_id?.nickname ??
-    t?.leader_id?.name ??
-    null;
-
-  const categoryName =
-    t?.category_name ??
-    t?.category?.name ??
-    t?.book?.category_name ??
-    t?.book?.category?.name ??
-    t?.book_id?.category_id?.name ??
-    null;
-
-  const bookTitle =
-    t?.book_title ??
-    t?.book?.title ??
-    t?.book_id?.title ??
-    null;
-
-  return {
-    ...t,
-    id,
-    title: t?.title ?? t?.name ?? t?.meeting_title ?? "(제목 없음)",
-    host_name: hostName,
-    category_name: categoryName,
-    book_title: bookTitle,
-    description: t?.description ?? t?.content ?? "",
-  };
-};
+const normalizeTalk = (t) => ({
+  ...t,
+  id: t?.id ?? t?.pk ?? t?.meeting_id ?? null,
+  title: t?.title ?? "",
+  host_name: t?.host_name ?? t?.leader_name ?? t?.leader?.nickname ?? t?.leader?.name ?? "",
+  category_name: t?.category_name ?? t?.category ?? "",
+  book_title: t?.book_title ?? t?.book?.title ?? "",
+  description: t?.description ?? "",
+  members: t?.members ?? t?.joined_count ?? 0,
+  views: t?.views ?? 0,
+  started_at: t?.started_at ?? null,
+  finished_at: t?.finished_at ?? null,
+});
 
 const isProbablyHtmlString = (data) => {
   if (typeof data !== "string") return false;
@@ -93,6 +69,7 @@ export const useSearchStore = defineStore("search", {
           this.books = list.map(normalizeBook);
           this.kluvTalks = [];
         } else if (type === "kluvtalk") {
+          // ✅ 너 프로젝트에서 모임 검색이 이미 되는 endpoint로 맞춰서 사용
           const res = await http.get("/api/v1/books/meetings/", {
             params: { q: keyword },
             headers: { Accept: "application/json" },

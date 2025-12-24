@@ -3,6 +3,9 @@ import { defineStore } from "pinia";
 import { chatApi } from "@/api/chat";
 import { useAuthStore } from "@/stores/auth";
 
+// -----------------------------
+// helpers
+// -----------------------------
 function wsBaseUrlFromApiBase() {
   const apiBase = import.meta.env.VITE_API_BASE_URL;
   // 예: https://bookluv-production.up.railway.app  -> wss://bookluv-production.up.railway.app
@@ -19,6 +22,35 @@ function fmtTime(ts) {
   } catch {
     return String(ts);
   }
+}
+
+function parseRoomSlug(joinUrl) {
+  if (!joinUrl || joinUrl === "#") return null;
+  // 예: /api/v1/chat/rooms/some-slug-12/
+  const m = String(joinUrl).match(/\/chat\/rooms\/([^/]+)\/?$/);
+  return m ? m[1] : null;
+}
+
+function normalizeMeetingAlert(x) {
+  const joinUrl = x?.join_url ?? x?.joinUrl ?? "#";
+  return {
+    meeting_id: x?.meeting_id ?? x?.meetingId ?? null,
+    title: x?.title ?? "",
+    started_at: x?.started_at ?? x?.startedAt ?? "",
+    join_url: joinUrl,
+    // ✅ 백엔드가 room_slug 내려주면 그걸 우선, 없으면 join_url에서 파싱
+    room_slug: x?.room_slug ?? x?.roomSlug ?? parseRoomSlug(joinUrl),
+  };
+}
+
+// Set 대신 배열(직렬화 안전)
+function hasId(arr, id) {
+  return arr.includes(id);
+}
+function addId(arr, id) {
+  if (id == null) return arr;
+  if (arr.includes(id)) return arr;
+  return [...arr, id];
 }
 
 export const useKluvChatStore = defineStore("kluvChat", {
@@ -48,11 +80,11 @@ export const useKluvChatStore = defineStore("kluvChat", {
     // alarms
     alarmsLoading: false,
     alarmsError: null,
-    meetingAlerts: [], // [{meeting_id,title,started_at,join_url, room_slug?}]
+    meetingAlerts: [], // [{meeting_id,title,started_at,join_url,room_slug}]
     unread: false,
     alertsSocket: null,
     alertsStatus: "idle",
-    shownMeetingIds: new Set(),
+    shownMeetingIds: [], // ✅ Set -> Array
   }),
 
   actions: {
@@ -64,7 +96,7 @@ export const useKluvChatStore = defineStore("kluvChat", {
       this.roomsError = null;
       try {
         const data = await chatApi.fetchRooms();
-        this.rooms = data.rooms ?? [];
+        this.rooms = data.rooms ?? data ?? [];
       } catch (e) {
         this.roomsError = e;
         this.rooms = [];
@@ -91,24 +123,25 @@ export const useKluvChatStore = defineStore("kluvChat", {
       try {
         const data = await chatApi.fetchRoomDetail(roomSlug);
 
-        this.room = data.room;
+        // 백엔드 응답 형태가 유동적이라 방어적으로
+        this.room = data.room ?? data;
         this.meeting = data.meeting ?? null;
-        this.canChat = !!data.can_chat;
+        this.canChat = !!(data.can_chat ?? this.room?.can_chat ?? false);
         this.currentUser = data.current_user ?? null;
         this.leader = data.leader ?? null;
 
-        this.participants = (data.participants ?? []).map((p) => ({
+        this.participants = (data.participants ?? this.room?.participants ?? []).map((p) => ({
           id: p.id,
-          nickname: p.nickname,
+          nickname: p.nickname ?? p.username ?? "Unknown",
           online: !!p.online,
           isLeader: !!p.isLeader || (this.leader?.id != null && p.id === this.leader.id),
         }));
 
         // messages는 Redis 형식 그대로 올 수도 있어서 최소 정규화
-        this.messages = (data.messages ?? []).map((m) => ({
+        this.messages = (data.messages ?? this.room?.messages ?? []).map((m) => ({
           type: m.type ?? "chat",
           username: m.username ?? m.nickname ?? "Unknown",
-          message: m.message ?? "",
+          message: m.message ?? m.content ?? "",
           timestamp: m.timestamp ?? null,
           user_id: m.user_id ?? null,
         }));
@@ -167,8 +200,8 @@ export const useKluvChatStore = defineStore("kluvChat", {
         if (data.type === "chat") {
           this.messages.push({
             type: "chat",
-            username: data.username,
-            message: data.message,
+            username: data.username ?? "Unknown",
+            message: data.message ?? "",
             timestamp: data.timestamp ?? null,
             user_id: data.user_id ?? null,
           });
@@ -226,13 +259,8 @@ export const useKluvChatStore = defineStore("kluvChat", {
         const data = await chatApi.fetchTodayMeetings();
         const list = data.meetings ?? [];
 
-        // 최신이 위로
-        this.meetingAlerts = list.map((x) => ({
-          meeting_id: x.meeting_id,
-          title: x.title,
-          started_at: x.started_at,
-          join_url: x.join_url ?? "#",
-        }));
+        // ✅ room_slug 포함해서 저장
+        this.meetingAlerts = list.map(normalizeMeetingAlert);
 
         this.unread = this.meetingAlerts.length > 0;
       } catch (e) {
@@ -267,17 +295,14 @@ export const useKluvChatStore = defineStore("kluvChat", {
 
       socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        const meetingId = data.meeting_id;
+        const meetingId = data.meeting_id ?? data.meetingId ?? null;
 
-        if (meetingId != null && this.shownMeetingIds.has(meetingId)) return;
-        if (meetingId != null) this.shownMeetingIds.add(meetingId);
+        // ✅ 중복 방지
+        if (meetingId != null && hasId(this.shownMeetingIds, meetingId)) return;
+        if (meetingId != null) this.shownMeetingIds = addId(this.shownMeetingIds, meetingId);
 
-        this.meetingAlerts.unshift({
-          meeting_id: data.meeting_id,
-          title: data.title,
-          started_at: data.started_at,
-          join_url: data.join_url ?? "#",
-        });
+        const alert = normalizeMeetingAlert(data);
+        this.meetingAlerts.unshift(alert);
 
         this.unread = true;
 

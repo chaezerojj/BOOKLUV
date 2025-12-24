@@ -1,19 +1,13 @@
+// src/stores/kluvTalk.js
 import { defineStore } from "pinia";
 import { http } from "@/api/http";
 
 export const useKluvTalkStore = defineStore("meeting", {
   state: () => ({
-    // detail
     loading: false,
     error: null,
     meeting: null,
 
-    // list
-    listLoading: false,
-    listError: null,
-    popularMeetings: [],
-
-    // quiz
     quizLoading: false,
     quizError: null,
     quiz: null,
@@ -25,7 +19,7 @@ export const useKluvTalkStore = defineStore("meeting", {
       this.loading = true;
       this.error = null;
       try {
-        // ✅ 기존 /api/v1/room/:id (없음) → /api/v1/books/meetings/:id/
+        // 모임 상세 API 경로를 "meetings/<id>" 쪽으로 맞춤
         const res = await http.get(`/api/v1/books/meetings/${meetingId}/`);
         this.meeting = res.data;
       } catch (err) {
@@ -36,29 +30,12 @@ export const useKluvTalkStore = defineStore("meeting", {
       }
     },
 
-    async fetchPopularMeetings(limit = 10) {
-      this.listLoading = true;
-      this.listError = null;
-      try {
-        const res = await http.get(`/api/v1/books/meetings/`, {
-          params: { sort: "views", limit },
-          headers: { Accept: "application/json" },
-        });
-        this.popularMeetings = Array.isArray(res.data) ? res.data : [];
-      } catch (err) {
-        this.listError = err;
-        this.popularMeetings = [];
-      } finally {
-        this.listLoading = false;
-      }
-    },
-
     async fetchQuiz(meetingId) {
       this.quizLoading = true;
       this.quizError = null;
       this.quizResult = null;
       try {
-        // ✅ 기존 /api/v1/quiz/:id → /api/v1/books/meetings/:id/quiz/
+        // 퀴즈도 백엔드 실제 경로에 맞춰야 함
         const res = await http.get(`/api/v1/books/meetings/${meetingId}/quiz/`);
         this.quiz = res.data;
       } catch (err) {
