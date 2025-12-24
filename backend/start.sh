@@ -7,9 +7,9 @@ echo "======================"
 echo "Current working directory: $(pwd)"
 echo "======================"
 
-# 1. DB 마이그레이션
+# start.sh 수정 (예시)
 echo "Running Django migrations..."
-python manage.py migrate --noinput || { echo "Migration failed"; exit 1; }
+python manage.py migrate --noinput --fake-initial || { echo "Migration failed but continuing..."; }
 
 # 2. 정적 파일 수집
 echo "Collecting static files..."
