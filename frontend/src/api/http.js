@@ -1,5 +1,7 @@
 import axios from "axios";
 
+let csrfToken = null;
+
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -9,10 +11,17 @@ function getCookie(name) {
 
 
 export const http = axios.create({
-  // use Vite dev proxy by default so requests are same-origin during development
   baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
   withCredentials: true,
 });
+
+//  CSRF 토큰을 백엔드에서 받아서 메모리에 저장
+export async function ensureCsrfToken() {
+  if (csrfToken) return csrfToken;
+  const res = await http.get("/api/v1/auth/csrf/");
+  csrfToken = res.data?.csrfToken;
+  return csrfToken;
+}
 
 http.interceptors.request.use((config) => {
   const method = (config.method || "get").toLowerCase();
@@ -28,4 +37,4 @@ http.interceptors.request.use((config) => {
   return config;
 });
 
-axios.defaults.withCredentials = true
+// axios.defaults.withCredentials = true

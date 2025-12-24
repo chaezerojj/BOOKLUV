@@ -16,4 +16,6 @@ urlpatterns = [
     path("mypage/", views.mypage, name="mypage"),
     path("mypage/edit/", views.mypage_edit, name="mypage_edit"),
     path("myroom/", views.myroom, name="myroom"),
+    
+    path("csrf/", views.csrf, name="csrf"),
 ]

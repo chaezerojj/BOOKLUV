@@ -13,6 +13,11 @@ from rest_framework.response import Response
 
 from klub_talk.models import Participate
 
+from django.middleware.csrf import get_token
+from django.views.decorators.csrf import ensure_csrf_cookie
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+
 User = get_user_model()
 
 KAKAO_REST_API_KEY = settings.KAKAO_REST_API_KEY
@@ -40,7 +45,7 @@ def kakao_callback(request):
     - kakao_id 기준으로 유저 생성/조회
     - 세션 로그인
     - state(프론트에서 next 목적지로 사용) 있으면 그쪽으로 redirect
-      없으면 FRONT_URL + "/"
+        없으면 FRONT_URL + "/"
     """
     code = request.GET.get("code")
     if not code:
@@ -201,3 +206,11 @@ def myroom(request):
         )
 
     return render(request, "auth/myroom.html", {"room_infos": room_infos})
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+@ensure_csrf_cookie
+def csrf(request):
+    # csrftoken 쿠키를 심고, 토큰 값을 body로도 내려줌
+    return Response({"csrfToken": get_token(request)})
