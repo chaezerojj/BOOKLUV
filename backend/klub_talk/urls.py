@@ -22,4 +22,6 @@ urlpatterns = [
     path("meetings/render/<int:pk>/", views.room_detail, name="meeting-test-detail"),
     path('<int:pk>/meeting/', views.create_meeting, name='create-meeting'),
     path('meetings/<int:meeting_id>/cancel/', views.cancel_participation, name='cancel-participation'),
+    path('meetings/edit/<int:pk>/', views.edit_meeting, name='edit-meeting'),
+    path('meetings/delete/<int:pk>/', views.delete_meeting, name='delete-meeting'),
 ]

@@ -157,12 +157,14 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://glycogenetic-stilted-sunshine.ngrok-free.dev",  # ngrok 도메인 추가
+    "https://dayle-preadherent-longly.ngrok-free.dev",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://glycogenetic-stilted-sunshine.ngrok-free.dev",  # ngrok 도메인 추가
+    "https://dayle-preadherent-longly.ngrok-free.dev",
 ]
 
 

@@ -1,0 +1,15 @@
+<!-- room_detail.html에서 수정 및 삭제 버튼 추가 -->
+
+{% if user == leader %}
+  <p style="color: gray;">개설자는 참여할 수 없습니다.</p>
+  <!-- 개설자에게 모임 수정 및 삭제 버튼을 표시 -->
+  <a href="{% url 'talk:edit-meeting' meeting.id %}" class="btn btn-warning">모임 수정</a>
+  <a href="{% url 'talk:delete-meeting' meeting.id %}" class="btn btn-danger" onclick="return confirm('정말로 이 모임을 삭제하시겠습니까?')">모임 삭제</a>
+{% elif participated %}
+  <p style="color: green;">이미 참여 완료했습니다.</p>
+{% elif not can_participate %}
+  <p style="color: red;">참여 기회를 모두 소진했습니다.</p>
+{% else %}
+  <!-- 참여하기 버튼을 클릭하면 quiz-detail 페이지로 이동 -->
+  <a href="{% url 'talk:quiz-detail' meeting.id %}" class="btn btn-primary">참여하기</a>
+{% endif %}

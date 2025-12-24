@@ -59,76 +59,76 @@ def room_detail(request, room_name):
     meeting = getattr(room, "meeting", None)
     user = request.user
 
-    # 🔥 접근 권한 체크
+    # 접근 권한 체크
     if meeting:
         is_participant = meeting.participations.filter(user_id=user, result=True).exists()
         is_leader = meeting.leader_id == user
         if not (is_participant or is_leader):
             return HttpResponseForbidden("채팅방에 접근할 권한이 없습니다.")
     else:
-        # 미팅이 없는 Room은 기본적으로 접근 불가 처리
         return HttpResponseForbidden("채팅방에 접근할 권한이 없습니다.")
 
     nickname = user.nickname
     can_chat = False
-    leader = None
-    participants = []
-    total_members = 0
-    joined_members = 0
     now = timezone.localtime()
 
+    leader = meeting.leader_id if meeting else None
+
+    # 참여자 목록
+    participants_qs = meeting.participations.filter(result=True).select_related("user_id") if meeting else []
+    
+    # 참여자 데이터를 JS에서 id 기준으로 사용
+    participants_list = []
+    for p in participants_qs:
+        participants_list.append({
+            "id": p.user_id.id,
+            "nickname": p.user_id.nickname,
+            "online": False  # 초기값, WebSocket에서 업데이트
+        })
+
+    # 리더도 participants_list에 포함
+    if leader:
+        # 중복 방지
+        if not any(p["id"] == leader.id for p in participants_list):
+            participants_list.insert(0, {
+                "id": leader.id,
+                "nickname": leader.nickname,
+                "online": False
+            })
+
+    total_members = len(participants_list)
+    joined_members = len(participants_qs)  # 리더 제외
+
+    # 채팅 가능 여부
     if meeting:
         start = timezone.localtime(meeting.started_at)
         end = timezone.localtime(meeting.finished_at)
-
         if start <= now <= end:
             can_chat = True
 
-        leader = meeting.leader_id
-
-        participants = (
-            meeting.participations
-            .filter(result=True)
-            .select_related("user_id")
-        )
-
-        joined_members = participants.count()
-        total_members = joined_members + 1  # 리더 포함
-
     # Redis 메시지 로드
-    r = redis.Redis(
-        host=REDIS_HOST,
-        port=REDIS_PORT,
-        db=REDIS_DB,
-        decode_responses=True,
-    )
-
+    r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
     messages_raw = r.lrange(f"chat_{room.slug}", 0, -1)
     messages = []
-    
     for m in messages_raw:
         msg = json.loads(m)
+        msg["user_id"] = msg.get("user_id")  # 저장 시 user_id를 포함해야 함
         if "timestamp" in msg:
             msg["timestamp"] = timezone.localtime(
                 timezone.datetime.fromisoformat(msg["timestamp"])
             ).strftime("%Y-%m-%d %H:%M:%S")
         messages.append(msg)
 
-    return render(
-        request,
-        "chat/room_detail.html",
-        {
-            "room": room,
-            "nickname": nickname,
-            "messages": messages,
-            "can_chat": can_chat,
-            "leader": leader,
-            "participants": participants,
-            "total_members": total_members,
-            "joined_members": joined_members,
-        }
-    )
-
+    return render(request, "chat/room_detail.html", {
+        "room": room,
+        "nickname": nickname,
+        "messages": messages,
+        "can_chat": can_chat,
+        "leader": leader,
+        "participants": participants_list,
+        "total_members": total_members,
+        "joined_members": joined_members,
+    })
 
 # =====================
 # 오늘의 미팅 (알림/목록용)

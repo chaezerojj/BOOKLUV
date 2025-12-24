@@ -85,6 +85,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 "message": message,
                 "username": self.user.nickname,
                 "timestamp": timezone.localtime().isoformat(),
+                "user_id": self.user.id
             }
         )
 
@@ -94,6 +95,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "message": event["message"],
             "username": event["username"],
             "timestamp": event["timestamp"],
+            "user_id": event["user_id"],
         }))
 
     async def system_message(self, event):
@@ -131,24 +133,35 @@ class ChatConsumer(AsyncWebsocketConsumer):
         key = f"chat_room_users_{self.room.slug}"
         await self.redis.srem(key, self.user.id)
 
+    # DB와 Redis 상태를 동기화하여 온라인 상태를 갱신
     async def get_participants_status(self):
         meeting = await self.get_meeting()
         if not meeting:
             return []
 
         users = await self.get_confirmed_users(meeting)
-
+    
+    # Redis에서 온라인 상태를 가져옴
         key = f"chat_room_users_{self.room.slug}"
         online_ids = set(map(int, await self.redis.smembers(key)))
 
+    # 유저 정보와 온라인 상태 결합
         return [
             {
                 "id": user.id,
                 "username": user.nickname,
-                "online": user.id in online_ids,
+                "online": user.id in online_ids,  # Redis에서 온라인 여부 확인
             }
             for user in users
         ]
+
+    # 참가자 상태 전송
+    async def participants_status(self, event):
+        print("🔥 Participants Status:", event["participants"])  # 디버그 로그
+        await self.send(text_data=json.dumps({
+            "type": "participants",
+            "participants": event["participants"],  # 최신 참여자 목록
+        }))
 
     # =====================
     # DB helpers
@@ -185,15 +198,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         users.extend(p.user_id for p in participants)
 
         return list({u.id: u for u in users}.values())
-
-
 # =========================
 # 🔔 미팅 알림 Consumer
 # =========================
 class MeetingAlertConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.group_name = "meeting_alerts"
-
+        
         await self.channel_layer.group_add(
             self.group_name,
             self.channel_name
@@ -207,6 +218,7 @@ class MeetingAlertConsumer(AsyncWebsocketConsumer):
         )
 
     async def send_meeting_alert(self, event):
+        # Debugging log to check if the method is being called
         print("🔥 send_meeting_alert called:", event)  # <- 확인용
         await self.send(text_data=json.dumps({
             "title": event["title"],

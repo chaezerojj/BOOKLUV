@@ -1,12 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Meeting, Book, Participate, Quiz
-from klub_user.models import User
 from django.db.models import Q, Count
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .forms import MeetingForm, QuizForm
 from .serializers import BookSerializer, MeetingDetailSerializer, MeetingMiniSerializer, QuizSerializer
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
 
 @api_view(["GET"])
 def index(request):
@@ -94,6 +95,9 @@ def room_detail(request, pk):
             if remaining_chances == 0:
                 can_participate = False
 
+    # 리더인 경우 수정/삭제 버튼을 템플릿에 전달
+    is_leader = request.user == leader
+
     return render(request, "talk/room_detail.html", {
         "meeting": meeting,
         "leader": leader,
@@ -101,9 +105,41 @@ def room_detail(request, pk):
         "participated": participated,
         "can_participate": can_participate,
         "remaining_chances": remaining_chances,
+        "is_leader": is_leader,  # 리더인지 여부를 템플릿에 전달
     })
+    
+    
+@login_required
+def edit_meeting(request, pk):
+    meeting = get_object_or_404(Meeting, pk=pk)
+
+    # 권한 검사 (개설자만 수정 가능)
+    if request.user != meeting.leader_id:
+        return redirect('talk:room_detail', pk=meeting.pk)
+
+    if request.method == 'POST':
+        form = MeetingForm(request.POST, instance=meeting)
+        if form.is_valid():
+            form.save()
+            return redirect('talk:meeting-test-detail', pk=meeting.pk)
+    else:
+        form = MeetingForm(instance=meeting)
+
+    return render(request, 'talk/edit_meeting.html', {'form': form, 'meeting': meeting})
+
+@login_required
+def delete_meeting(request, pk):
+    meeting = get_object_or_404(Meeting, pk=pk)
+
+    # 권한 검사 (개설자만 삭제 가능)
+    if request.user == meeting.leader_id:
+        meeting.delete()
+
+    return redirect('talk:meeting-search')  # 삭제 후 목록 페이지로 리다이렉트
+
 
 @api_view(["GET", "POST"])
+@login_required
 def quiz_view(request, meeting_id):
     quiz = get_object_or_404(Quiz, meeting_id=meeting_id)
     meeting = quiz.meeting_id  # Meeting 객체
@@ -185,6 +221,7 @@ def meeting_detail_api(request, pk):
 
 
 @api_view(['GET', 'POST'])
+@login_required
 def quiz_api(request, meeting_id):
     quiz = Quiz.objects.get(meeting_id=meeting_id)
 
@@ -231,7 +268,7 @@ def meeting_search(request):
         "is_search": True,
     })
     
-
+@login_required
 def create_meeting(request, pk):
     book = Book.objects.get(id=pk)
     
@@ -263,7 +300,7 @@ def create_meeting(request, pk):
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 
-# @login_required
+@login_required
 # @require_POST
 def cancel_participation(request, meeting_id):
     meeting = get_object_or_404(Meeting, pk=meeting_id)
