@@ -1,10 +1,21 @@
 #!/bin/bash
+
+# PYTHONPATH 설정
 export PYTHONPATH=/app:$PYTHONPATH
 
-# 빌드할 때나 실행할 때 정적 파일만 준비합니다.
-echo "Collecting static files..."
-python manage.py collectstatic --noinput
+echo "======================"
+echo "Current working directory: $(pwd)"
+echo "======================"
 
-# 서버 실행
-echo "Starting Daphne server..."
-exec daphne -b 0.0.0.0 -p ${PORT:-8080} backend.asgi:application
+# 1. DB 마이그레이션
+echo "Running Django migrations..."
+python manage.py migrate --noinput || { echo "Migration failed"; exit 1; }
+
+# 2. 정적 파일 수집
+echo "Collecting static files..."
+python manage.py collectstatic --noinput || { echo "Collectstatic failed"; exit 1; }
+
+# 3. 서버 실행 (Gunicorn + Uvicorn worker 조합 또는 Daphne)
+# 여기서는 웹소켓 처리가 가능한 Daphne를 사용합니다.
+echo "Starting Daphne server for WebSockets..."
+exec daphne -b 0.0.0.0 -p $PORT backend.asgi:application
