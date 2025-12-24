@@ -170,6 +170,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:5173",
     "https://*.railway.app"
     "https://bookluv.netlify.app",
+    "https://*.netlify.app",
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
@@ -201,3 +202,8 @@ CSRF_COOKIE_SECURE = True
 # GMS API 등 외부 서비스 설정
 GMS_API_KEY = os.getenv("GMS_KEY")
 GMS_OPENAI_URL = os.getenv("GMS_OPENAI_URL", "https://gms.ssafy.io/gmsapi/api.openai.com/v1/chat/completions")
+
+# (선택) 프론트 JS가 csrf 쿠키 읽게 하려면 (기본 False라 대개 OK)
+CSRF_COOKIE_HTTPONLY = False
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
