@@ -14,23 +14,11 @@
           </div>
         </div>
 
-        <div class="header-actions">
-          <button
-            class="btn"
-            type="button"
-            :disabled="!canEditBoard"
-            @click="onClickBoardEdit"
-            :title="boardActionHint"
-          >
+        <div class="header-actions" v-if="canEditBoard">
+          <button class="btn" type="button" @click="onClickBoardEdit">
             수정
           </button>
-          <button
-            class="btn danger"
-            type="button"
-            :disabled="!canEditBoard"
-            @click="onClickBoardDelete"
-            :title="boardActionHint"
-          >
+          <button class="btn danger" type="button" @click="onClickBoardDelete">
             삭제
           </button>
         </div>
@@ -40,14 +28,8 @@
 
       <hr class="line" />
 
-      <BoardComments
-        :boardId="boardId"
-        :comments="store.comments"
-        :onCreateComment="store.createComment"
-        :onUpdateComment="store.updateComment"
-        :onDeleteComment="store.deleteComment"
-        @goList="goList"
-      />
+      <BoardComments :boardId="boardId" :comments="store.comments" :onCreateComment="store.createComment"
+        :onUpdateComment="store.updateComment" :onDeleteComment="store.deleteComment" @goList="goList" />
     </div>
   </div>
 </template>
@@ -121,20 +103,21 @@ const onClickBoardDelete = async () => {
 
 .card {
   background: #fff;
-  border: 1px solid #eee;
-  border-radius: 16px;
-  padding: 18px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.04);
 }
 
 .state {
   background: #fff;
   border: 1px solid #eee;
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 16px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
   font-size: 13px;
 }
+
 .state.error {
   background: #fff6f6;
   border-color: #ffe1e1;
@@ -149,14 +132,14 @@ const onClickBoardDelete = async () => {
 
 .title {
   margin: 0;
-  font-size: 22px;
+  font-size: 26px;
   letter-spacing: -0.2px;
 }
 
 .meta {
   display: flex;
-  gap: 8px;
-  font-size: 12px;
+  gap: 10px;
+  font-size: 13px;
   opacity: 0.75;
   margin-top: 8px;
   flex-wrap: wrap;
@@ -167,6 +150,22 @@ const onClickBoardDelete = async () => {
   gap: 8px;
 }
 
+.content {
+  margin: 18px 0 8px;
+  white-space: pre-wrap;
+  padding: 16px;
+  line-height: 1.8;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #f1f1f1;
+}
+
+.line {
+  margin-top: 2rem;
+  border: 0;
+  border-top: 1px solid #eee;
+}
+
 .btn {
   border: 1px solid #e3e3e3;
   background: #fff;
@@ -175,13 +174,16 @@ const onClickBoardDelete = async () => {
   cursor: pointer;
   font-size: 13px;
 }
+
 .btn:hover {
   background: #fafafa;
 }
+
 .btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
+
 .btn.danger:hover {
   background: #fff6f6;
 }
