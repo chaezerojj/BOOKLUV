@@ -1,10 +1,12 @@
 <template>
   <div class="app">
     <TheHeader />
-    
+
     <main class="app-main">
       <RouterView />
     </main>
+
+    <Footer />
   </div>
 </template>
 
@@ -14,6 +16,7 @@ import { RouterView } from 'vue-router'
 import { useAuthStore } from "@/stores/auth";
 
 import TheHeader from '@/components/navigation/TheHeader.vue'
+import Footer from '@/components/navigation/Footer.vue' 
 
 // const authStore = useAuthStore();
 
@@ -28,7 +31,7 @@ import TheHeader from '@/components/navigation/TheHeader.vue'
   margin: 0;
   padding: 0;
   font-family: Pretendard;
-  color:  #1f2328;
+  color: #1f2328;
 }
 
 :global(html, body) {
@@ -47,7 +50,8 @@ import TheHeader from '@/components/navigation/TheHeader.vue'
 .app-main {
   width: 1300px;
   margin: 0 auto;
-  min-height: calc(100vh - var(--header-height, 72px));
+  min-height: calc(100vh - var(--header-height, 72px) - var(--footer-height, 96px));
+  padding-bottom: 24px;
+  /* ensure content doesn't touch footer */
 }
-
 </style>
