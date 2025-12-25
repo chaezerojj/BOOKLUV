@@ -119,6 +119,15 @@ def meeting_search_api(request):
     return Response(data)
 
 def serialize_meeting(m, joined_count=None):
+    # Include book cover info so frontend can display covers (book_cover_url, and a minimal book object)
+    book_obj = None
+    if getattr(m, "book_id", None):
+        book_obj = {
+            "id": getattr(m.book_id, "id", None),
+            "title": getattr(m.book_id, "title", None),
+            "cover_url": getattr(m.book_id, "cover_url", None),
+        }
+
     return {
         "id": m.id,
         "title": m.title,
@@ -134,6 +143,8 @@ def serialize_meeting(m, joined_count=None):
 
         "book_id": getattr(m.book_id, "id", None) if getattr(m, "book_id", None) else None,
         "book_title": getattr(m.book_id, "title", None) if getattr(m, "book_id", None) else None,
+        "book_cover_url": getattr(m.book_id, "cover_url", None) if getattr(m, "book_id", None) else None,
+        "book": book_obj,
 
         "leader_id": getattr(m.leader_id, "id", None) if getattr(m, "leader_id", None) else None,
         "leader_name": getattr(m.leader_id, "nickname", None) if getattr(m, "leader_id", None) else None,
