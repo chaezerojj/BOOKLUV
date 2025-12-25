@@ -20,25 +20,45 @@ GENRE_MAP = {
 def quiz_view(request):
     return render(request, "recommend/quiz.html")
 
+# 수정된 GENRE_MAP (DB의 Category 테이블 name 컬럼과 정확히 일치해야 함)
+GENRE_MAP = {
+    "novel": "소설",
+    "essay": "에세이",
+    "self_help": "자기계발",
+    "humanities": "인문/사회", # 예시: DB에 '인문/사회'로 저장된 경우
+    "science": "과학",
+    "art": "예술",
+    "economy": "경제경영"
+}
+
 @api_view(["GET", "POST"])
 def result_view(request):
     if request.method == "GET":
         return render(request, "recommend/quiz.html")
 
     data = request.data or request.POST
-    selected_genre_key = data.get("q4") # HTML의 value값 (예: 'novel')
+    
+    # 1. 사용자 응답 수집
+    quiz_answers = {
+        "목적": data.get("q1"),
+        "신간_고전": data.get("q2"),
+        "선호_장르": data.get("q4"), # 'novel', 'essay' 등이 들어옴
+        "분량": data.get("q7"),
+        "독서스타일": data.get("q8"),
+        "필요한책": data.get("q10"),
+    }
+
+    # 2. 장르 매핑 확인
+    selected_genre_key = quiz_answers["선호_장르"]
     category_name = GENRE_MAP.get(selected_genre_key)
 
     if not category_name:
-        return render(request, "recommend/result.html", {
-            "results": [],
-            "ai_reason": "선택하신 장르를 찾을 수 없습니다.",
-        })
+        return Response({"error": "올바르지 않은 장르 선택입니다."}, status=400)
 
-    # DB의 category 테이블에서 실제 이름을 검색
+    # 3. DB 필터링
+    # Category 모델의 name 필드와 category_name을 매칭
     categories = Category.objects.filter(name=category_name)
     all_candidate_books = Book.objects.filter(category_id__in=categories)
-
     if not all_candidate_books.exists():
         return render(request, "recommend/result.html", {
             "results": [],
@@ -108,4 +128,5 @@ def result_view(request):
         ],
     }
     
-    return Response(payload, status=status.HTTP_200_OK)
+    return Response(payload)
+    # return Response(payload, status=status.HTTP_200_OK)
