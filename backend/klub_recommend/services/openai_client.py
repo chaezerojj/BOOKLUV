@@ -8,9 +8,9 @@ GMS_API_URL = "https://gms.ssafy.io/gmsapi/api.openai.com/v1/chat/completions"
 def get_ai_recommendation(quiz_answers, books):
     gms_key = os.getenv("GMS_KEY")
     if not gms_key:
-        # 배포에서 키 없으면 여기서 명확히 터뜨려서 원인 바로 보이게
         raise RuntimeError("GMS_KEY is missing in environment variables")
 
+    # 책 목록을 문자열로 변환
     book_list_text = "\n".join([
         f"- {book.id}. {book.title}: {(book.description or '')[:100]}"
         for book in books
@@ -20,16 +20,21 @@ def get_ai_recommendation(quiz_answers, books):
 사용자의 독서 취향 퀴즈 응답:
 {quiz_answers}
 
-추천 후보 도서 목록(이 목록에서만 선택):
+추천 후보 도서 목록 (이 목록에 있는 도서의 ID만 사용):
 {book_list_text}
 
-반드시 아래 JSON만 출력:
+[지침]
+1. 사용자의 응답을 분석하여 가장 잘 어울리는 도서를 후보 목록에서 **반드시 1권** 선택하세요.
+2. 만약 후보 목록 중 사용자의 취향에 완벽히 부합하는 책이 없다면, 목록에 있는 도서 중 가장 대중적이거나 흥미로운 도서를 **임의로라도 반드시 1권 선택**해야 합니다.
+3. 절대 "추천할 도서가 없다"는 응답을 하지 마세요.
+
+반드시 아래 JSON 형식으로만 응답하세요:
 {{
-  "ai_reason": "성향 분석 요약(1~2문장)",
+  "ai_reason": "사용자의 성향(목적, 스타일 등)을 기반으로 한 전체적인 분석 요약 (1~2문장)",
   "recommendations": [
     {{
-      "book_id": 1,
-      "reason": "추천 이유(2문장 이내)"
+      "book_id": 실제 도서의 ID 숫자,
+      "reason": "해당 도서를 추천하는 구체적인 이유 (2문장 이내)"
     }}
   ]
 }}
