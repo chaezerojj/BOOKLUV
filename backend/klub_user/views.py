@@ -266,16 +266,32 @@ def myroom_api(request):
         .order_by("meeting_id__started_at")
     )
 
+    # helper: make datetime timezone-aware and return localtime-aware datetime
+    def _ensure_aware(dt):
+        if not dt:
+            return None
+        try:
+            if timezone.is_naive(dt):
+                dt = timezone.make_aware(dt, timezone.get_default_timezone())
+            return timezone.localtime(dt)
+        except Exception:
+            return None
+
     # 1) 시작 10분 전~종료 전 구간이면 room 자동 생성(시작/종료 시간이 있을 때만)
     ten_minutes_later = now + timedelta(minutes=10)
     meetings_to_create = []
 
     for p in participations:
         m = p.meeting_id
-        if not m or not m.started_at or not m.finished_at:
+        if not m:
             continue
 
-        should_have_room = (m.started_at <= ten_minutes_later and m.finished_at >= now)
+        m_started = _ensure_aware(m.started_at)
+        m_finished = _ensure_aware(m.finished_at)
+        if not m_started or not m_finished:
+            continue
+
+        should_have_room = (m_started <= ten_minutes_later and m_finished >= now)
         has_room = getattr(m, "room", None) is not None
 
         if should_have_room and not has_room:
@@ -302,19 +318,20 @@ def myroom_api(request):
 
     def calc_status(m):
         # 시간이 없으면 일단 예정 처리
-        if not m.started_at or not m.finished_at:
+        m_started = _ensure_aware(m.started_at)
+        m_finished = _ensure_aware(m.finished_at)
+        if not m_started or not m_finished:
             return "진행예정"
 
-        open_at = m.started_at - timedelta(minutes=10)
+        open_at = m_started - timedelta(minutes=10)
 
         if now < open_at:
             return "진행예정"
-        if open_at <= now < m.started_at:
+        if open_at <= now < m_started:
             return "진행전"
-        if m.started_at <= now <= m.finished_at:
+        if m_started <= now <= m_finished:
             return "진행중"
         return "종료"
-
     def _safe_iso(dt):
         if not dt:
             return None
