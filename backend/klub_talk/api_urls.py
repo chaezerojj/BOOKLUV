@@ -13,4 +13,5 @@ urlpatterns = [
     path("meetings/", api_views.meeting_list_api, name="meeting-list"),
     path("meetings/<int:pk>/", api_views.meeting_detail_api, name="meeting-detail"),
     path("meetings/<int:pk>/quiz/", api_views.meeting_quiz_api, name="meeting-quiz"),
+    path("books/meetings/<int:pk>/quiz/", api_views.meeting_quiz_api),
 ]
