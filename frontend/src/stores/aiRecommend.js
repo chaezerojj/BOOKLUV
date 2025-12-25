@@ -51,18 +51,21 @@ export const useAiRecommendStore = defineStore("aiRecommend", {
       this.error = null;
 
       try {
-        // POST to backend recommendations endpoint which returns server-rendered HTML
-        // Use API path under /api/v1 so it hits the Django view included at api/v1/recommendations/
+        // 1. 헤더에서 Accept를 application/json으로 변경 (406 에러 해결 핵심)
         const res = await http.post(
           "/api/v1/recommendations/result/",
           this.answers,
-          { headers: { Accept: "text/html" }, responseType: "text" }
+          {
+            headers: { Accept: "application/json" },
+            // responseType: "text"는 삭제합니다. 기본값이 JSON입니다.
+          }
         );
 
-        const html = res.data;
-        const parsed = parseRecommendationHtml(html);
-        this.result = parsed;
-        return parsed;
+        // 2. 백엔드에서 보낸 JSON 데이터를 그대로 result에 할당
+        // 백엔드가 { ai_reason: "...", books: [...] } 구조로 보내므로 바로 매핑됩니다.
+        this.result = res.data;
+
+        return res.data;
       } catch (err) {
         this.error = err;
         this.result = null;
