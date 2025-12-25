@@ -109,6 +109,7 @@ backend/
 ```
 
 ## ERD
+https://dbdiagram.io/d/69323b5dd6676488baac0293
 
 ## 기능 상세 설명 및 화면
 ### 1. 메인 페이지
