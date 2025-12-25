@@ -4,6 +4,10 @@
 - 설명 : AI API 기반 도서 추천 및 실시간 모임 서비스
 - 기간 : 2025.12.19 - 2025.12.26
 
+- 목표 서비스 : 카카오 api 기반 로그인+ AI API 기반 도서 추천 기능 + 실시간 채팅+실시간 알림 + 자유게시판 및 댓글알라딘 api 기반의 양질 데이터셋
+실제 구현 정도
+- 추가적인 성과 : Netlify+Railway 기반의 풀스택 배포 / SQLite에서 PostgreSQL로 마이그레이션해서 DB 안정성 높임
+
 ## 서비스 특징
 - Kakao API 기반 소셜 로그인 
 - ChatGPT 4o mini 기반 도서 추천 
@@ -50,6 +54,7 @@
 - swiper 12.0.3
 - @vitejs/plugin-vue 6.0.2
 - vite-plugin-vue-devtools 8.0.5
+- Netlify
 ### Backend
 - django 4.2.27
 - WebSocket 25.5.0
@@ -57,7 +62,10 @@
 - Daphne 4.0.0
 - docker 29.1.3
 - docker compose 2.40.3
-
+- Celery
+- PostgrSQL
+- DBeaver
+- 
 ## 프로젝트 폴더 구조
 ### Frontend - Vue.js
 ```
