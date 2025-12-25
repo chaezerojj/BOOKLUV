@@ -10,11 +10,13 @@ from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 
 GENRE_MAP = {
-    "novel": "소설",
+    "novel": "소설/시/희곡",
     "essay": "에세이",
     "self_help": "자기계발",
-    "humanities": "인문학",
-    "art": "예술",
+    "humanities": ["인문학", "사회과학"],  # 리스트로 묶음
+    "science": "과학",
+    "art": "예술/대중문화",
+    "economy": "경제경영"
 }
 
 @api_view(["GET"])
@@ -39,63 +41,73 @@ def result_view(request):
         return render(request, "recommend/quiz.html")
 
     data = request.data or request.POST
+
+    # 1. DB 카테고리 명칭과 퀴즈 선택값 매핑 (DB 데이터 기준)
+    GENRE_MAP = {
+        "novel": ["소설/시/희곡"],
+        "essay": ["에세이"],
+        "self_help": ["자기계발"],
+        "humanities": ["인문학", "사회과학"],
+        "science": ["과학"],
+        "art": ["예술/대중문화"],
+        "economy": ["경제경영"],
+        "life": ["요리/살림"],
+    }
     
-    # 4번 문항 선택값 가져오기
-    selected_genre_key = data.get("q4") 
-    category_name = GENRE_MAP.get(selected_genre_key)
+    selected_genre_key = data.get("q4")
+    category_list = GENRE_MAP.get(selected_genre_key, [])
 
-    # 1. 카테고리 유효성 검사
-    if not category_name:
-        return Response({
-            "ai_reason": "장르 선택값이 올바르지 않습니다.",
-            "books": []
-        }, status=400)
+    if not category_list:
+        return Response({"ai_reason": "장르 선택값이 올바르지 않습니다.", "books": []}, status=400)
 
-    # 2. DB 조회 (PostgreSQL의 klub_talk_category 참조)
-    categories = Category.objects.filter(name=category_name)
-    print(f"DEBUG: Selected Category Name -> {category_name}")
-    print(f"DEBUG: Found Categories -> {categories}")
+    # 2. AI 서비스용 딕셔너리 생성 (함수 상단에서 정의)
+    quiz_answers = {
+        "목적": data.get("q1"),
+        "신간_고전": data.get("q2"),
+        "선호_장르": "/".join(category_list),
+        "독서스타일": data.get("q8"),
+        "분량": data.get("q7"),
+        "분위기": data.get("q5"),
+        "중요요소": data.get("q6"),
+    }
 
+    # 3. DB 조회 (PostgreSQL)
+    categories = Category.objects.filter(name__in=category_list)
     all_candidate_books = Book.objects.filter(category_id__in=categories)
 
-    # 3. 도서 존재 여부 체크
+    # 도서 데이터가 없을 경우 처리
     if not all_candidate_books.exists():
         return Response({
-            "ai_reason": f"죄송합니다. '{category_name}' 장르에 해당하는 도서 데이터가 없습니다.",
+            "ai_reason": f"죄송합니다. '{quiz_answers['선호_장르']}' 장르에 해당하는 도서 데이터가 없습니다.",
             "books": []
         }, status=200)
 
-    # ✅ 기본 fallback
+    # 4. 추천 로직 실행
     final_book = all_candidate_books.first()
     ai_reason = "사용자님의 성향을 분석한 결과입니다."
     reco_data = []
-    
-    print(final_book)
 
-    # ✅ AI 실패해도 500 안나게
     try:
+        # DB의 도서 중 상위 20권을 AI에게 전달
         ai_response = get_ai_recommendation(quiz_answers, all_candidate_books[:20])
         parsed = json.loads(ai_response)
         ai_reason = parsed.get("ai_reason", ai_reason)
-        reco_data = parsed.get("recommendations", []) or []
+        reco_data = parsed.get("recommendations", [])
 
-        suggested_id = reco_data[0].get("book_id") if reco_data else None
-        if suggested_id:
+        if reco_data:
+            suggested_id = reco_data[0].get("book_id")
             pick = all_candidate_books.filter(id=suggested_id).first()
             if pick:
                 final_book = pick
     except Exception as e:
-        ai_reason = f"AI 추천에 실패하여 기본 추천을 보여드립니다. ({type(e).__name__})"
+        ai_reason = f"AI 추천 중 오류가 발생하여 기본 추천 도서를 보여드립니다. ({type(e).__name__})"
 
-    # 템플릿용 추천 이유
-    if reco_data and final_book and final_book.id == reco_data[0].get("book_id"):
-        final_book.temp_reason = reco_data[0].get("reason")
-    else:
-        final_book.temp_reason = (
-            f"선호 장르({category_name}) 기반 기본 추천입니다."
-        )
+    # 5. 추천 사유 설정
+    temp_reason = f"{quiz_answers['선호_장르']} 분야에서 인기 있는 도서입니다."
+    if reco_data and final_book.id == reco_data[0].get("book_id"):
+        temp_reason = reco_data[0].get("reason")
 
-    # ✅ DB 저장은 로그인일 때만(또는 게스트 유저를 확실히 보장)
+    # 6. DB 저장 (인증된 사용자일 경우)
     if request.user.is_authenticated:
         try:
             pref = ReadingPreference.objects.create(
@@ -103,32 +115,34 @@ def result_view(request):
                 purpose=quiz_answers["목적"],
                 new_vs_classic=quiz_answers["신간_고전"],
                 category=quiz_answers["선호_장르"],
-                mood=data.get("q5"),
+                mood=quiz_answers["분위기"],
                 reading_style=quiz_answers["독서스타일"],
                 length_pref=quiz_answers["분량"],
-                difficulty_pref=data.get("q6"),
+                difficulty_pref=quiz_answers["중요요소"],
             )
             result_obj = RecommendationResult.objects.create(
                 user=request.user, preference=pref, ai_reason=ai_reason
             )
             result_obj.books.set([final_book])
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"DB 저장 실패: {e}")
 
-    payload = {
-        "ai_reason": ai_reason,
-        "books": [
+    # 7. 응답 데이터 구성
+    # views.py의 마지막 반환 부분 수정
+    context = {
+        "ai_reason": ai_reason,  # 템플릿의 {{ ai_reason }}와 매칭
+        "results": [             # 템플릿의 {% for book in results %}와 매칭
             {
                 "id": final_book.id,
                 "title": final_book.title,
                 "publisher": final_book.publisher,
                 "cover_url": final_book.cover_url,
-                "author_name": getattr(final_book.author_id, "name", None),
-                "category_name": getattr(final_book.category_id, "name", None),
-                "reason": getattr(final_book, "temp_reason", None),
+                "author_id": {"name": getattr(final_book.author_id, "name", "저자 미상")}, # .author_id.name 구조 대응
+                "category_id": {"name": getattr(final_book.category_id, "name", "장르 미상")}, # .category_id.name 구조 대응
+                "temp_reason": temp_reason, # 템플릿의 {{ book.temp_reason }}와 매칭
             }
         ],
     }
-    
-    return Response(payload)
+
+    return render(request, "recommend/result.html", context)
     # return Response(payload, status=status.HTTP_200_OK)
