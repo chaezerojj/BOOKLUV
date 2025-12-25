@@ -4,19 +4,16 @@ import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import redirect, render
 from django.utils import timezone
-from django.utils.text import slugify
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from klub_chat.models import Room
 from klub_talk.models import Participate
 
 User = get_user_model()
@@ -256,113 +253,46 @@ def csrf(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def myroom_api(request):
-    try:
-        user = request.user
-        now = timezone.localtime()
+    """
+    ✅ 템플릿 myroom.html과 동일한 데이터만 JSON으로 반환
+    - 참여 중인 meeting의 room이 있는 것만
+    - room_name, started_at, finished_at, is_active
+    """
+    now = timezone.localtime()
 
-        participations = (
-            Participate.objects
-            .filter(user_id=user)
-            .select_related("meeting_id", "meeting_id__room")
-            .order_by("meeting_id__started_at")
-        )
+    participations = (
+        Participate.objects
+        .filter(user_id=request.user)
+        .select_related("meeting_id", "meeting_id__room")
+        .order_by("meeting_id__started_at")
+    )
 
-        def _ensure_aware(dt):
-            if not dt:
-                return None
-            if timezone.is_naive(dt):
-                dt = timezone.make_aware(dt, timezone.get_default_timezone())
-            return timezone.localtime(dt)
+    results = []
+    for p in participations:
+        meeting = p.meeting_id
+        if not meeting:
+            continue
 
-        ten_minutes_later = now + timedelta(minutes=10)
-        meetings_to_create = []
+        room = getattr(meeting, "room", None)
+        if not room:
+            continue
 
-        for p in participations:
-            m = p.meeting_id
-            if not m:
-                continue
+        started = meeting.started_at
+        finished = meeting.finished_at
 
-            m_started = _ensure_aware(m.started_at)
-            m_finished = _ensure_aware(m.finished_at)
-            if not m_started or not m_finished:
-                continue
+        started_local = timezone.localtime(started) if started else None
+        finished_local = timezone.localtime(finished) if finished else None
 
-            should_have_room = (m_started <= ten_minutes_later and m_finished >= now)
-            has_room = getattr(m, "room", None) is not None
+        is_active = False
+        if started_local and finished_local:
+            is_active = started_local <= now <= finished_local
 
-            if should_have_room and not has_room:
-                meetings_to_create.append(m)
+        results.append({
+            "room_name": getattr(room, "name", None),
+            "room_slug": getattr(room, "slug", None),  # 있으면 프론트에서 채팅방 링크 가능
+            "started_at": started_local.isoformat() if started_local else None,
+            "finished_at": finished_local.isoformat() if finished_local else None,
+            "is_active": is_active,
+        })
 
-        if meetings_to_create:
-            with transaction.atomic():
-                for m in meetings_to_create:
-                    safe_title = m.title or "meeting"
-                    new_slug = f"{slugify(safe_title)}-{m.id}"
-                    Room.objects.get_or_create(
-                        meeting=m,
-                        defaults={"name": safe_title, "slug": new_slug},
-                    )
-
-        participations = (
-            Participate.objects
-            .filter(user_id=user)
-            .select_related("meeting_id", "meeting_id__room")
-            .order_by("meeting_id__started_at")
-        )
-
-        def calc_status(m):
-            m_started = _ensure_aware(m.started_at)
-            m_finished = _ensure_aware(m.finished_at)
-            if not m_started or not m_finished:
-                return "진행예정"
-
-            open_at = m_started - timedelta(minutes=10)
-            if now < open_at:
-                return "진행예정"
-            if open_at <= now < m_started:
-                return "진행전"
-            if m_started <= now <= m_finished:
-                return "진행중"
-            return "종료"
-
-        def _safe_iso(dt):
-            if not dt:
-                return None
-            try:
-                return timezone.localtime(dt).isoformat()
-            except Exception:
-                aware = timezone.make_aware(dt, timezone.get_default_timezone())
-                return timezone.localtime(aware).isoformat()
-
-        results = []
-        for p in participations:
-            m = p.meeting_id
-            if not m:
-                continue
-
-            status_label = calc_status(m)
-            if status_label == "종료":
-                continue
-
-            room = getattr(m, "room", None)
-            room_slug = getattr(room, "slug", None) if room else None
-
-            results.append({
-                "meeting_id": m.id,
-                "title": m.title,
-                "started_at": _safe_iso(m.started_at),
-                "finished_at": _safe_iso(m.finished_at),
-                "status": status_label,
-                "room_slug": room_slug,
-                "can_enter": (room is not None and status_label in ["진행전", "진행중"]),
-                "can_chat": (status_label == "진행중"),
-            })
-
-        return Response({"results": results}, status=status.HTTP_200_OK)
-
-    except Exception as e:
-        # ✅ 이걸로 브라우저/Network에서 바로 원인 확인 가능
-        return Response(
-            {"detail": "myroom_api failed", "error": repr(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
+    return Response({"results": results}, status=status.HTTP_200_OK)

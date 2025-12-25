@@ -121,14 +121,14 @@ else:
     # Redis 없으면 개발용으로라도 서버가 죽지 않게
     CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 #-------------------------------------------
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [REDIS_URL], # 여기서 비밀번호가 포함된 URL이 들어가야 합니다.
-        },
-    },
-}
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [REDIS_URL], # 여기서 비밀번호가 포함된 URL이 들어가야 합니다.
+#         },
+#     },
+# }
 
 # Celery 설정
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', REDIS_URL)
