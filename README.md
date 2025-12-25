@@ -63,10 +63,6 @@
 - Daphne 4.0.0
 - docker 29.1.3
 - docker compose 2.40.3
-- Celery
-- PostgrSQL
-- DBeaver
-- 
 ## 프로젝트 폴더 구조
 ### Frontend - Vue.js
 ```
