@@ -32,7 +32,7 @@ const router = createRouter({
     },
 
     // -----------------------------
-    // Auth 
+    // Auth
     // -----------------------------
     {
       path: "/login",
@@ -93,6 +93,12 @@ const router = createRouter({
       path: "/kluvtalk/create",
       name: "kluvtalk-create",
       component: () => import("@/views/KluvTalk/KluvTalkCreateView.vue"),
+    },
+    {
+      path: "/kluvtalk/:id/edit",
+      name: "kluvtalk-update",
+      component: () => import("@/views/KluvTalk/KluvTalkCreateView.vue"),
+      props: true,
     },
 
     {

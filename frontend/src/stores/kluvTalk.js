@@ -88,11 +88,7 @@ const normalizeMeeting = (m) => {
     m?.category
   );
 
-  const rawBookTitle = pickFirst(
-    m?.book_title,
-    m?.bookTitle,
-    m?.book?.title
-  );
+  const rawBookTitle = pickFirst(m?.book_title, m?.bookTitle, m?.book?.title);
 
   return {
     ...m,
@@ -156,6 +152,12 @@ export const useKluvTalkStore = defineStore("meeting", {
       try {
         const res = await http.get(`/api/v1/books/meetings/${meetingId}/`);
         this.meeting = normalizeMeeting(res.data);
+        // attach quiz info if present
+        if (res.data && res.data.quiz) {
+          this.quiz = res.data.quiz;
+        } else {
+          this.quiz = null;
+        }
       } catch (err) {
         this.error = err;
         this.meeting = null;
@@ -182,14 +184,20 @@ export const useKluvTalkStore = defineStore("meeting", {
       this.quizLoading = true;
       this.quizError = null;
       try {
-        const res = await http.post(`/api/v1/books/meetings/${meetingId}/quiz/`, { answer });
+        const res = await http.post(
+          `/api/v1/books/meetings/${meetingId}/quiz/`,
+          { answer }
+        );
         this.quizResult = res.data;
 
         // POST 응답의 attempts 상태를 "GET 상태(quiz)"에도 동기화
         if (this.quiz && typeof this.quiz === "object") {
-          if (typeof res.data.attempts_used === "number") this.quiz.attempts_used = res.data.attempts_used;
-          if (typeof res.data.attempts_left === "number") this.quiz.attempts_left = res.data.attempts_left;
-          if (typeof res.data.locked === "boolean") this.quiz.locked = res.data.locked;
+          if (typeof res.data.attempts_used === "number")
+            this.quiz.attempts_used = res.data.attempts_used;
+          if (typeof res.data.attempts_left === "number")
+            this.quiz.attempts_left = res.data.attempts_left;
+          if (typeof res.data.locked === "boolean")
+            this.quiz.locked = res.data.locked;
 
           // 정답 맞추면 joined 처리(백에서 joined 내려주면 그걸 써도 됨)
           if (res.data.result === true) this.quiz.joined = true;
@@ -242,6 +250,35 @@ export const useKluvTalkStore = defineStore("meeting", {
         this.popularMeetings = [];
       } finally {
         this.popularLoading = false;
+      }
+    },
+
+    // Create a meeting (wrapper around existing POST)
+    async createMeeting(payload) {
+      try {
+        const res = await http.post(`/api/v1/books/meetings/`, payload);
+        return res.data;
+      } catch (err) {
+        throw err;
+      }
+    },
+
+    // Update meeting (PATCH) - leader only
+    async updateMeeting(id, payload) {
+      try {
+        const res = await http.patch(`/api/v1/books/meetings/${id}/`, payload);
+        return res.data;
+      } catch (err) {
+        throw err;
+      }
+    },
+
+    // Delete meeting (DELETE) - leader only
+    async deleteMeeting(id) {
+      try {
+        await http.delete(`/api/v1/books/meetings/${id}/`);
+      } catch (err) {
+        throw err;
       }
     },
   },

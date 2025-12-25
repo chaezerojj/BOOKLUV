@@ -2,21 +2,15 @@
   <div class="wrap">
     <div class="card">
       <div class="head">
-        <h1 class="title">KluvTalk 만들기</h1>
-        <p class="sub">책 기반 독서 모임을 생성하고 퀴즈를 등록해요.</p>
+        <h1 class="title">{{ isEdit ? 'KluvTalk 수정' : 'KluvTalk 만들기' }}</h1>
+        <p class="sub">{{ isEdit ? '모임 정보를 수정하고 저장하세요.' : '책 기반 독서 모임을 생성하고 퀴즈를 등록해요.' }}</p>
       </div>
 
       <!-- ✅ 선택된 책(고정) 안내 + 책 정보 -->
       <div class="bookBox">
         <div class="bookCover">
-          <img
-            v-if="book?.cover_url && !coverBroken"
-            :src="book.cover_url"
-            class="cover"
-            alt="book cover"
-            loading="lazy"
-            @error="coverBroken = true"
-          />
+          <img v-if="book?.cover_url && !coverBroken" :src="book.cover_url" class="cover" alt="book cover"
+            loading="lazy" @error="coverBroken = true" />
           <div v-else class="coverFallback">No Cover</div>
         </div>
 
@@ -35,7 +29,7 @@
 
             <div class="bookHint">
               현재 페이지는 <b>bookId={{ bookId }}</b> ({{ book?.title || "선택된 책" }})로
-              <b>모임을 생성</b>하는 페이지예요.
+              <b>{{ isEdit ? '모임을 수정' : '모임을 생성' }}</b>하는 페이지예요.
             </div>
           </template>
         </div>
@@ -48,24 +42,14 @@
 
           <label class="field">
             <span class="label">모임 제목</span>
-            <input
-              v-model.trim="form.title"
-              class="input"
-              type="text"
-              maxlength="50"
-              placeholder="모임 제목을 입력해주세요."
-            />
+            <input v-model.trim="form.title" class="input" type="text" maxlength="50" placeholder="모임 제목을 입력해주세요." />
             <span v-if="errors.title" class="err">{{ errors.title }}</span>
           </label>
 
           <label class="field">
             <span class="label">설명 (최대 200자)</span>
-            <textarea
-              v-model.trim="form.description"
-              class="textarea"
-              maxlength="200"
-              placeholder="모임 설명을 입력해주세요."
-            ></textarea>
+            <textarea v-model.trim="form.description" class="textarea" maxlength="200"
+              placeholder="모임 설명을 입력해주세요."></textarea>
             <div class="hint">{{ form.description.length }} / 200</div>
             <span v-if="errors.description" class="err">{{ errors.description }}</span>
           </label>
@@ -98,24 +82,13 @@
 
           <label class="field">
             <span class="label">질문</span>
-            <input
-              v-model.trim="form.quiz.question"
-              class="input"
-              type="text"
-              maxlength="50"
-              placeholder="퀴즈 질문을 입력하세요"
-            />
+            <input v-model.trim="form.quiz.question" class="input" type="text" maxlength="50"
+              placeholder="퀴즈 질문을 입력하세요" />
           </label>
 
           <label class="field">
             <span class="label">정답</span>
-            <input
-              v-model.trim="form.quiz.answer"
-              class="input"
-              type="text"
-              maxlength="50"
-              placeholder="정답을 입력하세요"
-            />
+            <input v-model.trim="form.quiz.answer" class="input" type="text" maxlength="50" placeholder="정답을 입력하세요" />
           </label>
         </section>
 
@@ -123,10 +96,12 @@
 
         <div class="actions">
           <button class="btn primary" type="submit" :disabled="submitting || bookLoading">
-            {{ submitting ? "생성 중..." : "모임 만들기" }}
+            {{ submitting ? (isEdit ? "수정 중..." : "생성 중...") : (isEdit ? "모임 수정하기" : "모임 만들기") }}
           </button>
 
           <RouterLink class="btn" :to="{ name: 'kluvtalk-list' }">취소</RouterLink>
+
+          <button v-if="isEdit" class="btn" type="button" @click="onDelete" :disabled="submitting">삭제</button>
         </div>
       </form>
     </div>
@@ -140,13 +115,22 @@ import { http } from "@/api/http";
 
 const route = useRoute();
 const router = useRouter();
+import { useKluvTalkStore } from "@/stores/kluvTalk";
+import { useAuthStore } from "@/stores/auth";
+const meetingStore = useKluvTalkStore();
+const auth = useAuthStore();
 
 /**
- * ✅ bookId가 "항상" 있다고 가정
- * - 권장: 라우터를 /kluvtalk/create/:bookId 처럼 path param으로 바꾸는게 제일 안전
- * - 현재는 query로 받는 구조이므로, bookId가 없으면 NaN -> null이 될 수 있음
+ * Support both create (query bookId) and edit (route param id)
  */
+const isEdit = computed(() => !!route.params.id);
+const meetingId = computed(() => (isEdit.value ? Number(route.params.id) : null));
+
 const bookId = computed(() => {
+  if (isEdit.value) {
+    // editing: pull from meeting once loaded
+    return meetingStore.meeting?.book_id ?? null;
+  }
   const raw = route.query.bookId ?? route.query.book_id ?? route.query.bookid;
   return Number(raw);
 });
@@ -179,8 +163,10 @@ async function fetchBook(id) {
 /** bookId가 바뀌면 책 정보 다시 로드 */
 watch(
   () => bookId.value,
-  (id) => {
-    // 여기서 id가 NaN이면 fetchBook이 깨지므로 방어
+  (id, prev) => {
+    // edit mode: when editing, meetingStore.meeting will be loaded separately
+    if (isEdit.value) return;
+
     if (!Number.isFinite(id) || id <= 0) {
       book.value = null;
       bookError.value = "bookId가 유효하지 않아요. 라우팅에서 bookId 전달을 확인해 주세요.";
@@ -255,6 +241,35 @@ function validate() {
   return !errors.title && !errors.description && !errors.members && !errors.time;
 }
 
+// If editing: load meeting and populate form
+watch(
+  () => meetingId.value,
+  async (id) => {
+    if (!isEdit.value) return;
+    if (!Number.isFinite(id) || id <= 0) return;
+    try {
+      await meetingStore.fetchKluvTalk(id);
+      const m = meetingStore.meeting || {};
+      form.title = m.title || "";
+      form.description = m.description || "";
+      form.members = m.members || 2;
+      form.started_at = m.started_at ? new Date(m.started_at).toISOString().slice(0, 16) : "";
+      form.finished_at = m.finished_at ? new Date(m.finished_at).toISOString().slice(0, 16) : "";
+      // quiz info (if backend returned it)
+      form.quiz.question = meetingStore.quiz?.question ?? "";
+      form.quiz.answer = meetingStore.quiz?.answer ?? "";
+      // set book ref from meeting
+      if (m.book_id) {
+        await fetchBook(m.book_id);
+      }
+    } catch (e) {
+      submitError.value = "모임 정보를 불러오지 못했습니다.";
+    }
+  },
+  { immediate: true }
+);
+
+
 async function onSubmit() {
   // bookId가 항상 있다고 가정하지만, 안전하게 체크는 유지
   if (!Number.isFinite(bookId.value) || bookId.value <= 0) {
@@ -267,23 +282,28 @@ async function onSubmit() {
   submitting.value = true;
   submitError.value = "";
 
+  const payload = {
+    book_id: bookId.value,
+    title: form.title.trim(),
+    description: form.description.trim(),
+    members: form.members,
+    started_at: toISOFromDatetimeLocal(form.started_at),
+    finished_at: toISOFromDatetimeLocal(form.finished_at),
+    quiz: {
+      question: form.quiz.question.trim(),
+      answer: form.quiz.answer.trim(),
+    },
+  };
+
   try {
-    const payload = {
-      book_id: bookId.value,
-      title: form.title.trim(),
-      description: form.description.trim(),
-      members: form.members,
-      started_at: toISOFromDatetimeLocal(form.started_at),
-      finished_at: toISOFromDatetimeLocal(form.finished_at),
-      quiz: {
-        question: form.quiz.question.trim(),
-        answer: form.quiz.answer.trim(),
-      },
-    };
+    if (isEdit.value && Number.isFinite(meetingId.value)) {
+      await meetingStore.updateMeeting(meetingId.value, payload);
+      router.push({ name: "kluvtalk-detail", params: { id: meetingId.value } });
+      return;
+    }
 
-    const res = await http.post("/api/v1/books/meetings/", payload);
-
-    const newId = res?.data?.id;
+    const res = await meetingStore.createMeeting(payload);
+    const newId = res?.id;
     if (newId) {
       router.push({ name: "kluvtalk-detail", params: { id: newId } });
     } else {
@@ -293,7 +313,7 @@ async function onSubmit() {
     const msg =
       e?.response?.data?.detail ||
       (typeof e?.response?.data === "string" ? e.response.data : null) ||
-      "모임 생성에 실패했어요.";
+      (isEdit.value ? "모임 수정에 실패했어요." : "모임 생성에 실패했어요.");
     submitError.value = msg;
 
     const data = e?.response?.data;
@@ -303,6 +323,20 @@ async function onSubmit() {
       if (data.members) errors.members = String(data.members);
       if (data.time) errors.time = String(data.time);
     }
+  } finally {
+    submitting.value = false;
+  }
+}
+
+async function onDelete() {
+  if (!isEdit.value || !Number.isFinite(meetingId.value)) return;
+  if (!confirm("이 모임을 정말 삭제할까요?")) return;
+  submitting.value = true;
+  try {
+    await meetingStore.deleteMeeting(meetingId.value);
+    router.push({ name: "kluvtalk-list" });
+  } catch (e) {
+    submitError.value = e?.response?.data?.detail || "삭제에 실패했습니다.";
   } finally {
     submitting.value = false;
   }

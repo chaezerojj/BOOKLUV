@@ -7,13 +7,7 @@
       <!-- ✅ 상단: 표지 + 헤더/메타 -->
       <div class="top">
         <div class="coverBox">
-          <img
-            v-if="coverSrc"
-            :src="coverSrc"
-            class="cover"
-            alt="book cover"
-            loading="lazy"
-          />
+          <img v-if="coverSrc" :src="coverSrc" class="cover" alt="book cover" loading="lazy" />
           <div v-else class="coverFallback">No Cover</div>
         </div>
 
@@ -71,6 +65,13 @@
         <RouterLink class="btn primary" :to="{ name: 'kluvtalk-quiz', params: { id: meetingId } }">
           퀴즈 풀고 참여하기
         </RouterLink>
+
+        <RouterLink v-if="isLeader" class="btn" :to="{ name: 'kluvtalk-update', params: { id: meetingId } }">
+          수정
+        </RouterLink>
+
+        <button v-if="isLeader" class="btn danger" type="button" @click="onDelete">삭제</button>
+
         <RouterLink class="btn" :to="{ name: 'kluvtalk-list' }">
           목록으로
         </RouterLink>
@@ -81,11 +82,29 @@
 
 <script setup>
 import { computed, onMounted, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useKluvTalkStore } from "@/stores/kluvTalk";
+import { useAuthStore } from "@/stores/auth";
 
 const route = useRoute();
+const router = useRouter();
 const store = useKluvTalkStore();
+const auth = useAuthStore();
+
+const isLeader = computed(() => {
+  const leaderId = store.meeting?.leader_id ?? null;
+  return auth.isAuthenticated && leaderId && leaderId === auth.user?.id;
+});
+
+const onDelete = async () => {
+  if (!confirm("정말 삭제할까요?")) return;
+  try {
+    await store.deleteMeeting(meetingId.value);
+    router.push({ name: "kluvtalk-list" });
+  } catch (e) {
+    alert(e?.response?.data?.detail || "삭제에 실패했습니다.");
+  }
+};
 
 const meetingId = computed(() => Number(route.params.id));
 
@@ -142,6 +161,7 @@ function formatTime(iso) {
   border-radius: 14px;
   border: 1px solid #eee;
 }
+
 .state.error {
   border-color: #ffdddd;
   background: #fff7f7;
@@ -152,7 +172,7 @@ function formatTime(iso) {
   border-radius: 18px;
   border: 1px solid #eee;
   padding: 22px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.04);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
 }
 
 /* ✅ 표지 + 헤더 영역 */
@@ -169,6 +189,7 @@ function formatTime(iso) {
   .top {
     grid-template-columns: 1fr;
   }
+
   .coverBox {
     width: 180px;
     margin: 0 auto;
@@ -186,7 +207,7 @@ function formatTime(iso) {
   border-radius: 14px;
   border: 1px solid #eee;
   background: #fafafa;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 }
 
 .coverFallback {
@@ -230,18 +251,22 @@ function formatTime(iso) {
 .item {
   border: 1px solid #f1f1f1;
   border-radius: 12px;
-  padding: 10px 12px; /* 기존보다 축소 */
+  padding: 10px 12px;
+  /* 기존보다 축소 */
   /* background: #fcfcfc; */
 }
 
 .label {
-  font-size: 11px; /* 기존 12px -> 11px */
+  font-size: 11px;
+  /* 기존 12px -> 11px */
   color: #888;
-  margin-bottom: 4px; /* 기존 6px -> 4px */
+  margin-bottom: 4px;
+  /* 기존 6px -> 4px */
 }
 
 .value {
-  font-size: 14px; /* 기존 15px -> 14px */
+  font-size: 14px;
+  /* 기존 15px -> 14px */
   font-weight: 800;
   color: #222;
 }
@@ -252,14 +277,16 @@ function formatTime(iso) {
   border-radius: 14px;
   padding: 14px;
   background: #fffdf6;
-  min-height: 160px; /* 👈 기본 높이 */
+  min-height: 160px;
+  /* 👈 기본 높이 */
 }
 
 .desc {
   margin: 8px 0 0;
   line-height: 1.7;
   color: #333;
-  white-space: pre-line; /* 줄바꿈 텍스트도 보기 좋게 */
+  white-space: pre-line;
+  /* 줄바꿈 텍스트도 보기 좋게 */
 }
 
 .actions {
@@ -285,8 +312,9 @@ function formatTime(iso) {
   border-color: #ffe08a;
   background: #fff2c2;
 }
+
 .btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 }
 </style>

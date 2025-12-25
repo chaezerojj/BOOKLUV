@@ -200,22 +200,124 @@ def meeting_list_api(request):
     return Response(data, status=status.HTTP_200_OK)
 
 
-@api_view(["GET"])
+from django.utils.dateparse import parse_datetime
+
+
+@api_view(["GET", "PATCH", "DELETE"])
 def meeting_detail_api(request, pk):
     """
     GET /api/v1/books/meetings/<id>/
+    PATCH /api/v1/books/meetings/<id>/  (leader only)
+    DELETE /api/v1/books/meetings/<id>/ (leader only)
     """
     meeting = get_object_or_404(
         Meeting.objects.select_related("book_id", "book_id__category_id", "leader_id"),
         pk=pk
     )
 
-    joined_count = Participate.objects.filter(meeting=meeting, result=True).count()
+    # GET: 그대로 반환
+    if request.method == "GET":
+        joined_count = Participate.objects.filter(meeting=meeting, result=True).count()
+        # attach quiz if exists
+        quiz_obj = None
+        try:
+            q = Quiz.objects.get(meeting_id=meeting)
+            quiz_obj = {"question": q.question, "answer": q.answer}
+        except Quiz.DoesNotExist:
+            quiz_obj = None
 
-    return Response({
-        **serialize_meeting(meeting, joined_count=joined_count),
-        # 필요하면 추가 필드 더 넣어도 됨
-    }, status=status.HTTP_200_OK)
+        payload = {**serialize_meeting(meeting, joined_count=joined_count)}
+        if quiz_obj:
+            payload["quiz"] = quiz_obj
+
+        return Response(payload, status=status.HTTP_200_OK)
+
+    # For PATCH / DELETE: require authentication
+    if not request.user or not request.user.is_authenticated:
+        return Response({"detail": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # Only meeting leader may modify/delete
+    if request.user != meeting.leader_id:
+        return Response({"detail": "권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
+
+    # DELETE: remove and return 204
+    if request.method == "DELETE":
+        meeting.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    # PATCH: partial update
+    payload = request.data or {}
+
+    title = payload.get("title")
+    description = payload.get("description")
+    members = payload.get("members")
+    started_at_raw = payload.get("started_at")
+    finished_at_raw = payload.get("finished_at")
+    quiz_payload = payload.get("quiz")
+
+    if title is not None:
+        meeting.title = (title or "").strip()
+    if description is not None:
+        meeting.description = (description or "").strip()
+    if members is not None:
+        try:
+            meeting.members = int(members)
+        except Exception:
+            return Response({"members": "인원은 숫자여야 합니다."}, status=400)
+        if meeting.members < 2 or meeting.members > 10:
+            return Response({"members": "인원은 2~10명이어야 합니다."}, status=400)
+
+    # parse datetimes if provided
+    try:
+        if started_at_raw is not None:
+            dt = parse_datetime(started_at_raw)
+            if dt is None:
+                raise ValueError("invalid datetime")
+            if timezone.is_naive(dt):
+                dt = timezone.make_aware(dt)
+            meeting.started_at = dt
+        if finished_at_raw is not None:
+            dt2 = parse_datetime(finished_at_raw)
+            if dt2 is None:
+                raise ValueError("invalid datetime")
+            if timezone.is_naive(dt2):
+                dt2 = timezone.make_aware(dt2)
+            meeting.finished_at = dt2
+    except Exception:
+        return Response({"time": "시작/종료 시간 형식이 올바르지 않습니다."}, status=400)
+
+    # validate model (clean) and save
+    try:
+        meeting.full_clean()
+        meeting.save()
+    except Exception as e:
+        # 모델 검증 오류 메시지 정리
+        return Response({"detail": str(e)}, status=400)
+
+    # quiz update (optional)
+    if isinstance(quiz_payload, dict):
+        quiz = None
+        try:
+            quiz = Quiz.objects.get(meeting_id=meeting)
+        except Quiz.DoesNotExist:
+            quiz = None
+
+        question = (quiz_payload.get("question") or "").strip() if quiz_payload.get("question") is not None else None
+        answer = (quiz_payload.get("answer") or "").strip() if quiz_payload.get("answer") is not None else None
+
+        if quiz:
+            if question is not None:
+                quiz.question = question
+            if answer is not None:
+                quiz.answer = answer
+            quiz.save()
+        else:
+            # only create if any content provided
+            if (question or answer):
+                Quiz.objects.create(meeting_id=meeting, question=question or None, answer=answer or None)
+
+    joined_count = Participate.objects.filter(meeting=meeting, result=True).count()
+    return Response({**serialize_meeting(meeting, joined_count=joined_count)}, status=status.HTTP_200_OK)
 
 
 @api_view(["GET", "POST"])
