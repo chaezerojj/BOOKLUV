@@ -1,48 +1,24 @@
 import json
 from django.shortcuts import render
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, renderer_classes
+from rest_framework.renderers import JSONRenderer
+from rest_framework.response import Response
 from klub_talk.models import Book, Category
-from rest_framework.decorators import api_view, renderer_classes  # renderer_classes 추가
-from rest_framework.renderers import JSONRenderer              # JSONRenderer 추가
 from .models import ReadingPreference, RecommendationResult
 from .services.openai_client import get_ai_recommendation
-from rest_framework.response import Response
-from rest_framework.renderers import JSONRenderer
 
-GENRE_MAP = {
-    "novel": "소설/시/희곡",
-    "essay": "에세이",
-    "self_help": "자기계발",
-    "humanities": ["인문학", "사회과학"],  # 리스트로 묶음
-    "science": "과학",
-    "art": "예술/대중문화",
-    "economy": "경제경영"
-}
-
-@api_view(["GET"])
+# 1. 퀴즈 페이지를 보여주는 뷰 (Template 반환)
 def quiz_view(request):
     return render(request, "recommend/quiz.html")
 
-# 수정된 GENRE_MAP (DB의 Category 테이블 name 컬럼과 정확히 일치해야 함)
-GENRE_MAP = {
-    "novel": "소설",
-    "essay": "에세이",
-    "self_help": "자기계발",
-    "humanities": "인문/사회", # 예시: DB에 '인문/사회'로 저장된 경우
-    "science": "과학",
-    "art": "예술",
-    "economy": "경제경영"
-}
-
-@api_view(["GET", "POST"])
+# 2. AI 추천 결과를 처리하는 API (JSON 반환)
+@api_view(["POST"]) # POST 요청만 처리하도록 제한
 @renderer_classes([JSONRenderer])
 def result_view(request):
-    if request.method == "GET":
-        return render(request, "recommend/quiz.html")
+    # 퀴즈 데이터 가져오기 (request.data는 DRF에서 파싱된 JSON 데이터를 담고 있음)
+    data = request.data 
 
-    data = request.data or request.POST
-
-    # 1. DB 카테고리 명칭과 퀴즈 선택값 매핑 (DB 데이터 기준)
+    # 장르 매핑 설정
     GENRE_MAP = {
         "novel": ["소설/시/희곡"],
         "essay": ["에세이"],
@@ -58,9 +34,9 @@ def result_view(request):
     category_list = GENRE_MAP.get(selected_genre_key, [])
 
     if not category_list:
-        return Response({"ai_reason": "장르 선택값이 올바르지 않습니다.", "books": []}, status=400)
+        return Response({"detail": "올바른 장르를 선택해주세요."}, status=400)
 
-    # 2. AI 서비스용 딕셔너리 생성 (함수 상단에서 정의)
+    # AI 전달용 데이터 구성
     quiz_answers = {
         "목적": data.get("q1"),
         "신간_고전": data.get("q2"),
@@ -71,43 +47,38 @@ def result_view(request):
         "중요요소": data.get("q6"),
     }
 
-    # 3. DB 조회 (PostgreSQL)
+    # DB 조회
     categories = Category.objects.filter(name__in=category_list)
     all_candidate_books = Book.objects.filter(category_id__in=categories)
 
-    # 도서 데이터가 없을 경우 처리
     if not all_candidate_books.exists():
         return Response({
-            "ai_reason": f"죄송합니다. '{quiz_answers['선호_장르']}' 장르에 해당하는 도서 데이터가 없습니다.",
+            "ai_reason": f"죄송합니다. '{quiz_answers['선호_장르']}' 분야의 도서 데이터가 부족합니다.",
             "books": []
         }, status=200)
 
-    # 4. 추천 로직 실행
+    # 추천 로직 (AI 호출)
     final_book = all_candidate_books.first()
     ai_reason = "사용자님의 성향을 분석한 결과입니다."
-    reco_data = []
+    temp_reason = "추천드리는 도서입니다."
 
     try:
-        # DB의 도서 중 상위 20권을 AI에게 전달
+        # 상위 20권을 AI에게 전달하여 추천 받음
         ai_response = get_ai_recommendation(quiz_answers, all_candidate_books[:20])
         parsed = json.loads(ai_response)
         ai_reason = parsed.get("ai_reason", ai_reason)
-        reco_data = parsed.get("recommendations", [])
+        reco_list = parsed.get("recommendations", [])
 
-        if reco_data:
-            suggested_id = reco_data[0].get("book_id")
+        if reco_list:
+            suggested_id = reco_list[0].get("book_id")
             pick = all_candidate_books.filter(id=suggested_id).first()
             if pick:
                 final_book = pick
+                temp_reason = reco_list[0].get("reason", temp_reason)
     except Exception as e:
-        ai_reason = f"AI 추천 중 오류가 발생하여 기본 추천 도서를 보여드립니다. ({type(e).__name__})"
+        ai_reason = f"AI 추천 중 오류가 발생했습니다. ({type(e).__name__})"
 
-    # 5. 추천 사유 설정
-    temp_reason = f"{quiz_answers['선호_장르']} 분야에서 인기 있는 도서입니다."
-    if reco_data and final_book.id == reco_data[0].get("book_id"):
-        temp_reason = reco_data[0].get("reason")
-
-    # 6. DB 저장 (인증된 사용자일 경우)
+    # DB 저장 (로그인 사용자)
     if request.user.is_authenticated:
         try:
             pref = ReadingPreference.objects.create(
@@ -125,28 +96,22 @@ def result_view(request):
             )
             result_obj.books.set([final_book])
         except Exception as e:
-            print(f"DB 저장 실패: {e}")
+            print(f"DB 저장 오류: {e}")
 
-    # 7. 응답 데이터 구성
-    # views.py의 마지막 반환 부분 수정
-    # 7. 응답 데이터 구성 (JSON 반환으로 변경)
+    # 최종 페이로드 구성
     payload = {
         "ai_reason": ai_reason,
-        "books": [  # Vue의 v-for="book in result.books" 구조에 맞춤
+        "books": [
             {
-                "id": final_book.id, # RouterLink의 v-if="book.id"를 통과하게 함
+                "id": final_book.id,
                 "title": final_book.title,
                 "publisher": final_book.publisher,
                 "cover_url": final_book.cover_url,
-                # Vue 템플릿의 {{ book.author_name }}과 매칭
                 "author_name": getattr(final_book.author_id, "name", "저자 미상"),
-                # Vue 템플릿의 {{ book.category_name }}과 매칭
                 "category_name": getattr(final_book.category_id, "name", "장르 미상"),
-                # Vue 템플릿의 {{ book.reason }}과 매칭
                 "reason": temp_reason, 
             }
         ],
     }
 
-    # render 대신 Response를 사용하여 JSON 데이터를 반환 (406 에러 해결)
     return Response(payload, status=200)
