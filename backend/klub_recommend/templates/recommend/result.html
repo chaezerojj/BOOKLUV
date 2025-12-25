@@ -10,7 +10,7 @@
     <h2 style="margin-bottom: 30px;">📚 추천 도서 목록</h2>
 
     {% for book in results %}
-    <div style="display: flex; gap: 25px; background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+    <div class="reco-book" data-book-id="{{ book.id }}" style="display: flex; gap: 25px; background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
         <img src="{{ book.cover_url }}" style="width: 130px; height: 190px; object-fit: cover; border-radius: 8px;">
         
         <div style="flex: 1;">

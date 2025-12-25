@@ -128,16 +128,17 @@ def result_view(request):
     # 7. 응답 데이터 구성
     # views.py의 마지막 반환 부분 수정
     context = {
-        "ai_reason": ai_reason,  # 템플릿의 {{ ai_reason }}와 매칭
-        "results": [             # 템플릿의 {% for book in results %}와 매칭
+        "ai_reason": ai_reason,
+        "books": [  # 프론트에서 result.books로 접근하므로 'books'로 보냄
             {
                 "id": final_book.id,
                 "title": final_book.title,
                 "publisher": final_book.publisher,
                 "cover_url": final_book.cover_url,
-                "author_id": {"name": getattr(final_book.author_id, "name", "저자 미상")}, # .author_id.name 구조 대응
-                "category_id": {"name": getattr(final_book.category_id, "name", "장르 미상")}, # .category_id.name 구조 대응
-                "temp_reason": temp_reason, # 템플릿의 {{ book.temp_reason }}와 매칭
+                # Vue 코드에서 쓰고 있는 이름(author_name, category_name)과 일치시킴
+                "author_name": getattr(final_book.author_id, "name", "저자 미상"),
+                "category_name": getattr(final_book.category_id, "name", "장르 미상"),
+                "reason": temp_reason, # Vue에서 book.reason으로 쓰고 있음
             }
         ],
     }

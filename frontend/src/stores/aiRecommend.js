@@ -92,7 +92,8 @@ function parseRecommendationHtml(htmlString) {
     const imgs = Array.from(doc.querySelectorAll(".container img"));
 
     imgs.forEach((img) => {
-      const bookDiv = img.parentElement;
+      // prefer a surrounding container that carries the book id
+      const bookDiv = img.closest('.reco-book') || img.parentElement;
       const title = bookDiv.querySelector("h3")?.textContent?.trim() || "";
       const meta = bookDiv.querySelector("p")?.textContent || "";
       const [author_name = "", publisher = "", category_name = ""] = meta
@@ -107,8 +108,20 @@ function parseRecommendationHtml(htmlString) {
         reason = reasonP.textContent.replace("추천 포인트:", "").trim();
       }
 
+      // try to read a numeric id from data-book-id if present
+      let id = null;
+      try {
+        const idAttr = bookDiv.getAttribute && bookDiv.getAttribute('data-book-id');
+        if (idAttr) {
+          const n = Number(String(idAttr).trim());
+          if (!Number.isNaN(n)) id = n;
+        }
+      } catch (e) {
+        /* ignore */
+      }
+
       books.push({
-        id: null,
+        id,
         cover_url: img.src || "",
         title,
         author_name,
