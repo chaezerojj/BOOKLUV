@@ -72,6 +72,8 @@ def result_view(request):
     final_book = all_candidate_books.first()
     ai_reason = "사용자님의 성향을 분석한 결과입니다."
     reco_data = []
+    
+    print(final_book)
 
     # ✅ AI 실패해도 500 안나게
     try:
