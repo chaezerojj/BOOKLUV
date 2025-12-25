@@ -29,15 +29,9 @@
                     </div>
                 </div>
 
-                <div class="actions" v-if="editingId !== c.id">
-                    <button type="button" :disabled="!canEditComment(c)" @click="startEdit(c)"
-                        :title="commentActionHint(c)">
-                        수정
-                    </button>
-                    <button type="button" :disabled="!canEditComment(c)" @click="onDelete(c.id)"
-                        :title="commentActionHint(c)">
-                        삭제
-                    </button>
+                <div class="actions" v-if="editingId !== c.id && canEditComment(c)">
+                    <button type="button" @click="startEdit(c)">수정</button>
+                    <button type="button" @click="onDelete(c.id)">삭제</button>
                 </div>
             </li>
         </ul>

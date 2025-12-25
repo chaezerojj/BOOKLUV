@@ -263,16 +263,13 @@ def myroom_api(request):
     participations = (
         Participate.objects
         .filter(user_id=request.user)
-        .select_related("meeting_id", "meeting_id__room")
-        .order_by("meeting_id__started_at")
+        .select_related("meeting", "meeting__room")
+        .order_by("meeting__started_at")
     )
 
     results = []
     for p in participations:
-        meeting = p.meeting_id
-        if not meeting:
-            continue
-
+        meeting = p.meeting
         room = getattr(meeting, "room", None)
         if not room:
             continue
@@ -288,8 +285,10 @@ def myroom_api(request):
             is_active = started_local <= now <= finished_local
 
         results.append({
+            "meeting_id": meeting.id,
+            "title": meeting.title,
             "room_name": getattr(room, "name", None),
-            "room_slug": getattr(room, "slug", None),  # 있으면 프론트에서 채팅방 링크 가능
+            "room_slug": getattr(room, "slug", None),
             "started_at": started_local.isoformat() if started_local else None,
             "finished_at": finished_local.isoformat() if finished_local else None,
             "is_active": is_active,

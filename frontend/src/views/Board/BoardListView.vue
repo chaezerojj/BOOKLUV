@@ -6,23 +6,14 @@
         <p class="sub">최신 글을 확인하고 의견을 남겨보세요.</p>
       </div>
 
-      <button
-        class="btn write"
-        type="button"
-        :disabled="!isAuthenticated"
-        @click="goCreate"
-        :title="!isAuthenticated ? '로그인 후 글을 작성할 수 있어요.' : ''"
-      >
+      <button class="btn write" type="button" :disabled="!isAuthenticated" @click="goCreate"
+        :title="!isAuthenticated ? '로그인 후 글을 작성할 수 있어요.' : ''">
         글쓰기
       </button>
     </div>
 
     <div class="controls">
-      <SortDropdown
-        v-model="sortKey"
-        label="정렬"
-        :options="sortOptions"
-      />
+      <SortDropdown v-model="sortKey" label="정렬" :options="sortOptions" />
     </div>
 
     <div v-if="store.loading" class="state">로딩중...</div>
@@ -33,28 +24,27 @@
         <div class="main" @click="goDetail(b.id)">
           <div class="row1">
             <div class="t">{{ b.title }}</div>
-            <div class="stats">
+            <div class="meta-right">
               <span class="stat">댓글 {{ b.comment_count ?? 0 }}</span>
-              <span class="dot">·</span>
               <span class="stat">조회 {{ viewCount(b) }}</span>
             </div>
           </div>
 
           <div class="row2">
-            <span class="who">{{ b.user?.display_name ?? "Unknown" }}</span>
-            <span class="dot">·</span>
-            <span class="time">{{ formatDate(b.created_at) }}</span>
+            <div class="left-meta">
+              <span class="who">{{ b.user?.display_name ?? "Unknown" }}</span>
+              <span class="dot">·</span>
+              <span class="time">{{ formatDate(b.created_at) }}</span>
+            </div>
           </div>
 
-          <div class="preview">{{ b.content }}</div>
-        </div>
-
-        <div class="actions" v-if="isMine(b)">
-          <button class="btn" type="button" @click.stop="goUpdate(b.id)">수정</button>
-          <button class="btn danger" type="button" @click.stop="onDelete(b.id)">삭제</button>
         </div>
       </li>
     </ul>
+
+    <div class="more" v-if="canLoadMore">
+      <button class="btn" @click="loadMore" type="button">더 불러오기</button>
+    </div>
 
     <p v-if="!store.loading && !store.error && visibleBoards.length === 0" class="empty">
       게시글이 없어요.
@@ -63,7 +53,7 @@
 </template>
 
 <script setup>
-import { onMounted, computed, ref } from "vue";
+import { onMounted, computed, ref, onBeforeUnmount, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useBoardStore } from "@/stores/board";
 import { useAuthStore } from "@/stores/auth";
@@ -73,9 +63,37 @@ const router = useRouter();
 const store = useBoardStore();
 const auth = useAuthStore();
 
+const pageSize = 12;
+const visibleCount = ref(pageSize);
+
+const loadMore = () => {
+  visibleCount.value = Math.min(visibleCount.value + pageSize, (store.boards ?? []).length);
+};
+
+const canLoadMore = computed(() => visibleCount.value < (store.boards ?? []).length);
+
+const onScroll = () => {
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
+    if (canLoadMore.value) loadMore();
+  }
+};
+
 onMounted(() => {
   store.fetchBoards();
+  window.addEventListener("scroll", onScroll);
 });
+
+onBeforeUnmount(() => {
+  window.removeEventListener("scroll", onScroll);
+});
+
+// reset visible count when board list changes
+watch(
+  () => store.boards,
+  () => {
+    visibleCount.value = Math.min(pageSize, (store.boards ?? []).length);
+  }
+);
 
 const isAuthenticated = computed(() => auth.isAuthenticated);
 const myUserId = computed(() => auth.user?.id ?? null);
@@ -127,7 +145,7 @@ const visibleBoards = computed(() => {
     });
   }
 
-  return arr;
+  return arr.slice(0, visibleCount.value);
 });
 </script>
 
@@ -165,13 +183,16 @@ const visibleBoards = computed(() => {
   cursor: pointer;
   font-size: 13px;
 }
+
 .btn:hover {
   background: #fafafa;
 }
+
 .btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
+
 .btn.danger:hover {
   background: #fff6f6;
 }
@@ -190,6 +211,7 @@ const visibleBoards = computed(() => {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
   font-size: 13px;
 }
+
 .state.error {
   background: #fff6f6;
   border-color: #ffe1e1;
@@ -219,28 +241,41 @@ const visibleBoards = computed(() => {
 
 .row1 {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
+  /* align-items: center; */
+  gap: 12px;
+  border: 1px solid green;
 }
 
 .t {
-  font-weight: 800;
-  letter-spacing: -0.2px;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
+  font-weight: 700;
+  font-size: 16px;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  margin-right: 12px;
 }
 
-.stats {
-  font-size: 12px;
-  opacity: 0.8;
+.meta-right {
+  border: 1px solid red;
+  display: flex;
+  align-items: right;
+  text-align: right;
+  justify-items: right;
+  gap: 10px;
+  margin-left: auto;
+  color: #6b6b6b;
+  font-size: 13px;
   white-space: nowrap;
+  min-width: 110px;
+  justify-content: flex-end;
 }
-.stat {
+
+.meta-right .stat {
   font-weight: 600;
+  font-size: 13px;
 }
+
 .dot {
   margin: 0 6px;
   opacity: 0.6;
@@ -254,23 +289,53 @@ const visibleBoards = computed(() => {
   opacity: 0.75;
 }
 
-.preview {
-  margin-top: 8px;
-  opacity: 0.9;
-  white-space: pre-wrap;
-  line-height: 1.55;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.row2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  opacity: 0.75;
+  margin-top: 6px;
+}
+
+.left-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.right-meta {
+  font-size: 12px;
+  color: #9b9b9b;
 }
 
 .actions {
   display: flex;
   gap: 8px;
-  justify-content: flex-end;
-  padding-top: 6px;
-  border-top: 1px solid #f0f0f0;
+  align-items: center;
+}
+
+/* item as compact row */
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+}
+
+.t {
+  font-weight: 700;
+  font-size: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.more {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
 }
 
 .empty {

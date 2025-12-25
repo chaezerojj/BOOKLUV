@@ -223,10 +223,6 @@ export const useKluvTalkStore = defineStore("meeting", {
       }
     },
 
-    /**
-     * ✅ 홈/상단 섹션용: TOP N만
-     * ⚠️ 기존 cover 보강(detail 폭탄) 로직 제거 (500 원인 + 어차피 cover 안 내려옴)
-     */
     async fetchPopularMeetings(take = 12) {
       this.popularLoading = true;
       this.popularError = null;
