@@ -9,10 +9,11 @@ from rest_framework.response import Response
 from rest_framework import status
 
 GENRE_MAP = {
-    "A": "소설/시/희곡",
-    "B": "자기계발",
-    "C": "인문학",
-    "D": "SF/판타지/추리",
+    "novel": "소설",
+    "essay": "에세이",
+    "self_help": "자기계발",
+    "humanities": "인문학",
+    "art": "예술",
 }
 
 @api_view(["GET"])
@@ -24,24 +25,17 @@ def result_view(request):
     if request.method == "GET":
         return render(request, "recommend/quiz.html")
 
-    data = request.data or request.POST  # 폼/JSON 둘 다 대응
+    data = request.data or request.POST
+    selected_genre_key = data.get("q4") # HTML의 value값 (예: 'novel')
+    category_name = GENRE_MAP.get(selected_genre_key)
 
-    quiz_answers = {
-        "목적": data.get("q1"),
-        "신간_고전": data.get("q2"),
-        "선호_장르": data.get("q4"),
-        "분량": data.get("q7"),
-        "독서스타일": data.get("q8"),
-        "필요한책": data.get("q10"),
-    }
-
-    category_name = GENRE_MAP.get(data.get("q4"))
     if not category_name:
         return render(request, "recommend/result.html", {
             "results": [],
-            "ai_reason": "장르 선택값이 올바르지 않습니다.",
+            "ai_reason": "선택하신 장르를 찾을 수 없습니다.",
         })
 
+    # DB의 category 테이블에서 실제 이름을 검색
     categories = Category.objects.filter(name=category_name)
     all_candidate_books = Book.objects.filter(category_id__in=categories)
 
