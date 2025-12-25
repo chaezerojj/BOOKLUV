@@ -51,13 +51,13 @@ export const useAiRecommendStore = defineStore("aiRecommend", {
       this.error = null;
 
       try {
-        // Backend now responds with server-rendered HTML at `/recommend/result/` (not JSON).
-        // Use absolute origin URL so axios doesn't prepend its baseURL.
-        const url = `${window.location.origin}/recommend/result/`;
-        const res = await http.post(url, this.answers, {
-          headers: { Accept: "text/html" },
-          responseType: "text",
-        });
+        // POST to backend recommendations endpoint which returns server-rendered HTML
+        // Use API path under /api/v1 so it hits the Django view included at api/v1/recommendations/
+        const res = await http.post(
+          "/api/v1/recommendations/result/",
+          this.answers,
+          { headers: { Accept: "text/html" }, responseType: "text" }
+        );
 
         const html = res.data;
         const parsed = parseRecommendationHtml(html);
