@@ -192,6 +192,8 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https:\/\/.*\.netlify\.app$",
 ]
 
+WHITENOISE_MANIFEST_STRICT = False
+
 # 13. 국제화 설정
 LANGUAGE_CODE = 'ko-kr'
 TIME_ZONE = 'Asia/Seoul'

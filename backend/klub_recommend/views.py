@@ -6,7 +6,7 @@ from klub_user.models import User
 from .models import ReadingPreference, RecommendationResult
 from .services.openai_client import get_ai_recommendation
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.renderers import JSONRenderer
 
 GENRE_MAP = {
     "novel": "소설",
@@ -32,6 +32,7 @@ GENRE_MAP = {
 }
 
 @api_view(["GET", "POST"])
+@renderer_classes([JSONRenderer]) # 브라우저 UI를 끄고 JSON만 반환
 def result_view(request):
     if request.method == "GET":
         return render(request, "recommend/quiz.html")
