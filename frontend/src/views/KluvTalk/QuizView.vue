@@ -8,34 +8,35 @@
     <div v-else-if="store.quiz" class="card">
       <h2 class="q">{{ store.quiz.question }}</h2>
 
-      <!-- ✅ locked면 아예 못 풀게 -->
+      <!--  locked면 아예 못 풀게 -->
       <div v-if="isLocked" class="lockedBox">
-        <p class="no">
-          3번 모두 틀려서 참여가 불가합니다.
-        </p>
+        <p class="no">3번 모두 틀려서 참여가 불가합니다.</p>
         <RouterLink class="btn ghost" :to="{ name: 'kluvtalk-detail', params: { id: meetingId } }">
           모임 상세로 돌아가기
         </RouterLink>
       </div>
 
       <template v-else>
-        <!-- ✅ 남은 기회(제출 전에도 보여줌: GET에서 attempts_left 내려오므로) -->
+        <!--  남은 기회: 제출 전에도 GET에서 내려오므로 바로 표시 -->
         <div class="attempts" v-if="attemptsLeft !== null">
           남은 기회: <b>{{ attemptsLeft }}</b> / {{ MAX_ATTEMPTS }}
         </div>
 
-        <!-- ✅ 제출 결과 -->
+        <!--  제출 결과 -->
         <div v-if="store.quizResult" class="resultBox">
           <p v-if="store.quizResult.result" class="ok">
             정답! 모임 참여가 완료되었습니다.
           </p>
+
           <template v-else>
             <p class="no">틀렸습니다.</p>
+
+            <!--  틀린 직후 남은 기회 문구 -->
             <p class="leftMsg" v-if="attemptsLeft !== null">
               기회가 <b>{{ attemptsLeft }}</b>번 남았습니다.
             </p>
 
-            <!-- ✅ 기회 남으면 다시 풀기 버튼 -->
+            <!--  기회 남으면 다시 풀기 -->
             <button
               v-if="attemptsLeft > 0"
               class="btn ghost"
@@ -45,14 +46,13 @@
               다시 풀기
             </button>
 
-            <!-- ✅ 0이면 곧 locked될 거라 안내 -->
+            <!--  0이면 종료 안내 -->
             <p v-else class="no">
               시도 횟수를 모두 소진했습니다. 참여가 불가합니다.
             </p>
           </template>
         </div>
 
-        <!-- ✅ 입력 폼: 정답 맞추면 숨김 / (틀렸어도 retry 누르기 전이면 숨김) -->
         <form v-if="canTry" class="form" @submit.prevent="onSubmit">
           <input v-model.trim="answer" class="input" placeholder="정답 입력" required />
           <button class="btn" type="submit" :disabled="submitting">
@@ -84,13 +84,13 @@ const meetingId = computed(() => Number(route.params.id));
 
 const load = async () => {
   if (!Number.isFinite(meetingId.value)) return;
-  store.quizResult = null;      // 페이지 들어올 때만 초기화
+  store.quizResult = null;         // "페이지 진입"에서만 초기화
   await store.fetchQuiz(meetingId.value);
   answer.value = "";
 };
 
 const attemptsLeft = computed(() => {
-  // ✅ 제출 후엔 quizResult, 제출 전/새로고침엔 quiz(GET)에서
+  // 우선순위: 제출 직후(quizResult) -> 현재 상태(quiz)
   const r = store.quizResult?.attempts_left;
   if (typeof r === "number") return r;
 
@@ -114,20 +114,25 @@ const canTry = computed(() => {
   if (!store.quiz) return false;
   if (isLocked.value) return false;
 
-  // 이미 참여 완료(joined)면 더 안 풀게
+  // 이미 참여 완료면 더 못 풀게
   if (store.quiz?.joined) return false;
   if (store.quizResult?.result) return false;
 
-  // ✅ 제출 결과가 없으면 바로 풀 수 있음
+  // 결과가 없으면 입력 가능
   if (!store.quizResult) return true;
 
-  // ✅ 틀린 상태면 "다시 풀기" 눌러서 quizResult를 지운 뒤에 풀게 함
+  // 틀린 결과 화면에서는 "다시 풀기" 눌러야 입력 가능
   return false;
 });
 
-const retry = () => {
-  store.quizResult = null; // ✅ 결과 화면 닫고 입력폼 다시 열기
+const retry = async () => {
+  // 결과 화면 닫고 입력폼 다시 열기
+  store.quizResult = null;
   answer.value = "";
+
+  // 서버에서 attempts 최신값 다시 동기화
+  //    - 혹시 다른 탭/환경에서 시도 횟수 변해도 정확해짐
+  await store.fetchQuiz(meetingId.value);
 };
 
 const onSubmit = async () => {
@@ -172,7 +177,8 @@ watch(() => route.params.id, load);
   color: #666;
 }
 
-.resultBox, .lockedBox {
+.resultBox,
+.lockedBox {
   margin: 12px 0;
   padding: 12px 14px;
   border-radius: 12px;
@@ -216,7 +222,7 @@ watch(() => route.params.id, load);
 }
 
 .btn:disabled {
-  opacity: .6;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 

@@ -167,7 +167,6 @@ export const useKluvTalkStore = defineStore("meeting", {
     async fetchQuiz(meetingId) {
       this.quizLoading = true;
       this.quizError = null;
-      this.quizResult = null;
       try {
         const res = await http.get(`/api/v1/books/meetings/${meetingId}/quiz/`);
         this.quiz = res.data;
@@ -183,10 +182,18 @@ export const useKluvTalkStore = defineStore("meeting", {
       this.quizLoading = true;
       this.quizError = null;
       try {
-        const res = await http.post(`/api/v1/books/meetings/${meetingId}/quiz/`, {
-          answer,
-        });
+        const res = await http.post(`/api/v1/books/meetings/${meetingId}/quiz/`, { answer });
         this.quizResult = res.data;
+
+        // POST 응답의 attempts 상태를 "GET 상태(quiz)"에도 동기화
+        if (this.quiz && typeof this.quiz === "object") {
+          if (typeof res.data.attempts_used === "number") this.quiz.attempts_used = res.data.attempts_used;
+          if (typeof res.data.attempts_left === "number") this.quiz.attempts_left = res.data.attempts_left;
+          if (typeof res.data.locked === "boolean") this.quiz.locked = res.data.locked;
+
+          // 정답 맞추면 joined 처리(백에서 joined 내려주면 그걸 써도 됨)
+          if (res.data.result === true) this.quiz.joined = true;
+        }
       } catch (err) {
         this.quizError = err;
         this.quizResult = null;
@@ -196,7 +203,7 @@ export const useKluvTalkStore = defineStore("meeting", {
     },
 
     /**
-     * ✅ 리스트 페이지용: "전체" 받아오기
+     * 리스트 페이지용: "전체" 받아오기
      * - 백 meeting_list_api는 limit 없으면 전부 내려줌(현재 코드 기준)
      * - 정렬은 프론트에서 할 거라서 여기서는 그냥 가져와서 normalize만
      */
