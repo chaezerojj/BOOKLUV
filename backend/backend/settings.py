@@ -226,3 +226,12 @@ GMS_OPENAI_URL = os.getenv("GMS_OPENAI_URL", "https://gms.ssafy.io/gmsapi/api.op
 CSRF_COOKIE_HTTPONLY = False
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    ),
+    'DEFAULT_PARSER_CLASSES': (
+        'rest_framework.parsers.JSONParser',
+    ),
+}

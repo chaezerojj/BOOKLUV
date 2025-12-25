@@ -10,12 +10,10 @@ from .services.openai_client import get_ai_recommendation
 # 1. 페이지 접속용 (기존 유지)
 def quiz_view(request):
     return render(request, "recommend/quiz.html")
-
-# 2. 결과 API (완전한 API 형태로 수정)
-@api_view(["POST"]) # GET 요청을 아예 받지 않도록 제한
+@api_view(["POST"])
 @renderer_classes([JSONRenderer])
 def result_view(request):
-    # DRF에서는 request.data를 사용합니다.
+    # 1. 안전하게 데이터 가져오기
     data = request.data
     
     GENRE_MAP = {
@@ -32,25 +30,22 @@ def result_view(request):
     selected_genre_key = data.get("q4")
     category_list = GENRE_MAP.get(selected_genre_key, [])
 
-    if not category_list:
-        return Response({"ai_reason": "장르 정보가 누락되었습니다.", "books": []}, status=400)
-
-    # DB 조회
+    # 2. 결과가 없을 경우 대비
     categories = Category.objects.filter(name__in=category_list)
     all_candidate_books = Book.objects.filter(category_id__in=categories)
 
     if not all_candidate_books.exists():
         return Response({
-            "ai_reason": f"'{'/'.join(category_list)}' 장르의 도서 데이터가 없습니다.",
+            "ai_reason": "선택하신 장르의 도서를 준비 중입니다.",
             "books": []
         }, status=200)
 
-    # 기본값 설정
+    # 3. 기본값 설정
     final_book = all_candidate_books.first()
-    ai_reason = "사용자 성향 분석 결과입니다."
-    temp_reason = "추천 도서입니다."
+    ai_reason = "사용자님의 성향을 분석한 결과입니다."
+    temp_reason = "추천드리는 도서입니다."
 
-    # AI 로직 (예외 처리 강화)
+    # 4. AI 로직 (예외 발생 시 서버가 죽지 않도록 try-except)
     try:
         quiz_answers = {
             "목적": data.get("q1"),
@@ -69,20 +64,22 @@ def result_view(request):
                 final_book = pick
                 temp_reason = reco_data[0].get("reason", temp_reason)
     except Exception as e:
-        print(f"AI Error: {e}")
+        print(f"AI 분석 실패: {e}") # Railway 로그에 찍힘
 
-    # 데이터 구성 (안전하게 getattr 사용)
+    # 5. 응답 생성 (getattr로 데이터 누락 방어)
     payload = {
         "ai_reason": ai_reason,
-        "books": [{
-            "id": final_book.id,
-            "title": final_book.title,
-            "publisher": final_book.publisher,
-            "cover_url": final_book.cover_url,
-            "author_name": getattr(final_book.author_id, "name", "저자 미상"),
-            "category_name": getattr(final_book.category_id, "name", "장르 미상"),
-            "reason": temp_reason,
-        }],
+        "books": [
+            {
+                "id": final_book.id,
+                "title": final_book.title,
+                "publisher": final_book.publisher,
+                "cover_url": final_book.cover_url,
+                "author_name": getattr(final_book.author_id, "name", "저자 미상"),
+                "category_name": getattr(final_book.category_id, "name", "장르 미상"),
+                "reason": temp_reason, 
+            }
+        ],
     }
 
     return Response(payload, status=200)
