@@ -38,6 +38,8 @@ function normalizeMeetingAlert(x) {
     title: x?.title ?? "",
     started_at: x?.started_at ?? x?.startedAt ?? "",
     join_url: joinUrl,
+    // 백엔드가 created_at 내려주면 저장 (for logs)
+    created_at: x?.created_at ?? x?.createdAt ?? null,
     // ✅ 백엔드가 room_slug 내려주면 그걸 우선, 없으면 join_url에서 파싱
     room_slug: x?.room_slug ?? x?.roomSlug ?? parseRoomSlug(joinUrl),
   };
@@ -81,6 +83,7 @@ export const useKluvChatStore = defineStore("kluvChat", {
     alarmsLoading: false,
     alarmsError: null,
     meetingAlerts: [], // [{meeting_id,title,started_at,join_url,room_slug}]
+    meetingAlertLogs: [], // historical alerts from backend
     unread: false,
     alertsSocket: null,
     alertsStatus: "idle",
@@ -130,21 +133,29 @@ export const useKluvChatStore = defineStore("kluvChat", {
         this.currentUser = data.current_user ?? null;
         this.leader = data.leader ?? null;
 
-        this.participants = (data.participants ?? this.room?.participants ?? []).map((p) => ({
+        this.participants = (
+          data.participants ??
+          this.room?.participants ??
+          []
+        ).map((p) => ({
           id: p.id,
           nickname: p.nickname ?? p.username ?? "Unknown",
           online: !!p.online,
-          isLeader: !!p.isLeader || (this.leader?.id != null && p.id === this.leader.id),
+          isLeader:
+            !!p.isLeader ||
+            (this.leader?.id != null && p.id === this.leader.id),
         }));
 
         // messages는 Redis 형식 그대로 올 수도 있어서 최소 정규화
-        this.messages = (data.messages ?? this.room?.messages ?? []).map((m) => ({
-          type: m.type ?? "chat",
-          username: m.username ?? m.nickname ?? "Unknown",
-          message: m.message ?? m.content ?? "",
-          timestamp: m.timestamp ?? null,
-          user_id: m.user_id ?? null,
-        }));
+        this.messages = (data.messages ?? this.room?.messages ?? []).map(
+          (m) => ({
+            type: m.type ?? "chat",
+            username: m.username ?? m.nickname ?? "Unknown",
+            message: m.message ?? m.content ?? "",
+            timestamp: m.timestamp ?? null,
+            user_id: m.user_id ?? null,
+          })
+        );
       } catch (e) {
         this.roomError = e;
       } finally {
@@ -209,7 +220,9 @@ export const useKluvChatStore = defineStore("kluvChat", {
         }
 
         if (data.type === "participants") {
-          const incoming = Array.isArray(data.participants) ? data.participants : [];
+          const incoming = Array.isArray(data.participants)
+            ? data.participants
+            : [];
           const leaderId = this.leader?.id ?? null;
 
           const mapped = incoming.map((p) => ({
@@ -271,6 +284,21 @@ export const useKluvChatStore = defineStore("kluvChat", {
       }
     },
 
+    async fetchMeetingAlertLogs() {
+      this.alarmsLoading = true;
+      this.alarmsError = null;
+      try {
+        const data = await chatApi.fetchMeetingAlertLogs();
+        const list = data.alerts ?? [];
+        this.meetingAlertLogs = list.map(normalizeMeetingAlert);
+      } catch (e) {
+        this.alarmsError = e;
+        this.meetingAlertLogs = [];
+      } finally {
+        this.alarmsLoading = false;
+      }
+    },
+
     connectMeetingAlertsSocket() {
       this.disconnectMeetingAlertsSocket();
       this.alertsStatus = "connecting";
@@ -299,15 +327,22 @@ export const useKluvChatStore = defineStore("kluvChat", {
 
         // ✅ 중복 방지
         if (meetingId != null && hasId(this.shownMeetingIds, meetingId)) return;
-        if (meetingId != null) this.shownMeetingIds = addId(this.shownMeetingIds, meetingId);
+        if (meetingId != null)
+          this.shownMeetingIds = addId(this.shownMeetingIds, meetingId);
 
         const alert = normalizeMeetingAlert(data);
+        // push to both immediate alerts and logs
         this.meetingAlerts.unshift(alert);
+        this.meetingAlertLogs.unshift(alert);
 
         this.unread = true;
 
         if (this.meetingAlerts.length > 10) {
           this.meetingAlerts = this.meetingAlerts.slice(0, 10);
+        }
+        // trim logs to reasonable size (e.g., 50)
+        if (this.meetingAlertLogs.length > 50) {
+          this.meetingAlertLogs = this.meetingAlertLogs.slice(0, 50);
         }
       };
     },

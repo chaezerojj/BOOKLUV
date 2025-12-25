@@ -27,17 +27,30 @@
 
           <div class="right">
             <!-- room_slug 있으면 항상 입장 가능 -->
-            <RouterLink
-              v-if="a.room_slug"
-              class="enter"
-              :to="{ name: 'kluvtalk-chat-room', params: { roomSlug: a.room_slug } }"
-              @click="store.markAlarmsRead()"
-            >
+            <RouterLink v-if="a.room_slug" class="enter"
+              :to="{ name: 'kluvtalk-chat-room', params: { roomSlug: a.room_slug } }" @click="store.markAlarmsRead()">
               채팅방 입장
             </RouterLink>
 
             <!-- room_slug 없으면 안내만 -->
             <span v-else class="waiting">방 생성 대기</span>
+          </div>
+        </div <!-- 알림 로그(간단히 한줄로 쌓이는 기록) -->
+        <div class="logs-head">알림 로그</div>
+        <div class="logs">
+          <div v-if="store.meetingAlertLogs.length === 0" class="state empty">알림 로그가 없습니다.</div>
+          <div v-else class="log-list">
+            <div v-for="l in store.meetingAlertLogs" :key="l.created_at + '-' + l.meeting_id" class="log-item">
+              <RouterLink v-if="l.room_slug" :to="{ name: 'kluvtalk-chat-room', params: { roomSlug: l.room_slug } }"
+                @click="store.markAlarmsRead()">
+                <span class="log-time">{{ l.created_at ? l.created_at.substring(11, 16) : '' }}</span>
+                <span class="log-title">{{ l.title }}</span>
+              </RouterLink>
+              <div v-else class="log-row">
+                <span class="log-time">{{ l.created_at ? l.created_at.substring(11, 16) : '' }}</span>
+                <span class="log-title">{{ l.title }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -59,6 +72,7 @@ const onRefresh = async () => {
 
 onMounted(async () => {
   await store.fetchTodayMeetings();
+  await store.fetchMeetingAlertLogs();
   store.connectMeetingAlertsSocket();
 });
 
@@ -79,7 +93,7 @@ onBeforeUnmount(() => {
   border-radius: 16px;
   background: #fff;
   border: 1px solid #eee;
-  box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
   padding: 16px;
 }
 
@@ -105,6 +119,7 @@ onBeforeUnmount(() => {
   cursor: pointer;
   font-weight: 800;
 }
+
 .refresh:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -118,11 +133,13 @@ onBeforeUnmount(() => {
   color: #666;
   font-size: 13px;
 }
+
 .state.error {
   background: #fff5f5;
   border-color: #ffd6d6;
   color: #b42318;
 }
+
 .state.empty {
   text-align: center;
 }
@@ -148,6 +165,7 @@ onBeforeUnmount(() => {
   font-size: 14px;
   font-weight: 900;
 }
+
 .left .time {
   margin-top: 4px;
   font-size: 12px;
@@ -166,6 +184,7 @@ onBeforeUnmount(() => {
   font-weight: 900;
   font-size: 13px;
 }
+
 .enter:hover {
   filter: brightness(0.97);
 }
@@ -187,5 +206,43 @@ onBeforeUnmount(() => {
   margin: 12px 0 0;
   font-size: 12px;
   color: #888;
+}
+
+.logs-head {
+  margin-top: 14px;
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.logs {
+  margin-top: 8px;
+}
+
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.log-item,
+.log-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+}
+
+.log-time {
+  color: #888;
+  font-size: 12px;
+  width: 56px;
+}
+
+.log-title {
+  font-weight: 700;
 }
 </style>

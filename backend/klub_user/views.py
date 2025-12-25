@@ -315,6 +315,19 @@ def myroom_api(request):
             return "진행중"
         return "종료"
 
+    def _safe_iso(dt):
+        if not dt:
+            return None
+        try:
+            return timezone.localtime(dt).isoformat()
+        except Exception:
+            try:
+                # timezone-naive fallback
+                aware = timezone.make_aware(dt, timezone.get_default_timezone())
+                return timezone.localtime(aware).isoformat()
+            except Exception:
+                return dt.isoformat()
+
     results = []
     for p in participations:
         m = p.meeting_id
@@ -331,8 +344,8 @@ def myroom_api(request):
         results.append({
             "meeting_id": m.id,
             "title": m.title,
-            "started_at": timezone.localtime(m.started_at).isoformat() if m.started_at else None,
-            "finished_at": timezone.localtime(m.finished_at).isoformat() if m.finished_at else None,
+            "started_at": _safe_iso(m.started_at),
+            "finished_at": _safe_iso(m.finished_at),
             "status": status_label,
 
             "room_slug": room_slug,

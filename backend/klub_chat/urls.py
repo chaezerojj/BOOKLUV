@@ -16,4 +16,6 @@ urlpatterns = [
     # Vue용 JSON API 추가
     path("api/rooms/", api_views.rooms_api, name="rooms-api"),
     path("api/rooms/<slug:room_slug>/", api_views.room_detail_api, name="room-detail-api"),
+    # 알람 로그 (사용자별)
+    path("api/alarms/logs/", api_views.alarms_logs_api, name="alarms-logs-api"),
 ]

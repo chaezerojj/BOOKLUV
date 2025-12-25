@@ -9,56 +9,25 @@
     <div v-else-if="error" class="state error">목록을 불러오지 못했어요.</div>
 
     <div v-else class="sections">
-      <!-- 진행중 -->
       <section class="section">
         <div class="section-head">
-          <h3>진행중</h3><span class="count">{{ grouped.active.length }}</span>
+          <h3>나의 채팅방</h3><span class="count">{{ items.length }}</span>
         </div>
 
-        <div v-if="grouped.active.length === 0" class="empty">진행중인 채팅방이 없어요.</div>
+        <div v-if="items.length === 0" class="empty">목록을 불러오지 못했어요.</div>
 
-        <div class="cards">
-          <RouterLink v-for="item in grouped.active" :key="item.meeting_id" class="card" :to="toChat(item)">
-            <div class="badge active">진행중</div>
-            <div class="name">{{ item.title }}</div>
-            <div class="time">{{ formatRange(item.started_at, item.finished_at) }}</div>
-            <div class="cta">입장 →</div>
-          </RouterLink>
-        </div>
-      </section>
-
-      <!-- 진행전 -->
-      <section class="section">
-        <div class="section-head">
-          <h3>진행전</h3><span class="count">{{ grouped.soon.length }}</span>
-        </div>
-
-        <div v-if="grouped.soon.length === 0" class="empty">곧 시작할 채팅방이 없어요.</div>
-
-        <div class="cards">
-          <RouterLink v-for="item in grouped.soon" :key="item.meeting_id" class="card" :to="toChat(item)">
-            <div class="badge soon">진행전</div>
-            <div class="name">{{ item.title }}</div>
-            <div class="time">{{ formatRange(item.started_at, item.finished_at) }}</div>
-            <div class="cta">대기실 →</div>
-          </RouterLink>
-        </div>
-      </section>
-
-      <!-- 진행예정 -->
-      <section class="section">
-        <div class="section-head">
-          <h3>진행예정</h3><span class="count">{{ grouped.planned.length }}</span>
-        </div>
-
-        <div v-if="grouped.planned.length === 0" class="empty">예정된 모임이 없어요.</div>
-
-        <div class="cards">
-          <div v-for="item in grouped.planned" :key="item.meeting_id" class="card disabled" title="시작 10분 전부터 입장 가능해요.">
-            <div class="badge planned">진행예정</div>
-            <div class="name">{{ item.title }}</div>
-            <div class="time">{{ formatRange(item.started_at, item.finished_at) }}</div>
-            <div class="cta muted">방 준비중</div>
+        <div class="list">
+          <div v-for="item in items" :key="item.meeting_id" class="item">
+            <div class="left">
+              <div class="title">{{ item.title }}</div>
+              <div class="time">{{ item.started_at ? formatRange(item.started_at, item.finished_at) : '시간 정보 없음' }}
+              </div>
+            </div>
+            <div class="right">
+              <RouterLink v-if="item.can_enter && item.room_slug" :to="toChat(item)" class="enter">채팅방 입장</RouterLink>
+              <span v-else-if="item.status === '진행예정'" class="waiting">방 준비중</span>
+              <span v-else class="waiting">입장 불가</span>
+            </div>
           </div>
         </div>
       </section>
@@ -257,5 +226,49 @@ const formatRange = (startISO, endISO) => {
 
 .cta.muted {
   color: #888;
+}
+
+/* list style for my rooms */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #eee;
+}
+
+.left .title {
+  font-weight: 700;
+}
+
+.left .time {
+  color: #666;
+  font-size: .9rem;
+}
+
+.enter {
+  padding: 8px 10px;
+  background: #1a73e8;
+  color: #fff;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.waiting {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f3f3f3;
+  color: #777;
+  border: 1px solid #e6e6e6;
+  font-weight: 900;
 }
 </style>

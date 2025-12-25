@@ -29,4 +29,11 @@ export const chatApi = {
     });
     return res.data; // { meetings: [...] }
   },
+
+  async fetchMeetingAlertLogs() {
+    const res = await http.get("/api/v1/chat/api/alarms/logs/", {
+      headers: { Accept: "application/json" },
+    });
+    return res.data; // { alerts: [...] }
+  },
 };

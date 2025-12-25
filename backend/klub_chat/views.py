@@ -177,10 +177,20 @@ def today_meetings(request):
         except ObjectDoesNotExist:
             room = None
 
+        # safe started_at formatting
+        try:
+            started_at_str = timezone.localtime(m.started_at).strftime("%H:%M")
+        except Exception:
+            try:
+                aware = timezone.make_aware(m.started_at, timezone.get_default_timezone())
+                started_at_str = timezone.localtime(aware).strftime("%H:%M")
+            except Exception:
+                started_at_str = ""
+
         data.append({
             "meeting_id": m.id,
             "title": m.title,
-            "started_at": timezone.localtime(m.started_at).strftime("%H:%M"),
+            "started_at": started_at_str,
             "room_slug": room.slug if room else None,
             "join_url": f"/api/v1/chat/rooms/{room.slug}/" if room else "#",
         })

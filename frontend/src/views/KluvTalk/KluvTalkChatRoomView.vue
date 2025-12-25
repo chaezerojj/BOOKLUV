@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <div class="head">
-      <RouterLink class="back" :to="{ name: 'kluvtalk-chat-list' }">← 목록</RouterLink>
+      <RouterLink class="back" :to="{ name: 'mypage-mykluv' }">← 목록</RouterLink>
       <div class="title">
         <h1 class="h1">{{ store.room?.name ?? "대기실" }}</h1>
         <p class="sub" v-if="store.meeting">

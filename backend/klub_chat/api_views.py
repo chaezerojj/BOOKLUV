@@ -181,6 +181,45 @@ def room_detail_api(request, room_slug):
     return Response(payload)
 
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def alarms_logs_api(request):
+    """
+    GET /api/v1/chat/api/alarms/logs/
+    Return MeetingAlert logs for the authenticated user (most recent first)
+    """
+    user = request.user
+    alerts = (
+        MeetingAlert.objects
+        .filter(user=user)
+        .select_related("meeting", "meeting__room")
+        .order_by("-created_at")
+    )
+
+    data = []
+    for a in alerts:
+        m = a.meeting
+        room = getattr(m, "room", None)
+        try:
+            created = timezone.localtime(a.created_at).isoformat()
+        except Exception:
+            try:
+                aware = timezone.make_aware(a.created_at, timezone.get_default_timezone())
+                created = timezone.localtime(aware).isoformat()
+            except Exception:
+                created = a.created_at.isoformat()
+
+        data.append({
+            "meeting_id": m.id if m else None,
+            "title": m.title if m else "",
+            "created_at": created,
+            "room_slug": room.slug if room else None,
+            "join_url": f"/api/v1/chat/rooms/{room.slug}/" if room else "#",
+        })
+
+    return Response({"alerts": data})
+
+
 def _parse_dt(value):
     if not value:
         return None

@@ -64,11 +64,22 @@ def send_today_meeting_alarms(meeting_id):
     except Meeting.DoesNotExist:
         return
 
-    if not MeetingAlert.objects.filter(meeting=meeting).exists():
-        MeetingAlert.objects.create(
-            meeting=meeting,
-            user=meeting.leader_id
-        )
+    # Create MeetingAlert records for leader and confirmed participants
+    users_to_alert = set()
+    if meeting.leader_id:
+        users_to_alert.add(meeting.leader_id.id)
+
+    participant_qs = meeting.participations.filter(result=True).select_related('user_id')
+    for p in participant_qs:
+        if p.user_id:
+            users_to_alert.add(p.user_id.id)
+
+    for user_id in users_to_alert:
+        try:
+            MeetingAlert.objects.get_or_create(meeting=meeting, user_id=user_id)
+        except Exception:
+            # ignore (e.g., race conditions or integrity errors)
+            pass
 
     channel_layer = get_channel_layer()
 
