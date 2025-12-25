@@ -1,12 +1,12 @@
 import json
-from django.shortcuts import get_object_or_404
+from django.shortcuts import render
 from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-
 from klub_talk.models import Book, Category
+from klub_user.models import User
 from .models import ReadingPreference, RecommendationResult
 from .services.openai_client import get_ai_recommendation
+from rest_framework.response import Response
+from rest_framework import status
 
 GENRE_MAP = {
     "A": "소설/시/희곡",
@@ -15,6 +15,9 @@ GENRE_MAP = {
     "D": "SF/판타지/추리",
 }
 
+@api_view(["GET"])
+def quiz_view(request):
+    return render(request, "recommend/quiz.html")
 @api_view(["POST"])
 def result_view(request):
     """
