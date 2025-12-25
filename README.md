@@ -28,8 +28,16 @@
 | ![김수미](https://github.com/user-attachments/assets/3f2322b3-12be-4ce0-b268-69a7c2f13c62) | Backend | - OAuth 2.0 기반 Kakao 소셜 로그인 인증 시스템 구현 / 마이페이지, 자유게시판 및 댓글 구현 |
 | ![엄송현](https://github.com/user-attachments/assets/ad19a243-e8d1-4cc6-bcf2-7ec4c3cb8db7) | Backend | - WebSocket, Redis 기반 실시간 채팅 구현 / WebSocket, Celery 기반 실시간 알림 구현 / Railway 배포 |
 
-## 커밋 규칙
-<img width="319" height="290" alt="스크린샷 2025-12-25 오후 7 29 40" src="https://github.com/user-attachments/assets/e453b193-e212-42d8-9f70-437bc2fad0fd" />
+## 커밋 규칙 및 이행 화면
+### 📌 Git rules
+
+- `feat` : 새로운 기능 추가
+- `fix` : 버그 수정
+- `refactor` : 코드 리팩터링 (기능 변경 없음)
+- `style` : CSS, UI 스타일 작업
+- `docs` : 문서 수정(README 등)
+- `test` : 테스트 코드 수정
+- `chore` :	빌드/의존성/기타 작업
 <img width="623" height="406" alt="스크린샷 2025-12-25 오후 7 21 33" src="https://github.com/user-attachments/assets/3e2fa48b-ee2e-4263-82f3-1a3b909a8ad3" />
 
 ## 기술스택
