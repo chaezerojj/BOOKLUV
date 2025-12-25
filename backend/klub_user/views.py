@@ -205,6 +205,7 @@ def myroom(request):
     )
 
     room_infos = []
+    seen_meeting_ids = set()
     now = timezone.localtime()
 
     for p in participations:
@@ -230,6 +231,38 @@ def myroom(request):
                 "is_active": is_active,
             }
         )
+        seen_meeting_ids.add(meeting.id)
+
+    # 또한 사용자가 만든(리더인) 모임도 포함시켜서, 방장도 본인의 모임을 확인할 수 있게 함
+    leader_meetings = (
+        Participate.objects
+        .none()  # placeholder for import-safety; we'll query Meeting directly below
+    )
+    try:
+        from klub_talk.models import Meeting
+        leader_meetings = Meeting.objects.filter(leader_id=request.user).select_related("room")
+    except Exception:
+        leader_meetings = []
+
+    for m in leader_meetings:
+        if not m or m.id in seen_meeting_ids:
+            continue
+        room = getattr(m, "room", None)
+        if not room:
+            continue
+
+        if not m.started_at or not m.finished_at:
+            is_active = False
+        else:
+            is_active = m.started_at <= now <= m.finished_at
+
+        room_infos.append({
+            "room_name": room.name,
+            "started_at": m.started_at,
+            "finished_at": m.finished_at,
+            "is_active": is_active,
+        })
+        seen_meeting_ids.add(m.id)
 
     return render(request, "auth/myroom.html", {"room_infos": room_infos})
 
@@ -268,6 +301,8 @@ def myroom_api(request):
     )
 
     results = []
+    seen_meeting_ids = set()
+
     for p in participations:
         meeting = p.meeting
         room = getattr(meeting, "room", None)
@@ -293,5 +328,41 @@ def myroom_api(request):
             "finished_at": finished_local.isoformat() if finished_local else None,
             "is_active": is_active,
         })
+        seen_meeting_ids.add(meeting.id)
+
+    # Include meetings where the user is the leader (so leaders can see their own rooms)
+    try:
+        from klub_talk.models import Meeting
+        leader_meetings = Meeting.objects.filter(leader_id=request.user).select_related("room").order_by("started_at")
+    except Exception:
+        leader_meetings = []
+
+    for m in leader_meetings:
+        if not m or m.id in seen_meeting_ids:
+            continue
+        room = getattr(m, "room", None)
+        if not room:
+            continue
+
+        started_local = timezone.localtime(m.started_at) if m.started_at else None
+        finished_local = timezone.localtime(m.finished_at) if m.finished_at else None
+
+        is_active = False
+        if started_local and finished_local:
+            is_active = started_local <= now <= finished_local
+
+        results.append({
+            "meeting_id": m.id,
+            "title": m.title,
+            "room_name": getattr(room, "name", None),
+            "room_slug": getattr(room, "slug", None),
+            "started_at": started_local.isoformat() if started_local else None,
+            "finished_at": finished_local.isoformat() if finished_local else None,
+            "is_active": is_active,
+        })
+        seen_meeting_ids.add(m.id)
+
+    # sort by started_at asc (None -> put at end)
+    results.sort(key=lambda x: x.get("started_at") or "")
 
     return Response({"results": results}, status=status.HTTP_200_OK)

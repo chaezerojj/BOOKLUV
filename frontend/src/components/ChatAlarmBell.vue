@@ -76,7 +76,7 @@ function fmtDate(iso) {
   const day = String(d.getDate()).padStart(2, '0');
   const hh = String(d.getHours()).padStart(2, '0');
   const mm = String(d.getMinutes()).padStart(2, '0');
-  return `${y}년 ${m}월 ${day}일 ${hh}:${mm}`;
+  return `${y}.${m}.${day} ${hh}:${mm}`;
 }
 
 const onRefresh = async () => {
