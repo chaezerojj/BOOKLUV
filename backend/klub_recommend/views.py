@@ -2,8 +2,7 @@ import json
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from klub_talk.models import Book, Category
-from rest_framework.decorators import api_view, renderer_classes  # renderer_classes 추가
-from rest_framework.renderers import JSONRenderer              # JSONRenderer 추가
+from rest_framework.decorators import api_view
 from .models import ReadingPreference, RecommendationResult
 from .services.openai_client import get_ai_recommendation
 from rest_framework.response import Response
@@ -35,7 +34,6 @@ GENRE_MAP = {
 }
 
 @api_view(["GET", "POST"])
-@renderer_classes([JSONRenderer])
 def result_view(request):
     if request.method == "GET":
         return render(request, "recommend/quiz.html")
