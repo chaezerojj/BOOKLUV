@@ -27,18 +27,25 @@
 
           <ul v-else class="list">
             <li v-for="m in store.meetings" :key="m.id" class="item">
-              <div>
+              <div class="m-left">
                 <div class="m-title">{{ m.title }}</div>
-                <div class="m-meta">멤버 수: {{ m.members }} · 조회수: {{ m.views }}</div>
+                <div class="m-meta">
+                  <span class="meta-badge">👥 {{ m.members ?? '-' }}</span>
+                  <span class="meta-badge">👁️ {{ m.views ?? 0 }}</span>
+                </div>
                 <div class="m-desc">{{ m.description }}</div>
               </div>
 
-              <RouterLink class="btn" :to="{ name: 'kluvtalk-detail', params: { id: m.id } }">
-                자세히 보기
-              </RouterLink>
+              <div class="m-right">
+                <RouterLink class="btn small" :to="{ name: 'kluvtalk-detail', params: { id: m.id } }">
+                  자세히 보기
+                </RouterLink>
+              </div>
             </li>
           </ul>
-          <RouterLink :to="{ name: 'kluvtalk-create', query: { bookId: store.book.id } }" class="create-kluvtalk">
+
+          <RouterLink :to="{ name: 'kluvtalk-create', query: { bookId: store.book.id } }"
+            class="create-kluvtalk btn primary">
             이 책으로 모임 만들기
           </RouterLink>
         </section>
@@ -139,43 +146,104 @@ watch(() => route.params.id, load)
   list-style: none;
   padding: 0;
   margin: 12px 0 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
 .item {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 16px;
+  align-items: center;
+  background: linear-gradient(180deg, #fff 0%, #fbfdff 100%);
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid #eef5ff;
+  box-shadow: 0 6px 18px rgba(38, 86, 196, 0.04);
+}
+
+.m-left {
+  min-width: 0;
+}
+
+.m-right {
   display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  background: #fff;
-  padding: 14px;
-  border-radius: 12px;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .btn {
   align-self: center;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: 10px;
   background: #2d6cdf;
   color: #fff;
   text-decoration: none;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(45, 108, 223, 0.12);
+}
+
+.btn.small {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.create-kluvtalk.btn.primary {
+  display: inline-block;
+  margin-top: 18px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #ffd86a, #ffb74d);
+  color: #111;
+  font-weight: 900;
+  border: 1px solid rgba(0, 0, 0, 0.03);
 }
 
 .m-title {
-  font-weight: 700;
-  margin-bottom: 6px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  font-size: 16px;
 }
 
 .m-meta {
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 6px;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f4f8ff;
+  color: #2754b6;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 13px;
+  border: 1px solid #e6f0ff;
 }
 
 .m-desc {
-  font-size: 13px;
-  color: #444;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .item {
+    grid-template-columns: 1fr;
+  }
+
+  .m-right {
+    justify-content: flex-start;
+  }
+
+  .create-kluvtalk.btn.primary {
+    width: 100%;
+    text-align: center;
+  }
 }
 
 .empty {
