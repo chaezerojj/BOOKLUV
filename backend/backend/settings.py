@@ -168,13 +168,14 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://*.railway.app"
     "https://bookluv.netlify.app",
+    "https://*.railway.app",
     "https://*.netlify.app",
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https:\/\/.*\.railway\.app$",
+    r"^https:\/\/.*\.netlify\.app$",
 ]
 
 # 13. 국제화 설정
@@ -186,18 +187,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # 14. 실서비스 보안 설정 (HTTPS 전용)
 if not DEBUG:
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = True
+
+    # cross-site cookie 허용 (세션/CSRF)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    # Allow cross-site cookies for session and CSRF when frontend is on different origin
-    SESSION_COOKIE_SAMESITE = 'None'
-    CSRF_COOKIE_SAMESITE = 'None'
-    
-SESSION_COOKIE_SAMESITE = "None"
-CSRF_COOKIE_SAMESITE = "None"
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = "None"
+    CSRF_COOKIE_SAMESITE = "None"
+else:
+    # 로컬(http) 개발 편하게
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SAMESITE = "Lax"
+    CSRF_COOKIE_SAMESITE = "Lax"
 
 # GMS API 등 외부 서비스 설정
 GMS_API_KEY = os.getenv("GMS_KEY")
