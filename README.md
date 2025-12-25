@@ -28,7 +28,9 @@
 | ![김수미](https://github.com/user-attachments/assets/3f2322b3-12be-4ce0-b268-69a7c2f13c62) | Backend | - OAuth 2.0 기반 Kakao 소셜 로그인 인증 시스템 구현 / 마이페이지, 자유게시판 및 댓글 구현 |
 | ![엄송현](https://github.com/user-attachments/assets/ad19a243-e8d1-4cc6-bcf2-7ec4c3cb8db7) | Backend | - WebSocket, Redis 기반 실시간 채팅 구현 / WebSocket, Celery 기반 실시간 알림 구현 / Railway 배포 |
 
-## 성과
+## 커밋 규칙
+<img width="319" height="290" alt="스크린샷 2025-12-25 오후 7 29 40" src="https://github.com/user-attachments/assets/e453b193-e212-42d8-9f70-437bc2fad0fd" />
+<img width="623" height="406" alt="스크린샷 2025-12-25 오후 7 21 33" src="https://github.com/user-attachments/assets/3e2fa48b-ee2e-4263-82f3-1a3b909a8ad3" />
 
 ## 기술스택
 ### Frontend
@@ -103,9 +105,25 @@ backend/
 
 ## 기능 상세 설명 및 화면
 ### 1. 메인 페이지
-### 2. AI 기반 추천 기능
+### 2. 카카오 API 기반의 소셜 로그인 / 회원가입
+- 카카오 소셜 로그인 API 기반의 토큰 인증 로그인 기능
+
+### 2. AI 기반 도서 추천 기능
+- GPT-4o-mini API 기반의 도서 추천 기능
+
 ### 3. 알라딘 API 기반 도서 목록
+- Aladin 도서 검색 및 상품 목록 API 기반의 데이터셋 활용
+
 ### 4. 모임방 목록 및 참가 신청
+- 도서 데이터셋 기반의 독서 모임 CRUD
+  
 ### 5. 실시간 알림 및 다대다 채팅
-### 7. 자유게시판 및 댓글 CRUD
+- WebSocket, Redis, Celery 기반의 실시간 알람 및  채팅 기능
+
+### 6. 자유게시판 및 댓글 CRUD
+- 유저들의 소통을 위한 게시판 및 댓글 CRUD
+
+### 7. 마이페이지 및 회원정보 수정
+- 회원정보 수정 및 현재 참여중인 채팅방 목록
+
 
