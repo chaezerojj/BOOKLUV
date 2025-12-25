@@ -1,29 +1,30 @@
-from django.conf import settings
-from django.shortcuts import render, redirect
-from django.http import JsonResponse
-from django.contrib.auth import get_user_model, login, logout
-from django.contrib.auth.decorators import login_required
-from django.utils import timezone
+from datetime import timedelta
 
 import requests
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-
-from klub_talk.models import Participate, Meeting
-from klub_chat.models import Room
-
+from django.conf import settings
+from django.contrib.auth import get_user_model, login, logout
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.http import JsonResponse
 from django.middleware.csrf import get_token
+from django.shortcuts import redirect, render
+from django.utils import timezone
+from django.utils.text import slugify
 from django.views.decorators.csrf import ensure_csrf_cookie
-from rest_framework.permissions import AllowAny
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+
+from klub_chat.models import Room
+from klub_talk.models import Participate
 
 User = get_user_model()
 
 KAKAO_REST_API_KEY = settings.KAKAO_REST_API_KEY
 KAKAO_REDIRECT_URI = settings.KAKAO_REDIRECT_URI
 KAKAO_CLIENT_SECRET = settings.KAKAO_CLIENT_SECRET
+
 
 def auth_login(request):
     """
@@ -46,7 +47,7 @@ def kakao_callback(request):
     - kakao_id 기준으로 유저 생성/조회
     - 세션 로그인
     - state(프론트에서 next 목적지로 사용) 있으면 그쪽으로 redirect
-        없으면 FRONT_URL + "/"
+      없으면 FRONT_URL + "/"
     """
     code = request.GET.get("code")
     if not code:
@@ -144,19 +145,12 @@ def me(request):
 
     # 수정 (PATCH)
     nickname = request.data.get("nickname", None)
-
     if nickname is None:
-        return Response(
-            {"detail": "nickname is required"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return Response({"detail": "nickname is required"}, status=status.HTTP_400_BAD_REQUEST)
 
     nickname = str(nickname).strip()
     if len(nickname) == 0:
-        return Response(
-            {"detail": "nickname cannot be empty"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return Response({"detail": "nickname cannot be empty"}, status=status.HTTP_400_BAD_REQUEST)
 
     user.nickname = nickname
     user.save(update_fields=["nickname"])
@@ -214,15 +208,22 @@ def myroom(request):
     )
 
     room_infos = []
-    now = timezone.now()
+    now = timezone.localtime()
 
     for p in participations:
         meeting = p.meeting_id
+        if not meeting:
+            continue
+
         room = getattr(meeting, "room", None)
         if not room:
             continue
 
-        is_active = meeting.started_at <= now <= meeting.finished_at
+        # ✅ started_at/finished_at NULL 안전 처리
+        if not meeting.started_at or not meeting.finished_at:
+            is_active = False
+        else:
+            is_active = meeting.started_at <= now <= meeting.finished_at
 
         room_infos.append(
             {
@@ -243,6 +244,15 @@ def csrf(request):
     # csrftoken 쿠키를 심고, 토큰 값을 body로도 내려줌
     return Response({"csrfToken": get_token(request)})
 
+
+# =========================
+# ✅ 마이페이지 "나의 채팅방" JSON API
+# - 진행예정 / 진행전(10분 이내) / 진행중 분류
+# - 시작 10분 전~종료 전이면 Room 자동 생성
+# - ✅ Participate에 result 필드가 없어도 500 안 나게 (result 필터 제거)
+# - ✅ started_at/finished_at NULL 안전 처리
+# =========================
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def myroom_api(request):
@@ -251,77 +261,81 @@ def myroom_api(request):
 
     participations = (
         Participate.objects
-        .filter(user_id=user, result=True)  # result=True면 확정 참여만 (너희 정책에 맞게 조정)
+        .filter(user_id=user)  # ✅ result=True 제거
         .select_related("meeting_id", "meeting_id__room")
         .order_by("meeting_id__started_at")
     )
 
-    # ✅ (선택) 시작 10분 전~종료 전이면 room 없을 때 자동 생성
+    # 1) 시작 10분 전~종료 전 구간이면 room 자동 생성(시작/종료 시간이 있을 때만)
     ten_minutes_later = now + timedelta(minutes=10)
-
     meetings_to_create = []
+
     for p in participations:
         m = p.meeting_id
-        if not m.started_at or not m.finished_at:
+        if not m or not m.started_at or not m.finished_at:
             continue
-        if m.started_at <= ten_minutes_later and m.finished_at >= now:
-            if not getattr(m, "room", None):
-                meetings_to_create.append(m)
+
+        should_have_room = (m.started_at <= ten_minutes_later and m.finished_at >= now)
+        has_room = getattr(m, "room", None) is not None
+
+        if should_have_room and not has_room:
+            meetings_to_create.append(m)
 
     if meetings_to_create:
         with transaction.atomic():
             for m in meetings_to_create:
-                # slug 규칙은 프로젝트에서 쓰는 방식에 맞춰도 됨
-                new_slug = f"{slugify(m.title)}-{m.id}"
+                safe_title = m.title or "meeting"
+                new_slug = f"{slugify(safe_title)}-{m.id}"
+
                 Room.objects.get_or_create(
                     meeting=m,
-                    defaults={"name": m.title, "slug": new_slug},
+                    defaults={"name": safe_title, "slug": new_slug},
                 )
 
-    # room 생성 후 최신 room 연결을 보장하려면 다시 select_related로 조회
+    # 2) room 생성 반영 위해 재조회
     participations = (
         Participate.objects
-        .filter(user_id=user, result=True)
+        .filter(user_id=user)
         .select_related("meeting_id", "meeting_id__room")
         .order_by("meeting_id__started_at")
     )
 
-    def calc_status(meeting):
-        if not meeting.started_at or not meeting.finished_at:
+    def calc_status(m):
+        # 시간이 없으면 일단 예정 처리
+        if not m.started_at or not m.finished_at:
             return "진행예정"
 
-        open_at = meeting.started_at - timedelta(minutes=10)
+        open_at = m.started_at - timedelta(minutes=10)
 
         if now < open_at:
             return "진행예정"
-        if open_at <= now < meeting.started_at:
+        if open_at <= now < m.started_at:
             return "진행전"
-        if meeting.started_at <= now <= meeting.finished_at:
+        if m.started_at <= now <= m.finished_at:
             return "진행중"
         return "종료"
 
     results = []
     for p in participations:
         m = p.meeting_id
-        room = getattr(m, "room", None)
+        if not m:
+            continue
 
         status_label = calc_status(m)
         if status_label == "종료":
-            continue  # 종료를 마이페이지에서 숨기고 싶으면 유지 / 보여주려면 제거
+            continue  # 종료도 보여주려면 삭제
+
+        room = getattr(m, "room", None)
+        room_slug = getattr(room, "slug", None) if room else None
 
         results.append({
             "meeting_id": m.id,
             "title": m.title,
             "started_at": timezone.localtime(m.started_at).isoformat() if m.started_at else None,
             "finished_at": timezone.localtime(m.finished_at).isoformat() if m.finished_at else None,
-
             "status": status_label,
 
-            # ✅ 채팅방 이동에 필요
-            "room_name": room.name if room else None,
-            "room_slug": room.slug if room else None,
-
-            # ✅ 카드 클릭 가능 여부
+            "room_slug": room_slug,
             "can_enter": (room is not None and status_label in ["진행전", "진행중"]),
             "can_chat": (status_label == "진행중"),
         })

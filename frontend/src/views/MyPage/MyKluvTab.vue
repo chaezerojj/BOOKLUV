@@ -69,7 +69,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue"
 import { useRouter } from "vue-router"
-import http from "@/api/http" // axios 인스턴스(세션이면 withCredentials 필수)
+import { http } from "@/api/http" // axios 인스턴스(세션이면 withCredentials 필수)
 
 const router = useRouter()
 
