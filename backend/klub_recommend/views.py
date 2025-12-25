@@ -33,40 +33,37 @@ GENRE_MAP = {
 }
 
 @api_view(["GET", "POST"])
-@renderer_classes([JSONRenderer]) # 브라우저 UI를 끄고 JSON만 반환
+@renderer_classes([JSONRenderer])
 def result_view(request):
     if request.method == "GET":
         return render(request, "recommend/quiz.html")
 
     data = request.data or request.POST
     
-    # 1. 사용자 응답 수집
-    quiz_answers = {
-        "목적": data.get("q1"),
-        "신간_고전": data.get("q2"),
-        "선호_장르": data.get("q4"), # 'novel', 'essay' 등이 들어옴
-        "분량": data.get("q7"),
-        "독서스타일": data.get("q8"),
-        "필요한책": data.get("q10"),
-    }
-
-    # 2. 장르 매핑 확인
-    selected_genre_key = quiz_answers["선호_장르"]
+    # 4번 문항 선택값 가져오기
+    selected_genre_key = data.get("q4") 
     category_name = GENRE_MAP.get(selected_genre_key)
 
+    # 1. 카테고리 유효성 검사
     if not category_name:
-        return Response({"error": "올바르지 않은 장르 선택입니다."}, status=400)
+        return Response({
+            "ai_reason": "장르 선택값이 올바르지 않습니다.",
+            "books": []
+        }, status=400)
 
-    # 3. DB 필터링
-    # Category 모델의 name 필드와 category_name을 매칭
+    # 2. DB 조회 (PostgreSQL의 klub_talk_category 참조)
     categories = Category.objects.filter(name=category_name)
-    print(f"~~~~~~~{categories}")
+    print(f"DEBUG: Selected Category Name -> {category_name}")
+    print(f"DEBUG: Found Categories -> {categories}")
+
     all_candidate_books = Book.objects.filter(category_id__in=categories)
+
+    # 3. 도서 존재 여부 체크
     if not all_candidate_books.exists():
-        return render(request, "recommend/result.html", {
-            "results": [],
-            "ai_reason": "현재 추천 가능한 도서가 없습니다."
-        })
+        return Response({
+            "ai_reason": f"죄송합니다. '{category_name}' 장르에 해당하는 도서 데이터가 없습니다.",
+            "books": []
+        }, status=200)
 
     # ✅ 기본 fallback
     final_book = all_candidate_books.first()
