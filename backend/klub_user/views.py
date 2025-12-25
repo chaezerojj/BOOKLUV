@@ -256,118 +256,113 @@ def csrf(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def myroom_api(request):
-    user = request.user
-    now = timezone.localtime()
+    try:
+        user = request.user
+        now = timezone.localtime()
 
-    participations = (
-        Participate.objects
-        .filter(user_id=user)  # ✅ result=True 제거
-        .select_related("meeting_id", "meeting_id__room")
-        .order_by("meeting_id__started_at")
-    )
+        participations = (
+            Participate.objects
+            .filter(user_id=user)
+            .select_related("meeting_id", "meeting_id__room")
+            .order_by("meeting_id__started_at")
+        )
 
-    # helper: make datetime timezone-aware and return localtime-aware datetime
-    def _ensure_aware(dt):
-        if not dt:
-            return None
-        try:
+        def _ensure_aware(dt):
+            if not dt:
+                return None
             if timezone.is_naive(dt):
                 dt = timezone.make_aware(dt, timezone.get_default_timezone())
             return timezone.localtime(dt)
-        except Exception:
-            return None
 
-    # 1) 시작 10분 전~종료 전 구간이면 room 자동 생성(시작/종료 시간이 있을 때만)
-    ten_minutes_later = now + timedelta(minutes=10)
-    meetings_to_create = []
+        ten_minutes_later = now + timedelta(minutes=10)
+        meetings_to_create = []
 
-    for p in participations:
-        m = p.meeting_id
-        if not m:
-            continue
+        for p in participations:
+            m = p.meeting_id
+            if not m:
+                continue
 
-        m_started = _ensure_aware(m.started_at)
-        m_finished = _ensure_aware(m.finished_at)
-        if not m_started or not m_finished:
-            continue
+            m_started = _ensure_aware(m.started_at)
+            m_finished = _ensure_aware(m.finished_at)
+            if not m_started or not m_finished:
+                continue
 
-        should_have_room = (m_started <= ten_minutes_later and m_finished >= now)
-        has_room = getattr(m, "room", None) is not None
+            should_have_room = (m_started <= ten_minutes_later and m_finished >= now)
+            has_room = getattr(m, "room", None) is not None
 
-        if should_have_room and not has_room:
-            meetings_to_create.append(m)
+            if should_have_room and not has_room:
+                meetings_to_create.append(m)
 
-    if meetings_to_create:
-        with transaction.atomic():
-            for m in meetings_to_create:
-                safe_title = m.title or "meeting"
-                new_slug = f"{slugify(safe_title)}-{m.id}"
+        if meetings_to_create:
+            with transaction.atomic():
+                for m in meetings_to_create:
+                    safe_title = m.title or "meeting"
+                    new_slug = f"{slugify(safe_title)}-{m.id}"
+                    Room.objects.get_or_create(
+                        meeting=m,
+                        defaults={"name": safe_title, "slug": new_slug},
+                    )
 
-                Room.objects.get_or_create(
-                    meeting=m,
-                    defaults={"name": safe_title, "slug": new_slug},
-                )
+        participations = (
+            Participate.objects
+            .filter(user_id=user)
+            .select_related("meeting_id", "meeting_id__room")
+            .order_by("meeting_id__started_at")
+        )
 
-    # 2) room 생성 반영 위해 재조회
-    participations = (
-        Participate.objects
-        .filter(user_id=user)
-        .select_related("meeting_id", "meeting_id__room")
-        .order_by("meeting_id__started_at")
-    )
+        def calc_status(m):
+            m_started = _ensure_aware(m.started_at)
+            m_finished = _ensure_aware(m.finished_at)
+            if not m_started or not m_finished:
+                return "진행예정"
 
-    def calc_status(m):
-        # 시간이 없으면 일단 예정 처리
-        m_started = _ensure_aware(m.started_at)
-        m_finished = _ensure_aware(m.finished_at)
-        if not m_started or not m_finished:
-            return "진행예정"
+            open_at = m_started - timedelta(minutes=10)
+            if now < open_at:
+                return "진행예정"
+            if open_at <= now < m_started:
+                return "진행전"
+            if m_started <= now <= m_finished:
+                return "진행중"
+            return "종료"
 
-        open_at = m_started - timedelta(minutes=10)
-
-        if now < open_at:
-            return "진행예정"
-        if open_at <= now < m_started:
-            return "진행전"
-        if m_started <= now <= m_finished:
-            return "진행중"
-        return "종료"
-    def _safe_iso(dt):
-        if not dt:
-            return None
-        try:
-            return timezone.localtime(dt).isoformat()
-        except Exception:
+        def _safe_iso(dt):
+            if not dt:
+                return None
             try:
-                # timezone-naive fallback
+                return timezone.localtime(dt).isoformat()
+            except Exception:
                 aware = timezone.make_aware(dt, timezone.get_default_timezone())
                 return timezone.localtime(aware).isoformat()
-            except Exception:
-                return dt.isoformat()
 
-    results = []
-    for p in participations:
-        m = p.meeting_id
-        if not m:
-            continue
+        results = []
+        for p in participations:
+            m = p.meeting_id
+            if not m:
+                continue
 
-        status_label = calc_status(m)
-        if status_label == "종료":
-            continue  # 종료도 보여주려면 삭제
+            status_label = calc_status(m)
+            if status_label == "종료":
+                continue
 
-        room = getattr(m, "room", None)
-        room_slug = getattr(room, "slug", None) if room else None
+            room = getattr(m, "room", None)
+            room_slug = getattr(room, "slug", None) if room else None
 
-        results.append({
-            "meeting_id": m.id,
-            "title": m.title,
-            "started_at": _safe_iso(m.started_at),
-            "finished_at": _safe_iso(m.finished_at),
-            "status": status_label,
+            results.append({
+                "meeting_id": m.id,
+                "title": m.title,
+                "started_at": _safe_iso(m.started_at),
+                "finished_at": _safe_iso(m.finished_at),
+                "status": status_label,
+                "room_slug": room_slug,
+                "can_enter": (room is not None and status_label in ["진행전", "진행중"]),
+                "can_chat": (status_label == "진행중"),
+            })
 
-            "room_slug": room_slug,
-            "can_enter": (room is not None and status_label in ["진행전", "진행중"]),
-            "can_chat": (status_label == "진행중"),
-        })
+        return Response({"results": results}, status=status.HTTP_200_OK)
 
-    return Response({"results": results}, status=status.HTTP_200_OK)
+    except Exception as e:
+        # ✅ 이걸로 브라우저/Network에서 바로 원인 확인 가능
+        return Response(
+            {"detail": "myroom_api failed", "error": repr(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
