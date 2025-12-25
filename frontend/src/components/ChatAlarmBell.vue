@@ -3,10 +3,11 @@
   <div class="page">
     <div class="card">
       <div class="head">
-        <h3 class="title">최근 미팅 알람</h3>
+        <h3 class="title">🔔 최근 미팅 알람 🔔</h3>
 
-        <button class="refresh" type="button" @click="onRefresh" :disabled="store.alarmsLoading">
-          {{ store.alarmsLoading ? "불러오는 중..." : "새로고침" }}
+        <button class="refresh" type="button" @click="onRefresh" :disabled="store.alarmsLoading"
+          :title="store.alarmsLoading ? '불러오는 중...' : '새로고침'" aria-label="새로고침">
+          <img src="@/assets/images/replay.png" alt="새로고침" class="replay-icon" />
         </button>
       </div>
 
@@ -22,7 +23,7 @@
         <div v-for="a in store.meetingAlerts" :key="a.meeting_id" class="item">
           <div class="left">
             <div class="name">{{ a.title }}</div>
-            <div class="time">{{ a.started_at }} 시작</div>
+            <div class="time">{{ fmtDate(a.started_at) }} 시작</div>
           </div>
 
           <div class="right">
@@ -43,11 +44,11 @@
             <div v-for="l in store.meetingAlertLogs" :key="l.created_at + '-' + l.meeting_id" class="log-item">
               <RouterLink v-if="l.room_slug" :to="{ name: 'kluvtalk-chat-room', params: { roomSlug: l.room_slug } }"
                 @click="store.markAlarmsRead()">
-                <span class="log-time">{{ l.created_at ? l.created_at.substring(11, 16) : '' }}</span>
+                <span class="log-time">{{ fmtDate(l.created_at) }}</span>
                 <span class="log-title">{{ l.title }}</span>
               </RouterLink>
               <div v-else class="log-row">
-                <span class="log-time">{{ l.created_at ? l.created_at.substring(11, 16) : '' }}</span>
+                <span class="log-time">{{ fmtDate(l.created_at) }}</span>
                 <span class="log-title">{{ l.title }}</span>
               </div>
             </div>
@@ -65,6 +66,18 @@ import { onBeforeUnmount, onMounted } from "vue";
 import { useKluvChatStore } from "@/stores/kluvChat";
 
 const store = useKluvChatStore();
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${y}년 ${m}월 ${day}일 ${hh}:${mm}`;
+}
 
 const onRefresh = async () => {
   await store.fetchTodayMeetings();
@@ -89,12 +102,14 @@ onBeforeUnmount(() => {
 }
 
 .card {
-  width: 520px;
+  width: 700px;
   border-radius: 16px;
   background: #fff;
   border: 1px solid #eee;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
   padding: 16px;
+  margin: 0 auto;
+  margin-top: 3.5rem;
 }
 
 .head {
@@ -106,23 +121,44 @@ onBeforeUnmount(() => {
 }
 
 .title {
-  margin: 0;
+  margin: 1.5rem 0;
+  margin-left: 1rem;
   font-size: 15px;
   font-weight: 900;
+  font-size: 18px;
 }
 
 .refresh {
-  border: 1px solid #e6e6e6;
-  background: #fff;
-  padding: 8px 12px;
-  border-radius: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 8px;
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
   cursor: pointer;
-  font-weight: 800;
 }
 
 .refresh:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+  pointer-events: none;
+}
+
+.replay-icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.refresh:hover .replay-icon {
+  transform: rotate(-20deg);
+}
+
+.refresh:active .replay-icon {
+  transform: scale(0.96);
 }
 
 .state {
@@ -159,6 +195,7 @@ onBeforeUnmount(() => {
   border-radius: 14px;
   background: #f6fbff;
   border-left: 4px solid #1a73e8;
+  margin-left: 0.5rem;
 }
 
 .left .name {
@@ -239,7 +276,8 @@ onBeforeUnmount(() => {
 .log-time {
   color: #888;
   font-size: 12px;
-  width: 56px;
+  width: 120px;
+  white-space: nowrap;
 }
 
 .log-title {

@@ -153,14 +153,105 @@ def serialize_meeting(m, joined_count=None):
         "category_name": getattr(getattr(m.book_id, "category_id", None), "name", None),
     }
     
-@api_view(["GET"])
+@api_view(["GET", "POST"])
 def meeting_list_api(request):
     """
-    GET /api/v1/books/meetings/?q=...&sort=views|soon&limit=10
-    - q: 모임 제목/책 제목 검색
-    - sort=views : 조회수 높은 순
-    - sort=soon  : 시작 임박 순(기본)
+    GET  /api/v1/books/meetings/?q=...&sort=views|soon&limit=10
+    POST /api/v1/books/meetings/
+      {
+        "book_id": 1,
+        "title": "...",
+        "description": "...",
+        "members": 5,
+        "started_at": "2025-12-25T12:00:00+09:00",
+        "finished_at": "2025-12-25T13:00:00+09:00",
+        "quiz": { "question": "...", "answer": "..." }
+      }
     """
+
+    # ---------- POST: 생성 ----------
+    if request.method == "POST":
+        if not request.user or not request.user.is_authenticated:
+            return Response({"detail": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        payload = request.data or {}
+
+        book_id = payload.get("book_id")
+        title = (payload.get("title") or "").strip()
+        description = (payload.get("description") or "").strip()
+        members = payload.get("members")
+
+        # parse datetimes (defensive)
+        def _parse_dt(value):
+            if not value:
+                return None
+            from django.utils.dateparse import parse_datetime
+            dt = parse_datetime(value)
+            if not dt:
+                return None
+            if timezone.is_naive(dt):
+                dt = timezone.make_aware(dt)
+            return dt
+
+        started_at = _parse_dt(payload.get("started_at"))
+        finished_at = _parse_dt(payload.get("finished_at"))
+
+        quiz = payload.get("quiz") or {}
+        question = (quiz.get("question") or "").strip()
+        answer = (quiz.get("answer") or "").strip()
+
+        # ---- validation (최소한만) ----
+        if not book_id:
+            return Response({"book_id": "book_id가 필요합니다."}, status=400)
+        if not title:
+            return Response({"title": "모임 제목을 입력해주세요."}, status=400)
+        if members is None:
+            return Response({"members": "인원을 입력해주세요."}, status=400)
+        try:
+            members = int(members)
+        except:
+            return Response({"members": "인원은 숫자여야 합니다."}, status=400)
+
+        if members < 2 or members > 10:
+            return Response({"members": "인원은 2~10명이어야 합니다."}, status=400)
+
+        if not started_at or not finished_at:
+            return Response({"time": "시작/종료 시간을 입력해주세요."}, status=400)
+        if started_at >= finished_at:
+            return Response({"time": "시작 시간은 종료 시간보다 빨라야 합니다."}, status=400)
+        if started_at < timezone.now():
+            return Response({"time": "시작 시간은 현재 이후여야 합니다."}, status=400)
+
+        if len(description) > 200:
+            return Response({"description": "설명은 200자 이하여야 합니다."}, status=400)
+
+        book = get_object_or_404(Book, pk=book_id)
+
+        meeting = Meeting.objects.create(
+            leader_id=request.user,
+            book_id=book,
+            title=title,
+            description=description,
+            members=members,
+            started_at=started_at,
+            finished_at=finished_at,
+        )
+
+        created_quiz = Quiz.objects.create(
+            meeting_id=meeting,
+            question=question if question else None,
+            answer=answer if answer else None,
+        )
+
+        return Response(
+            {
+                **serialize_meeting(meeting, joined_count=0),
+                "quiz": QuizSerializer(created_quiz).data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+    # ---------- GET: 기존 리스트 로직 ----------
     q = (request.GET.get("q") or "").strip()
     sort = (request.GET.get("sort") or "soon").strip()
     limit = request.GET.get("limit")
