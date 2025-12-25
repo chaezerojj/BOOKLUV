@@ -4,27 +4,27 @@
     <div class="detail-container">
       <div v-if="store.loading">로딩중...</div>
       <div v-else-if="store.error">에러가 발생했어요.</div>
-      
+
       <div v-else-if="store.book" class="wrap">
         <div class="book">
           <img v-if="store.book.cover_url" :src="store.book.cover_url" class="cover" />
           <div class="info">
             <h1 class="title">{{ store.book.title }}</h1>
-            <p>{{ store.book.author_name ?? 'Unknown' }} 저자 | 
+            <p>{{ store.book.author_name ?? 'Unknown' }} 저자 |
               {{ store.book.publisher ?? '-' }} | {{ store.book.category_name ?? 'Unknown' }}</p>
             <p class="desc">{{ store.book.description }}</p>
           </div>
         </div>
-        
-        
+
+
         <section class="meetings">
           <hr class="line" />
           <h2>이 책과 관련된 모임 ({{ store.meetings.length }})</h2>
-          
+
           <div v-if="store.meetings.length === 0" class="empty">
             등록된 모임이 없습니다.
           </div>
-          
+
           <ul v-else class="list">
             <li v-for="m in store.meetings" :key="m.id" class="item">
               <div>
@@ -32,12 +32,15 @@
                 <div class="m-meta">멤버 수: {{ m.members }} · 조회수: {{ m.views }}</div>
                 <div class="m-desc">{{ m.description }}</div>
               </div>
-              
+
               <RouterLink class="btn" :to="{ name: 'kluvtalk-detail', params: { id: m.id } }">
                 자세히 보기
               </RouterLink>
             </li>
           </ul>
+          <RouterLink :to="{ name: 'kluvtalk-create', query: { bookId: store.book.id } }">
+            이 책으로 모임 만들기
+          </RouterLink>
         </section>
       </div>
     </div>

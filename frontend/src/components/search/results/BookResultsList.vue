@@ -10,8 +10,8 @@
         <img v-if="book.cover_url" :src="book.cover_url" class="cover" />
         <div class="body">
           <h3 class="title">{{ book.title }}</h3>
-          <p class="meta">저자: {{ book.author_name ?? 'Unknown' }}</p>
-          <p class="meta">카테고리: {{ book.category_name ?? 'Unknown' }}</p>
+          <span class="meta">{{ book.author_name ?? 'Unknown' }}</span> |
+          <span class="meta">{{ book.category_name ?? 'Unknown' }}</span>
           <p class="desc">{{ book.description }}</p>
         </div>
       </RouterLink>
@@ -20,7 +20,7 @@
       <div v-else class="card disabled" title="상세로 이동할 수 없는 데이터(id 없음)">
         <div class="body">
           <h3 class="title">{{ book.title }}</h3>
-          <p class="meta">저자: {{ book.author_name ?? 'Unknown' }}</p>
+          <p class="meta">{{ book.author_name ?? 'Unknown' }}</p>
         </div>
       </div>
     </template>
@@ -64,6 +64,7 @@ const getBookId = (book) => {
   padding: 12px;
   text-decoration: none;
   color: inherit;
+  margin-top: 1rem;
 }
 
 .cover {

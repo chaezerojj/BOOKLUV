@@ -3,14 +3,27 @@ from django.db.models import Q, Count
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Book, Meeting, Participate, Quiz
-from .serializers import BookSerializer
-from .serializers import QuizSerializer
+from .serializers import BookSerializer, QuizSerializer
 
+
+MAX_ATTEMPTS = 3
+
+def normalize_answer(s: str) -> str:
+    # "1980" vs "1980년" 같은 차이를 줄이고 싶으면 이거 쓰면 됨
+    # 필요 없으면 단순 strip만 해도 됨
+    if s is None:
+        return ""
+    s = str(s).strip()
+    s = s.replace(" ", "")
+    if s.endswith("년"):
+        s = s[:-1]
+    return s
 
 @api_view(["GET"])
 def book_search_api(request):
@@ -195,23 +208,86 @@ def meeting_detail_api(request, pk):
 
 
 @api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
 def meeting_quiz_api(request, pk):
-    """
-    GET  /api/v1/books/meetings/<id>/quiz/
-    POST /api/v1/books/meetings/<id>/quiz/  {answer: "..."}
-    """
+    meeting = get_object_or_404(Meeting, pk=pk)
     quiz = get_object_or_404(Quiz, meeting_id=pk)
 
-    if request.method == "GET":
-        return Response(QuizSerializer(quiz).data, status=status.HTTP_200_OK)
+    already_joined = Participate.objects.filter(
+        meeting=meeting,
+        user_id=request.user,
+        result=True
+    ).exists()
 
-    user_answer = (request.data.get("answer") or "").strip()
-    correct = (quiz.answer or "").strip()
-    result = (user_answer == correct)
+    attempts_used = Participate.objects.filter(
+        meeting=meeting,
+        user_id=request.user
+    ).count()
+
+    attempts_left = max(0, MAX_ATTEMPTS - attempts_used)
+    locked = (not already_joined) and (attempts_used >= MAX_ATTEMPTS)
+
+    # -------- GET --------
+    if request.method == "GET":
+        return Response({
+            "meeting_id": meeting.id,
+            "question": quiz.question,
+            "attempts_used": attempts_used,
+            "attempts_left": attempts_left,
+            "locked": locked,
+            "joined": already_joined,
+        }, status=status.HTTP_200_OK)
+
+    # -------- POST --------
+    if already_joined:
+        return Response({
+            "question": quiz.question,
+            "user_answer": "",
+            "result": True,
+            "attempts_used": attempts_used,
+            "attempts_left": attempts_left,
+            "locked": False,
+            "joined": True,
+            "message": "이미 참여가 완료된 모임입니다.",
+        }, status=status.HTTP_200_OK)
+
+    if locked:
+        return Response({
+            "question": quiz.question,
+            "user_answer": "",
+            "result": False,
+            "attempts_used": attempts_used,
+            "attempts_left": 0,
+            "locked": True,
+            "joined": False,
+            "message": "시도 횟수를 모두 소진했습니다. 참여가 불가합니다.",
+        }, status=status.HTTP_200_OK)
+
+    user_answer_raw = (request.data.get("answer") or "")
+    user_answer = normalize_answer(user_answer_raw)
+    correct = normalize_answer(quiz.answer or "")
+
+    is_correct = (user_answer == correct)
+
+    Participate.objects.create(
+        meeting=meeting,
+        user_id=request.user,
+        result=is_correct
+    )
+
+    attempts_used += 1
+    attempts_left = max(0, MAX_ATTEMPTS - attempts_used)
+    locked = (not is_correct) and (attempts_left == 0)
 
     return Response({
         "question": quiz.question,
-        "user_answer": user_answer,
-        "answer": correct,
-        "result": result,
+        "user_answer": user_answer_raw,
+        "result": is_correct,
+
+        "attempts_used": attempts_used,
+        "attempts_left": attempts_left,
+        "locked": locked,
+        "joined": is_correct,
+
+        "message": "정답입니다. 참여가 완료되었습니다." if is_correct else "틀렸습니다.",
     }, status=status.HTTP_200_OK)

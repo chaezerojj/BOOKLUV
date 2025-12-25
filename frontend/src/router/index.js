@@ -94,11 +94,7 @@ const router = createRouter({
       name: "kluvtalk-create",
       component: () => import("@/views/KluvTalk/KluvTalkCreateView.vue"),
     },
-    {
-      path: "/kluvtalk/chat",
-      name: "kluvtalk-chat-list",
-      component: () => import("@/views/KluvTalk/KluvTalkChatListView.vue"),
-    },
+
     {
       path: "/kluvtalk/chat/:roomSlug",
       name: "kluvtalk-chat-room",

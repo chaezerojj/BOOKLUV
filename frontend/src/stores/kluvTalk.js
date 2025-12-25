@@ -2,105 +2,122 @@
 import { defineStore } from "pinia";
 import { http } from "@/api/http";
 
+function cleanUrl(v) {
+  if (v == null) return null;
+  const s = String(v).trim();
+  if (!s) return null;
+  if (s.toLowerCase() === "null" || s.toLowerCase() === "none") return null;
+  return s;
+}
+
+function pickFirst(...candidates) {
+  for (const c of candidates) {
+    const v = cleanUrl(c);
+    if (v) return v;
+  }
+  return null;
+}
+
 function toAbsoluteUrl(maybeUrl) {
-  if (!maybeUrl) return null;
-  const url = String(maybeUrl).trim();
+  const url = cleanUrl(maybeUrl);
   if (!url) return null;
 
-  // 이미 절대 URL이면 그대로
   if (/^https?:\/\//i.test(url)) return url;
-
   if (/^\/\//.test(url)) return `https:${url}`;
 
-  // /media/... 같은 상대경로면 백엔드 origin 붙이기
-  // VITE_API_BASE_URL = https://bookluv-production.up.railway.app
   const apiBase = import.meta.env.VITE_API_BASE_URL;
   try {
     const u = new URL(apiBase);
     const origin = `${u.protocol}//${u.host}`;
-    // url이 "/media/.." 형태면 origin + url
     if (url.startsWith("/")) return `${origin}${url}`;
-    // "media/.." 형태면 origin + "/" + url
     return `${origin}/${url}`;
   } catch {
     return url;
   }
 }
 
-function pickFirst(...candidates) {
-  for (const v of candidates) {
-    if (v == null) continue;
-    const s = String(v).trim();
-    if (s) return v;
-  }
-  return null;
-}
-
 const normalizeMeeting = (m) => {
   const members =
     m?.members ??
     m?.member_count ??
+    m?.memberCount ??
     m?.participants_count ??
+    m?.participantsCount ??
     m?.participants ??
     null;
 
   const maxMembers =
-    m?.max_members ?? m?.capacity ?? m?.maxParticipants ?? null;
+    m?.max_members ??
+    m?.maxMembers ??
+    m?.capacity ??
+    m?.maxParticipants ??
+    null;
 
   const startAt =
     m?.started_at ??
+    m?.startedAt ??
     m?.start_at ??
+    m?.startAt ??
     m?.start_time ??
+    m?.startTime ??
     m?.meeting_start ??
+    m?.meetingStart ??
     m?.scheduled_at ??
+    m?.scheduledAt ??
     null;
 
-  // cover_url 후보를 최대한 넓게 (리스트/상세/중첩 구조 대응)
+  // cover 후보(※ 백에서 안 내려오면 결국 null)
   const rawCover = pickFirst(
     m?.cover_url,
+    m?.coverUrl,
     m?.image_url,
-    m?.cover,
+    m?.imageUrl,
     m?.thumbnail,
     m?.thumb_url,
+    m?.thumbUrl,
     m?.book_cover_url,
+    m?.bookCoverUrl,
     m?.book?.cover_url,
-    m?.book?.cover,
-    m?.book?.image_url,
-    m?.book?.thumbnail,
-    m?.book_detail?.cover_url,
-    m?.book_info?.cover_url
+    m?.book?.coverUrl
   );
 
   const rawCategory = pickFirst(
     m?.category_name,
+    m?.categoryName,
     m?.category?.name,
     m?.category
   );
 
   const rawBookTitle = pickFirst(
     m?.book_title,
-    m?.book?.title,
-    m?.book_detail?.title,
-    m?.book_info?.title
+    m?.bookTitle,
+    m?.book?.title
   );
 
   return {
     ...m,
-    id: m?.id ?? m?.pk ?? m?.meeting_id ?? null,
+    id: m?.id ?? m?.pk ?? m?.meeting_id ?? m?.meetingId ?? null,
     title: m?.title ?? m?.name ?? "",
-    views: Number(m?.views ?? 0),
+    views: Number(m?.views ?? m?.view_count ?? m?.viewCount ?? 0),
 
-    host_name: m?.host_name ?? m?.leader_name ?? m?.owner_name ?? null,
+    // ✅ leader_name / host_name 둘 다 대응
+    leader_name:
+      m?.leader_name ?? m?.leaderName ?? m?.host_name ?? m?.hostName ?? null,
+    host_name:
+      m?.host_name ?? m?.hostName ?? m?.leader_name ?? m?.leaderName ?? null,
+
     category_name: rawCategory,
     book_title: rawBookTitle,
     description: m?.description ?? null,
 
-    // ✅ 이미지 URL은 절대경로로 보정
     cover_url: toAbsoluteUrl(rawCover),
 
     members: members != null ? Number(members) : null,
     max_members: maxMembers != null ? Number(maxMembers) : null,
     started_at: startAt,
+
+    // ✅ 최신순 정렬용 (백이 created_at을 안주면 id로 대체)
+    created_at: m?.created_at ?? m?.createdAt ?? null,
   };
 };
 
@@ -112,21 +129,24 @@ const pickList = (data) => {
 
 export const useKluvTalkStore = defineStore("meeting", {
   state: () => ({
-    // detail
     loading: false,
     error: null,
     meeting: null,
 
-    // quiz
     quizLoading: false,
     quizError: null,
     quiz: null,
     quizResult: null,
 
-    // popular list for home
+    // ✅ 리스트(전체)용
+    listLoading: false,
+    listError: null,
+    meetings: [],
+
+    // ✅ 인기(top N)용
     popularLoading: false,
     popularError: null,
-    popularMeetings: [], // 홈: 조회수 TOP
+    popularMeetings: [],
   }),
 
   actions: {
@@ -163,7 +183,9 @@ export const useKluvTalkStore = defineStore("meeting", {
       this.quizLoading = true;
       this.quizError = null;
       try {
-        const res = await http.post(`/api/v1/books/meetings/${meetingId}/quiz/`, { answer });
+        const res = await http.post(`/api/v1/books/meetings/${meetingId}/quiz/`, {
+          answer,
+        });
         this.quizResult = res.data;
       } catch (err) {
         this.quizError = err;
@@ -174,55 +196,44 @@ export const useKluvTalkStore = defineStore("meeting", {
     },
 
     /**
-     * TOP4 가져오되,
-     * - 리스트 API가 cover_url을 안 주는 경우가 많아서
-     * - cover_url 없는 애들만 상세 API로 한 번 더 채움 (take=4라 부담 거의 없음)
+     * ✅ 리스트 페이지용: "전체" 받아오기
+     * - 백 meeting_list_api는 limit 없으면 전부 내려줌(현재 코드 기준)
+     * - 정렬은 프론트에서 할 거라서 여기서는 그냥 가져와서 normalize만
      */
-    async fetchPopularMeetings(take = 4) {
+    async fetchMeetingsAll() {
+      this.listLoading = true;
+      this.listError = null;
+      try {
+        const res = await http.get(`/api/v1/books/meetings/`, {
+          headers: { Accept: "application/json" },
+        });
+        this.meetings = pickList(res.data).map(normalizeMeeting);
+      } catch (err) {
+        this.listError = err;
+        this.meetings = [];
+      } finally {
+        this.listLoading = false;
+      }
+    },
+
+    /**
+     * ✅ 홈/상단 섹션용: TOP N만
+     * ⚠️ 기존 cover 보강(detail 폭탄) 로직 제거 (500 원인 + 어차피 cover 안 내려옴)
+     */
+    async fetchPopularMeetings(take = 12) {
       this.popularLoading = true;
       this.popularError = null;
 
       try {
         const res = await http.get(`/api/v1/books/meetings/`, {
-          params: {
-            ordering: "-views",
-            page_size: take,
-            limit: take,
-          },
+          params: { limit: take, sort: "views" }, // ✅ 백이 받는 파라미터에 맞춤
           headers: { Accept: "application/json" },
         });
 
         const list = pickList(res.data).map(normalizeMeeting);
         list.sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
 
-        const top = list.slice(0, take);
-
-        // cover_url 없는 것만 상세 조회로 보강
-        const needFill = top.filter((m) => !m.cover_url && m.id != null);
-
-        if (needFill.length > 0) {
-          const results = await Promise.allSettled(
-            needFill.map((m) => http.get(`/api/v1/books/meetings/${m.id}/`))
-          );
-
-          const coverMap = new Map(); // id -> cover_url
-          results.forEach((r) => {
-            if (r.status !== "fulfilled") return;
-            const detail = normalizeMeeting(r.value.data);
-            if (detail?.id != null && detail.cover_url) {
-              coverMap.set(detail.id, detail.cover_url);
-            }
-          });
-
-          // top 배열에 반영
-          for (const m of top) {
-            if (!m.cover_url && coverMap.has(m.id)) {
-              m.cover_url = coverMap.get(m.id);
-            }
-          }
-        }
-
-        this.popularMeetings = top;
+        this.popularMeetings = list.slice(0, take);
       } catch (err) {
         this.popularError = err;
         this.popularMeetings = [];
