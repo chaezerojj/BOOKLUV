@@ -15,7 +15,8 @@ urlpatterns = [
     # (템플릿 페이지)
     path("mypage/", views.mypage, name="mypage"),
     path("mypage/edit/", views.mypage_edit, name="mypage_edit"),
-    path("myroom/", views.myroom, name="myroom"),
+    path("myroom/", views.myroom, name="myroom"),          # 템플릿
+    path("myroom/api/", views.myroom_api, name="myroom_api"),  #  Vue용 JSON
     
     path("csrf/", views.csrf, name="csrf"),
 ]

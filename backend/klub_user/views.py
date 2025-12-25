@@ -11,7 +11,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from klub_talk.models import Participate
+from klub_talk.models import Participate, Meeting
+from klub_chat.models import Room
 
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -241,3 +242,88 @@ def myroom(request):
 def csrf(request):
     # csrftoken 쿠키를 심고, 토큰 값을 body로도 내려줌
     return Response({"csrfToken": get_token(request)})
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def myroom_api(request):
+    user = request.user
+    now = timezone.localtime()
+
+    participations = (
+        Participate.objects
+        .filter(user_id=user, result=True)  # result=True면 확정 참여만 (너희 정책에 맞게 조정)
+        .select_related("meeting_id", "meeting_id__room")
+        .order_by("meeting_id__started_at")
+    )
+
+    # ✅ (선택) 시작 10분 전~종료 전이면 room 없을 때 자동 생성
+    ten_minutes_later = now + timedelta(minutes=10)
+
+    meetings_to_create = []
+    for p in participations:
+        m = p.meeting_id
+        if not m.started_at or not m.finished_at:
+            continue
+        if m.started_at <= ten_minutes_later and m.finished_at >= now:
+            if not getattr(m, "room", None):
+                meetings_to_create.append(m)
+
+    if meetings_to_create:
+        with transaction.atomic():
+            for m in meetings_to_create:
+                # slug 규칙은 프로젝트에서 쓰는 방식에 맞춰도 됨
+                new_slug = f"{slugify(m.title)}-{m.id}"
+                Room.objects.get_or_create(
+                    meeting=m,
+                    defaults={"name": m.title, "slug": new_slug},
+                )
+
+    # room 생성 후 최신 room 연결을 보장하려면 다시 select_related로 조회
+    participations = (
+        Participate.objects
+        .filter(user_id=user, result=True)
+        .select_related("meeting_id", "meeting_id__room")
+        .order_by("meeting_id__started_at")
+    )
+
+    def calc_status(meeting):
+        if not meeting.started_at or not meeting.finished_at:
+            return "진행예정"
+
+        open_at = meeting.started_at - timedelta(minutes=10)
+
+        if now < open_at:
+            return "진행예정"
+        if open_at <= now < meeting.started_at:
+            return "진행전"
+        if meeting.started_at <= now <= meeting.finished_at:
+            return "진행중"
+        return "종료"
+
+    results = []
+    for p in participations:
+        m = p.meeting_id
+        room = getattr(m, "room", None)
+
+        status_label = calc_status(m)
+        if status_label == "종료":
+            continue  # 종료를 마이페이지에서 숨기고 싶으면 유지 / 보여주려면 제거
+
+        results.append({
+            "meeting_id": m.id,
+            "title": m.title,
+            "started_at": timezone.localtime(m.started_at).isoformat() if m.started_at else None,
+            "finished_at": timezone.localtime(m.finished_at).isoformat() if m.finished_at else None,
+
+            "status": status_label,
+
+            # ✅ 채팅방 이동에 필요
+            "room_name": room.name if room else None,
+            "room_slug": room.slug if room else None,
+
+            # ✅ 카드 클릭 가능 여부
+            "can_enter": (room is not None and status_label in ["진행전", "진행중"]),
+            "can_chat": (status_label == "진행중"),
+        })
+
+    return Response({"results": results}, status=status.HTTP_200_OK)
