@@ -60,6 +60,7 @@ def result_view(request):
     # 3. DB 필터링
     # Category 모델의 name 필드와 category_name을 매칭
     categories = Category.objects.filter(name=category_name)
+    print(categories)
     all_candidate_books = Book.objects.filter(category_id__in=categories)
     if not all_candidate_books.exists():
         return render(request, "recommend/result.html", {
