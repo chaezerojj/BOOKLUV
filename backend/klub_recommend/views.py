@@ -129,19 +129,24 @@ def result_view(request):
 
     # 7. 응답 데이터 구성
     # views.py의 마지막 반환 부분 수정
-    context = {
-        "ai_reason": ai_reason,  # 템플릿의 {{ ai_reason }}와 매칭
-        "results": [             # 템플릿의 {% for book in results %}와 매칭
+    # 7. 응답 데이터 구성 (JSON 반환으로 변경)
+    payload = {
+        "ai_reason": ai_reason,
+        "books": [  # Vue의 v-for="book in result.books" 구조에 맞춤
             {
-                "id": final_book.id,
+                "id": final_book.id, # RouterLink의 v-if="book.id"를 통과하게 함
                 "title": final_book.title,
                 "publisher": final_book.publisher,
                 "cover_url": final_book.cover_url,
-                "author_id": {"name": getattr(final_book.author_id, "name", "저자 미상")}, # .author_id.name 구조 대응
-                "category_id": {"name": getattr(final_book.category_id, "name", "장르 미상")}, # .category_id.name 구조 대응
-                "temp_reason": temp_reason, # 템플릿의 {{ book.temp_reason }}와 매칭
+                # Vue 템플릿의 {{ book.author_name }}과 매칭
+                "author_name": getattr(final_book.author_id, "name", "저자 미상"),
+                # Vue 템플릿의 {{ book.category_name }}과 매칭
+                "category_name": getattr(final_book.category_id, "name", "장르 미상"),
+                # Vue 템플릿의 {{ book.reason }}과 매칭
+                "reason": temp_reason, 
             }
         ],
     }
 
-    return render(request, "recommend/result.html", context)
+    # render 대신 Response를 사용하여 JSON 데이터를 반환 (406 에러 해결)
+    return Response(payload, status=200)
