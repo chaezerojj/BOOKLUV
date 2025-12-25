@@ -7,6 +7,11 @@
     <div v-else class="result-container">
       <div class="result-inner">
 
+        <div class="report">
+          <div class="report-text">🎯 맞춤 성향 분석 리포트</div>
+          <p class="report-detail">{{ result.ai_reason }}</p>
+        </div>
+
         <section class="books">
           <h2 class="recommend-main-text">💛 Bookluv가 추천하는 도서를 알려드릴게요!</h2>
 
@@ -23,9 +28,10 @@
               </div>
 
               <div class="actions">
-                <RouterLink class="btn-link" :to="{ name: 'book-detail', params: { id: book.id } }">
+                <RouterLink v-if="book.id" class="btn-link" :to="{ name: 'book-detail', params: { id: book.id } }">
                   책 상세로 이동
                 </RouterLink>
+                <span v-else class="btn-link" style="opacity:0.5; cursor:default;">책 상세 정보 없음</span>
                 <span class="detail-text">🙌 상세 페이지에서 해당 책의 모임을 보실 수 있습니다.</span>
               </div>
             </div>
@@ -75,6 +81,16 @@ const result = computed(() => store.result);
 .report-text {
   font-weight: 700;
   font-size: 25px;
+}
+
+.report-detail {
+  margin-top: 1rem;
+  font-size: 1.05rem;
+  color: #444;
+  line-height: 1.6;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .result-book-box {

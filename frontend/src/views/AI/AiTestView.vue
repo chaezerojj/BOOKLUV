@@ -1,6 +1,6 @@
 <template>
   <div class="ai-test">
-    
+
     <form class="test-container" @submit.prevent="onSubmit">
       <h1>🔎 AI 취향 설문조사</h1>
       <!-- q1 -->
@@ -40,7 +40,7 @@
           </label>
           <label class="opt">
             <input type="radio" name="q2" value="C" v-model="answers.q2" />
-            <span> 상관없다</span>
+            <span> 신간이든 고전이든 상관없다</span>
           </label>
         </div>
       </div>
@@ -73,20 +73,24 @@
         <label class="q-label">4. 가장 선호하는 장르는?</label>
         <div class="options">
           <label class="opt">
-            <input type="radio" name="q4" value="A" v-model="answers.q4" required />
-            <span> 소설 / 에세이</span>
+            <input type="radio" name="q4" value="novel" v-model="answers.q4" required />
+            <span> 소설</span>
           </label>
           <label class="opt">
-            <input type="radio" name="q4" value="B" v-model="answers.q4" />
-            <span> 자기계발 / 심리</span>
+            <input type="radio" name="q4" value="essay" v-model="answers.q4" />
+            <span> 에세이</span>
           </label>
           <label class="opt">
-            <input type="radio" name="q4" value="C" v-model="answers.q4" />
-            <span> 인문 / 사회 / 철학</span>
+            <input type="radio" name="q4" value="self_help" v-model="answers.q4" />
+            <span> 자기계발</span>
           </label>
           <label class="opt">
-            <input type="radio" name="q4" value="D" v-model="answers.q4" />
-            <span> SF / 판타지 / 추리</span>
+            <input type="radio" name="q4" value="humanities" v-model="answers.q4" />
+            <span> 인문학</span>
+          </label>
+          <label class="opt">
+            <input type="radio" name="q4" value="art" v-model="answers.q4" />
+            <span> 예술</span>
           </label>
         </div>
       </div>
@@ -139,7 +143,7 @@
 
       <!-- q7 -->
       <div class="q">
-        <label class="q-label">7. 책 한 권 분량 선호는?</label>
+        <label class="q-label">7. 책 한 권 분량에 대한 선호는?</label>
         <div class="options">
           <label class="opt">
             <input type="radio" name="q7" value="A" v-model="answers.q7" required />
@@ -147,11 +151,11 @@
           </label>
           <label class="opt">
             <input type="radio" name="q7" value="B" v-model="answers.q7" />
-            <span> 적당한 분량</span>
+            <span> 적당한 분량이면 좋다</span>
           </label>
           <label class="opt">
             <input type="radio" name="q7" value="C" v-model="answers.q7" />
-            <span> 길어도 OK</span>
+            <span> 길어도 완성도 있으면 OK</span>
           </label>
         </div>
       </div>
@@ -162,7 +166,7 @@
         <div class="options">
           <label class="opt">
             <input type="radio" name="q8" value="A" v-model="answers.q8" required />
-            <span> 몰아서 읽는다</span>
+            <span> 한 번 시작하면 몰아서 읽는다</span>
           </label>
           <label class="opt">
             <input type="radio" name="q8" value="B" v-model="answers.q8" />
@@ -345,5 +349,4 @@ const onSubmit = async () => {
   color: #d33;
   font-weight: 700;
 }
-
 </style>

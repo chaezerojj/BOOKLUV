@@ -2,19 +2,22 @@
   <div class="wrap">
     <div class="top">
       <div>
-        <h1 class="title">게시판</h1>
+        <h1 class="title"> 📌 게시판</h1>
         <p class="sub">최신 글을 확인하고 의견을 남겨보세요.</p>
       </div>
+    </div>
 
+    <div class="box">
       <button class="btn write" type="button" :disabled="!isAuthenticated" @click="goCreate"
         :title="!isAuthenticated ? '로그인 후 글을 작성할 수 있어요.' : ''">
         글쓰기
       </button>
+
+      <div class="controls">
+        <SortDropdown v-model="sortKey" label="정렬" :options="sortOptions" />
+      </div>
     </div>
 
-    <div class="controls">
-      <SortDropdown v-model="sortKey" label="정렬" :options="sortOptions" />
-    </div>
 
     <div v-if="store.loading" class="state">로딩중...</div>
     <div v-else-if="store.error" class="state error">에러가 발생했어요.</div>
@@ -78,7 +81,33 @@ const onScroll = () => {
   }
 };
 
+const LOCAL_VIEWS_KEY = "board_local_views";
+const localViews = ref({});
+
+const loadLocalViews = () => {
+  try {
+    const raw = localStorage.getItem(LOCAL_VIEWS_KEY);
+    localViews.value = raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    localViews.value = {};
+  }
+};
+
+const saveLocalViews = () => {
+  try {
+    localStorage.setItem(LOCAL_VIEWS_KEY, JSON.stringify(localViews.value));
+  } catch (e) {}
+};
+
+const incrementLocalView = (id) => {
+  const key = String(id);
+  const current = Number(localViews.value[key] ?? 0);
+  localViews.value = { ...localViews.value, [key]: current + 1 };
+  saveLocalViews();
+};
+
 onMounted(() => {
+  loadLocalViews();
   store.fetchBoards();
   window.addEventListener("scroll", onScroll);
 });
@@ -107,7 +136,11 @@ const goCreate = () => {
   if (!isAuthenticated.value) return alert("로그인 후 글을 작성할 수 있어요.");
   router.push({ name: "board-create" });
 };
-const goDetail = (id) => router.push({ name: "board-detail", params: { id } });
+const goDetail = (id) => {
+  // purely client-side click tracking (no backend)
+  incrementLocalView(id);
+  router.push({ name: "board-detail", params: { id } });
+};
 const goUpdate = (id) => router.push({ name: "board-update", params: { id } });
 
 const onDelete = async (id) => {
@@ -126,7 +159,10 @@ const sortOptions = [
 
 const createdMs = (b) => (b?.created_at ? new Date(b.created_at).getTime() : 0);
 const commentCount = (b) => Number(b?.comment_count ?? 0);
-const viewCount = (b) => Number(b?.view_count ?? b?.views ?? b?.hit ?? 0);
+const viewCount = (b) => {
+  const id = String(b?.id ?? "");
+  return Number(localViews.value[id] ?? 0);
+};
 
 const visibleBoards = computed(() => {
   const arr = [...(store.boards ?? [])];
@@ -152,7 +188,10 @@ const visibleBoards = computed(() => {
 <style scoped>
 .wrap {
   width: min(900px, 92%);
-  margin: 2rem auto;
+  margin: 2.5rem auto;
+  padding: 1.5rem 3rem;
+  background-color: #fff;
+  border-radius: 12px;
 }
 
 .top {
@@ -167,12 +206,20 @@ const visibleBoards = computed(() => {
   margin: 0;
   font-size: 22px;
   letter-spacing: -0.2px;
+  margin-bottom: 1rem;
 }
 
 .sub {
   margin: 6px 0 0;
   font-size: 13px;
   opacity: 0.7;
+}
+
+.box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1.5rem 0;
 }
 
 .btn {
@@ -182,6 +229,8 @@ const visibleBoards = computed(() => {
   padding: 10px 14px;
   cursor: pointer;
   font-size: 13px;
+  width: 100px;
+  font-weight: 700;
 }
 
 .btn:hover {
@@ -221,29 +270,29 @@ const visibleBoards = computed(() => {
   list-style: none;
   padding: 0;
   margin: 0;
+  margin-top: 2rem;
   display: grid;
   gap: 12px;
 }
 
 .item {
-  background: #fff;
-  border: 1px solid #eee;
+  /* background: #eee; */
+  border-bottom: 1px solid #eee;
   border-radius: 16px;
   padding: 14px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+  /* box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04); */
   display: grid;
   gap: 10px;
 }
 
 .main {
   cursor: pointer;
+  width: 850px;
 }
 
 .row1 {
   display: flex;
-  /* align-items: center; */
   gap: 12px;
-  border: 1px solid green;
 }
 
 .t {
@@ -257,7 +306,6 @@ const visibleBoards = computed(() => {
 }
 
 .meta-right {
-  border: 1px solid red;
   display: flex;
   align-items: right;
   text-align: right;
