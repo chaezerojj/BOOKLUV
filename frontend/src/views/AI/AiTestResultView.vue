@@ -48,7 +48,7 @@ import { computed } from "vue";
 import { useAiRecommendStore } from "@/stores/aiRecommend";
 
 const store = useAiRecommendStore();
-const result = computed(() => store.results);
+const result = computed(() => store.result);
 </script>
 
 
