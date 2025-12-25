@@ -38,7 +38,7 @@
               </RouterLink>
             </li>
           </ul>
-          <RouterLink :to="{ name: 'kluvtalk-create', query: { bookId: store.book.id } }">
+          <RouterLink :to="{ name: 'kluvtalk-create', query: { bookId: store.book.id } }" class="create-kluvtalk">
             이 책으로 모임 만들기
           </RouterLink>
         </section>

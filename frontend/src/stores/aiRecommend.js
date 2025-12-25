@@ -93,7 +93,7 @@ function parseRecommendationHtml(htmlString) {
 
     imgs.forEach((img) => {
       // prefer a surrounding container that carries the book id
-      const bookDiv = img.closest('.reco-book') || img.parentElement;
+      const bookDiv = img.closest(".reco-book") || img.parentElement;
       const title = bookDiv.querySelector("h3")?.textContent?.trim() || "";
       const meta = bookDiv.querySelector("p")?.textContent || "";
       const [author_name = "", publisher = "", category_name = ""] = meta
@@ -111,7 +111,8 @@ function parseRecommendationHtml(htmlString) {
       // try to read a numeric id from data-book-id if present
       let id = null;
       try {
-        const idAttr = bookDiv.getAttribute && bookDiv.getAttribute('data-book-id');
+        const idAttr =
+          bookDiv.getAttribute && bookDiv.getAttribute("data-book-id");
         if (idAttr) {
           const n = Number(String(idAttr).trim());
           if (!Number.isNaN(n)) id = n;
