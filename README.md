@@ -114,26 +114,34 @@ backend/
 
 ## 기능 상세 설명 및 화면
 ### 1. 메인 페이지
+<img width="1905" height="935" alt="메인화면1" src="https://github.com/user-attachments/assets/29f9293a-a081-4e1e-a573-b2a9e6820f57" />
 
 ### 2. 카카오 API 기반의 소셜 로그인 / 회원가입
 - 카카오 소셜 로그인 API 기반의 토큰 인증 로그인 기능
+<img width="1901" height="939" alt="카카오 소셜 로그인" src="https://github.com/user-attachments/assets/2cfabb74-6047-4b45-b4aa-8f9df9ce740b" />
 
 ### 2. AI 기반 도서 추천 기능
 - GPT-4o-mini API 기반의 도서 추천 기능
+<img width="1901" height="942" alt="AI 추천 인트로" src="https://github.com/user-attachments/assets/50f0ac3d-7760-4da9-b252-faf8c5ba8c62" /> <img width="1900" height="940" alt="AI 추천 질문" src="https://github.com/user-attachments/assets/0f0e7d7c-d6de-4fce-9a21-e65e70e5fd32" /> <img width="1901" height="934" alt="AI 추천 결과" src="https://github.com/user-attachments/assets/ea1fce7b-7136-4521-bafa-b6466e5d458f" />
 
 ### 3. 알라딘 API 기반 도서 목록
 - Aladin 도서 검색 및 상품 목록 API 기반의 데이터셋 활용
+<img width="1896" height="942" alt="도서 검색 화면" src="https://github.com/user-attachments/assets/dd464202-c2fc-4c45-bbd9-385136765de2" /> <img width="1904" height="934" alt="도서 상세 화면" src="https://github.com/user-attachments/assets/db598a3a-9211-4e7d-9b3d-052d7c59ab44" />
 
 ### 4. 모임방 목록 및 참가 신청
 - 도서 데이터셋 기반의 독서 모임 CRUD
-  
+<img width="1901" height="943" alt="모임 목록" src="https://github.com/user-attachments/assets/02fea87a-8e36-4f2f-8d81-5689442ade20" /> <img width="1896" height="930" alt="모임 상세 화면 1" src="https://github.com/user-attachments/assets/c08d1829-7940-43a2-9cc8-226151a17f38" />
+
 ### 5. 실시간 알림 및 다대다 채팅
 - WebSocket, Redis, Celery 기반의 실시간 알람 및  채팅 기능
+<img width="1904" height="934" alt="모임 알람" src="https://github.com/user-attachments/assets/aa073f1a-9deb-4cd1-860e-eead63427091" /> <img width="1898" height="938" alt="실시간 채팅" src="https://github.com/user-attachments/assets/548630a5-eeef-4626-9d26-4b0212173dce" />
 
 ### 6. 자유게시판 및 댓글 CRUD
 - 유저들의 소통을 위한 게시판 및 댓글 CRUD
+<img width="1906" height="943" alt="자유게시판" src="https://github.com/user-attachments/assets/be57c44f-938d-4da4-ae16-272cafc9158a" /> <img width="1898" height="932" alt="자유게시판 상세 및 댓글" src="https://github.com/user-attachments/assets/de7bf093-31f5-423b-a4f4-c4b423dd92e6" />
 
 ### 7. 마이페이지 및 회원정보 수정
 - 회원정보 수정 및 현재 참여중인 채팅방 목록
+<img width="1900" height="937" alt="회원정보" src="https://github.com/user-attachments/assets/61d1ca80-e711-4fa6-b3b2-35a38144a3d7" />
 
 
