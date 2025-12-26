@@ -155,6 +155,7 @@ const sortKey = ref("comments");
 const sortOptions = [
   { value: "comments", label: "댓글순" },
   { value: "views", label: "조회수순" },
+  { value: "latest", label: "최신순" },
 ];
 
 const createdMs = (b) => (b?.created_at ? new Date(b.created_at).getTime() : 0);
@@ -171,6 +172,10 @@ const visibleBoards = computed(() => {
     arr.sort((a, b) => {
       const diff = viewCount(b) - viewCount(a);
       if (diff !== 0) return diff;
+      return createdMs(b) - createdMs(a);
+    });
+  } else if (sortKey.value === "latest") {
+    arr.sort((a, b) => {
       return createdMs(b) - createdMs(a);
     });
   } else {
