@@ -26,7 +26,7 @@
 |--------|--------|--------|
 | ![145894536](https://github.com/user-attachments/assets/5901db01-81cb-40d6-a588-d3f77ccfbf42) | Frontend | - 와이어 프레임 및 UXUI 설계 / 프론트엔드(Vue) 전반 / Netlify 배포 |
 | ![김수미](https://github.com/user-attachments/assets/3f2322b3-12be-4ce0-b268-69a7c2f13c62) | Backend | - OAuth 2.0 기반 Kakao 소셜 로그인 인증 시스템 구현 / 마이페이지, 자유게시판 및 댓글 구현 |
-| ![엄송현](https://github.com/user-attachments/assets/ad19a243-e8d1-4cc6-bcf2-7ec4c3cb8db7) | Backend | - WebSocket, Redis 기반 실시간 채팅 구현 / WebSocket, Celery 기반 실시간 알림 구현 / Railway 배포 |
+| ![엄송현](https://github.com/user-attachments/assets/ad19a243-e8d1-4cc6-bcf2-7ec4c3cb8db7) | Backend | - GPT-4o-mini API 기반 추천 서비스 구현 / WebSocket, Redis 기반 실시간 채팅 구현 / WebSocket, Celery 기반 실시간 알림 구현 / Railway 배포 |
 
 ## 커밋 규칙 및 이행 화면
 ### 📌 Git rules
