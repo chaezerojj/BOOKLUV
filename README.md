@@ -50,8 +50,7 @@
 ### Tools
 <img src="https://img.shields.io/badge/notion-000000?style=for-the-badge&logo=notion&logoColor=white"> <img src="https://img.shields.io/badge/vscode-0078d4?style=for-the-badge&logo=visual-studio-code&logoColor=white"> <img src="https://img.shields.io/badge/figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white">
 ### 전체 서비스 구조
-<img width="1805" height="1009" alt="image" src="https://github.com/user-attachments/assets/91f563ba-092f-46af-bd6a-a308d3d867ac" />
-
+<img width="1772" height="874" alt="image" src="https://github.com/user-attachments/assets/be258891-6568-4ce9-b98e-0d621bf21e39" />
 
 
 ## 개발환경
@@ -110,7 +109,8 @@ backend/
 ```
 
 ## ERD
-https://dbdiagram.io/d/69323b5dd6676488baac0293
+<img width="1512" height="915" alt="image" src="https://github.com/user-attachments/assets/58c2ad82-5897-4b16-a372-9afed3aaa0f2" />
+
 
 ## 기능 상세 설명 및 화면
 ### 1. 메인 페이지
