@@ -50,7 +50,7 @@
 ### Tools
 <img src="https://img.shields.io/badge/notion-000000?style=for-the-badge&logo=notion&logoColor=white"> <img src="https://img.shields.io/badge/vscode-0078d4?style=for-the-badge&logo=visual-studio-code&logoColor=white"> <img src="https://img.shields.io/badge/figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white">
 ### 전체 서비스 구조
-<img width="1772" height="874" alt="image" src="https://github.com/user-attachments/assets/be258891-6568-4ce9-b98e-0d621bf21e39" />
+<img width="1000" height="574" alt="image" src="https://github.com/user-attachments/assets/be258891-6568-4ce9-b98e-0d621bf21e39" />
 
 
 ## 개발환경
