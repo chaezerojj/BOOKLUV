@@ -1,6 +1,6 @@
 from datetime import timedelta
-
 import requests
+import json
 from django.conf import settings
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
@@ -42,7 +42,6 @@ def auth_login(request):
         "next": request.GET.get("next", ""),
     }
     return render(request, "auth/login.html", context)
-
 
 def kakao_callback(request):
     code = request.GET.get("code")
@@ -92,7 +91,6 @@ def kakao_callback(request):
     except Exception as e:
         return JsonResponse({"detail": "callback exception", "error": repr(e)}, status=500)
 
-
 # =========================
 # 유저 정보 API
 # =========================
@@ -118,21 +116,29 @@ def me(request):
     user.save(update_fields=["nickname"])
     return Response({"id": user.id, "nickname": user.nickname, "is_authenticated": True})
 
-
 @api_view(["POST"])
 def logout_view(request):
     logout(request)
     return Response({"detail": "logged out"})
 
-
 # =========================
-# 기존 템플릿 뷰 (수정 완료)
+# 기존 템플릿 뷰
 # =========================
 
 @login_required(login_url="/api/v1/auth/")
 def mypage(request):
     return render(request, "auth/mypage.html", {"user": request.user})
 
+@login_required(login_url="/api/v1/auth/")
+def mypage_edit(request):
+    user = request.user
+    if request.method == "POST":
+        nickname = request.POST.get("nickname")
+        if nickname:
+            user.nickname = nickname
+            user.save()
+        return redirect("user:mypage")
+    return render(request, "klub_user/mypage_edit.html")
 
 @login_required(login_url="/api/v1/auth/")
 def myroom(request):
@@ -144,7 +150,6 @@ def myroom(request):
 
     room_infos = []
     seen_meeting_ids = set()
-    # [수정] naive datetime 에러 방지
     now = timezone.now()
 
     for p in participations:
@@ -153,11 +158,7 @@ def myroom(request):
         room = getattr(meeting, "room", None)
         if not room: continue
 
-        # [수정] DB의 aware 시간과 now() 비교
-        is_active = False
-        if meeting.started_at and meeting.finished_at:
-            is_active = meeting.started_at <= now <= meeting.finished_at
-
+        is_active = (meeting.started_at <= now <= meeting.finished_at) if (meeting.started_at and meeting.finished_at) else False
         room_infos.append({
             "room_name": room.name,
             "started_at": meeting.started_at,
@@ -166,7 +167,6 @@ def myroom(request):
         })
         seen_meeting_ids.add(meeting.id)
 
-    # 리더인 모임 추가
     try:
         from klub_talk.models import Meeting
         leader_meetings = Meeting.objects.filter(leader_id=request.user).select_related("room")
@@ -174,7 +174,6 @@ def myroom(request):
             if m.id in seen_meeting_ids: continue
             room = getattr(m, "room", None)
             if not room: continue
-            
             is_active = (m.started_at <= now <= m.finished_at) if (m.started_at and m.finished_at) else False
             room_infos.append({
                 "room_name": room.name,
@@ -187,24 +186,20 @@ def myroom(request):
 
     return render(request, "auth/myroom.html", {"room_infos": room_infos})
 
-
 @api_view(["GET"])
 @permission_classes([AllowAny])
 @ensure_csrf_cookie
 def csrf(request):
     return Response({"csrfToken": get_token(request)})
 
-
 # =========================
-# ✅ 마이페이지 JSON API (수정 완료)
+# ✅ 마이페이지 JSON API
 # =========================
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def myroom_api(request):
-    # [수정] 500 에러의 원인이었던 부분을 now()로 변경
     now = timezone.now()
-
     participations = (
         Participate.objects
         .filter(user_id=request.user)
@@ -220,24 +215,18 @@ def myroom_api(request):
         room = getattr(meeting, "room", None)
         if not room: continue
 
-        # [수정] DB 시간 데이터와 now를 안전하게 비교
-        is_active = False
-        if meeting.started_at and meeting.finished_at:
-            is_active = meeting.started_at <= now <= meeting.finished_at
-
+        is_active = (meeting.started_at <= now <= meeting.finished_at) if (meeting.started_at and meeting.finished_at) else False
         results.append({
             "meeting_id": meeting.id,
             "title": meeting.title,
             "room_name": getattr(room, "name", None),
             "room_slug": getattr(room, "slug", None),
-            # 출력 시에만 사용자의 로컬 시간대로 변환
             "started_at": timezone.localtime(meeting.started_at).isoformat() if meeting.started_at else None,
             "finished_at": timezone.localtime(meeting.finished_at).isoformat() if meeting.finished_at else None,
             "is_active": is_active,
         })
         seen_meeting_ids.add(meeting.id)
 
-    # 리더 모임 추가 로직
     try:
         from klub_talk.models import Meeting
         leader_meetings = Meeting.objects.filter(leader_id=request.user).select_related("room").order_by("started_at")
@@ -245,7 +234,6 @@ def myroom_api(request):
             if m.id in seen_meeting_ids: continue
             room = getattr(m, "room", None)
             if not room: continue
-
             is_active = (m.started_at <= now <= m.finished_at) if (m.started_at and m.finished_at) else False
             results.append({
                 "meeting_id": m.id,
@@ -261,17 +249,3 @@ def myroom_api(request):
 
     results.sort(key=lambda x: x.get("started_at") or "")
     return Response({"results": results}, status=status.HTTP_200_OK)
-
-@login_required(login_url="/api/v1/auth/")
-def mypage_edit(request):
-    user = request.user
-
-    if request.method == "POST":
-        nickname = request.POST.get("nickname")
-        if nickname:
-            user.nickname = nickname
-            user.save()
-        # 'user:mypage' 또는 'mypage' 등 설정된 name으로 리다이렉트
-        return redirect("user:mypage")
-
-    return render(request, "klub_user/mypage_edit.html")
