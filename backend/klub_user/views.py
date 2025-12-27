@@ -123,7 +123,15 @@ def kakao_callback(request):
 # 프론트용 API (DRF)
 # =========================
 
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.authentication import SessionAuthentication
+
+class UnsafeSessionAuthentication(SessionAuthentication):
+    def enforce_csrf(self, request):
+        return  # CSRF 검사 로직을 실행하지 않고 패스
+
 @api_view(["GET", "PATCH"])
+@authentication_classes([UnsafeSessionAuthentication]) # 위에서 만든 클래스 적용
 @permission_classes([IsAuthenticated])
 def me(request):
     user = request.user
