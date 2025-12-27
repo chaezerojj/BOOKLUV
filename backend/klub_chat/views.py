@@ -27,7 +27,8 @@ REDIS_URL = os.getenv('REDIS_URL')
 @login_required
 def room_list(request):
     user = request.user
-    now = timezone.localtime()
+    # [수정] naive datetime 에러 방지를 위해 now() 사용
+    now = timezone.now()
 
     # 1. 미팅 기준 설정: 시작 10분 전 ~ 아직 종료되지 않은 미팅
     ten_minutes_later = now + timedelta(minutes=10)
@@ -90,38 +91,35 @@ def room_detail(request, room_name):
         return HttpResponseForbidden("채팅방에 접근할 권한이 없습니다.")
 
     # 참여자 목록 구성
-    participants_qs = meeting.participations.filter(result=True).select_related("user_id")
-    # 1. 딕셔너리를 사용하여 중복 제거 (Key: 유저ID, Value: 정보)
     participants_dict = {}
 
-    # 2. 참여 확정자 먼저 추가
+    # 참여 확정자 추가
     participants_qs = meeting.participations.filter(result=True).select_related("user_id")
     for p in participants_qs:
         participants_dict[p.user_id.id] = {
             "id": p.user_id.id,
-            "nickname": p.user_id.nickname,
+            "nickname": getattr(p.user_id, 'nickname', '익명'),
             "online": False
         }
 
-    # 3. 리더 추가 (이미 존재한다면 덮어쓰기되므로 중복되지 않음)
+    # 리더 추가 (중복 방지)
     if meeting.leader_id:
         participants_dict[meeting.leader_id.id] = {
             "id": meeting.leader_id.id,
-            "nickname": meeting.leader_id.nickname,
+            "nickname": getattr(meeting.leader_id, 'nickname', '방장'),
             "online": False
         }
 
-    # 4. 최종 리스트로 변환
     participants_list = list(participants_dict.values())
     
-    # 리더를 리스트 맨 앞으로 보내고 싶다면 (선택 사항)
+    # 리더를 맨 앞으로 정렬
     participants_list.sort(key=lambda x: x['id'] != meeting.leader_id.id)
 
-    # 채팅 가능 여부 (현재 시간 기준)
-    now = timezone.localtime()
+    # [수정] 채팅 가능 여부 확인
+    now = timezone.now()
     can_chat = meeting.started_at <= now <= meeting.finished_at
 
-    # 🔥 Redis 메시지 로드 (인증 정보 포함된 URL 사용)
+    # Redis 메시지 로드
     try:
         r = redis.from_url(REDIS_URL, decode_responses=True)
         messages_raw = r.lrange(f"chat_{room.slug}", 0, -1)
@@ -131,16 +129,21 @@ def room_detail(request, room_name):
 
     messages = []
     for m in messages_raw:
-        msg = json.loads(m)
-        if "timestamp" in msg:
-            msg["timestamp"] = timezone.localtime(
-                timezone.datetime.fromisoformat(msg["timestamp"])
-            ).strftime("%Y-%m-%d %H:%M:%S")
-        messages.append(msg)
+        try:
+            msg = json.loads(m)
+            if "timestamp" in msg:
+                dt = timezone.datetime.fromisoformat(msg["timestamp"])
+                # [수정] naive 체크 후 aware로 변환하여 안전하게 출력
+                if timezone.is_naive(dt):
+                    dt = timezone.make_aware(dt)
+                msg["timestamp"] = timezone.localtime(dt).strftime("%Y-%m-%d %H:%M:%S")
+            messages.append(msg)
+        except Exception:
+            continue
 
     return render(request, "chat/room_detail.html", {
         "room": room,
-        "nickname": user.nickname,
+        "nickname": getattr(user, 'nickname', '익명'),
         "messages": messages,
         "can_chat": can_chat,
         "participants": participants_list,
@@ -148,13 +151,14 @@ def room_detail(request, room_name):
     })
 
 # =====================
-# 오늘의 미팅 알람 (10분 전 필터링)
+# 오늘의 미팅 알람 (수정 완료)
 # =====================
 
 @login_required
 def today_meetings(request):
     user = request.user
-    now = timezone.localtime()
+    # [수정] 500 에러의 원인이었던 부분을 now()로 변경
+    now = timezone.now()
     ten_minutes_later = now + timedelta(minutes=10)
 
     meetings_today = Meeting.objects.filter(
@@ -172,19 +176,16 @@ def today_meetings(request):
 
         room = None
         try:
-            room = m.room  # OneToOne 없으면 예외
+            room = m.room
         except ObjectDoesNotExist:
             room = None
 
         # safe started_at formatting
         try:
+            # m.started_at은 DB에서 가져온 Aware 객체이므로 localtime 변환이 안전함
             started_at_str = timezone.localtime(m.started_at).strftime("%H:%M")
         except Exception:
-            try:
-                aware = timezone.make_aware(m.started_at, timezone.get_default_timezone())
-                started_at_str = timezone.localtime(aware).strftime("%H:%M")
-            except Exception:
-                started_at_str = ""
+            started_at_str = ""
 
         data.append({
             "meeting_id": m.id,
