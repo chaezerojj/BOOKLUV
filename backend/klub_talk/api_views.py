@@ -44,10 +44,17 @@ def book_search_api(request):
 @api_view(["GET"])
 def book_detail_api(request, book_id):
     book = get_object_or_404(Book, pk=book_id)
+    
+    # 현재 시간 기준 설정
+    now = timezone.now()
 
     meetings_qs = (
         Meeting.objects
-        .filter(book_id=book_id)
+        .filter(
+            book_id=book_id,
+            started_at__gt=now,    # 아직 시작하지 않았고
+            finished_at__gt=now    # 종료되지 않은 모임만
+        )
         .select_related("book_id", "leader_id")
         .order_by("-id")
     )
@@ -59,6 +66,7 @@ def book_detail_api(request, book_id):
             "title": m.title,
             "description": getattr(m, "description", ""),
             "views": getattr(m, "views", 0),
+            "started_at": m.started_at, # 시간 정보도 프론트에 주면 좋으니 추가 권장
         })
 
     return Response({
