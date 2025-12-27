@@ -31,12 +31,10 @@ def _parse_dt(value):
         return None
     from django.utils.dateparse import parse_datetime
     from django.utils import timezone
-    
     try:
         dt = parse_datetime(value)
         if not dt:
             return None
-        # Naive vs Aware 충돌 방지
         if timezone.is_naive(dt):
             return timezone.make_aware(dt)
         return dt
@@ -98,13 +96,29 @@ def book_detail_api(request, book_id):
         "book": BookSerializer(book).data,
         "meetings": meetings,
     })
-
 @api_view(["GET", "POST"])
 def meeting_list_api(request):
     """
     GET: 모임 목록 조회
     POST: 새로운 모임 생성
     """
+    # 내부 헬퍼 함수: 시간 문자열을 Aware Datetime으로 변환
+    def _parse_dt(value):
+        if not value:
+            return None
+        from django.utils.dateparse import parse_datetime
+        from django.utils import timezone
+        try:
+            dt = parse_datetime(value)
+            if not dt:
+                return None
+            # 시간대 정보가 없는 Naive 객체라면, Django 설정 시간대를 입혀서 Aware로 변환
+            if timezone.is_naive(dt):
+                return timezone.make_aware(dt)
+            return dt
+        except Exception:
+            return None
+
     # ---------- POST: 모임 생성 ----------
     if request.method == "POST":
         if not request.user.is_authenticated:
@@ -114,15 +128,20 @@ def meeting_list_api(request):
         book_id = payload.get("book_id")
         title = (payload.get("title") or "").strip()
         members = payload.get("members")
+        
+        # 시간 파싱
         started_at = _parse_dt(payload.get("started_at"))
         finished_at = _parse_dt(payload.get("finished_at"))
 
+        # Validation
         if not (book_id and title and members and started_at and finished_at):
-            return Response({"detail": "필수 정보를 모두 입력해주세요."}, status=400)
+            return Response({"detail": "필수 정보를 모두 입력해주세요. (책, 제목, 인원, 시간)"}, status=400)
 
         try:
             with transaction.atomic():
                 book = get_object_or_404(Book, pk=book_id)
+                
+                # 모임 생성 (비교 로직 생략하여 Naive/Aware 충돌 원천 차단)
                 meeting = Meeting.objects.create(
                     leader_id=request.user,
                     book_id=book,
@@ -132,23 +151,35 @@ def meeting_list_api(request):
                     started_at=started_at,
                     finished_at=finished_at,
                 )
+
+                # 퀴즈 생성
                 quiz_data = payload.get("quiz") or {}
                 Quiz.objects.create(
                     meeting_id=meeting,
                     question=quiz_data.get("question") or "참여 퀴즈가 없습니다.",
                     answer=quiz_data.get("answer") or "없음"
                 )
-                Participate.objects.create(meeting=meeting, user_id=request.user, result=True)
+
+                # 리더 자동 참여 처리
+                Participate.objects.create(
+                    meeting=meeting,
+                    user_id=request.user,
+                    result=True
+                )
+
                 return Response(serialize_meeting(meeting, joined_count=1), status=201)
         except Exception as e:
+            # 에러 메시지를 detail에 담아 프론트에서 확인 가능하게 함
             return Response({"detail": f"저장 실패: {str(e)}"}, status=400)
 
-    # ---------- GET: 리스트 조회 (복구된 부분) ----------
+    # ---------- GET: 리스트 조회 ----------
+    from django.utils import timezone
     now = timezone.now()
     q = (request.GET.get("q") or "").strip()
     sort = (request.GET.get("sort") or "soon").strip()
     limit = request.GET.get("limit")
 
+    # 종료되지 않은 모임만 필터링
     qs = (
         Meeting.objects
         .filter(finished_at__gt=now)
