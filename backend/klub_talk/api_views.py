@@ -256,12 +256,15 @@ def meeting_list_api(request):
     sort = (request.GET.get("sort") or "soon").strip()
     limit = request.GET.get("limit")
 
+    # [중요] 기준이 되는 현재 시간
     now = timezone.now()
 
     qs = (
         Meeting.objects
         .select_related("book_id", "book_id__category_id", "leader_id")
-        .filter(finished_at__gt=now)  # 종료 안된 모임(진행중/예정)만
+        # 1. 종료 시간이 미래여야 함 (이미 끝난 모임 제외)
+        # 2. 시작 시간도 미래여야 함 (이미 진행 중인 모임 제외 - 필요 시 선택)
+        .filter(finished_at__gt=now, started_at__gt=now) 
         .annotate(
             joined_count=Count(
                 "participations",
