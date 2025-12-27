@@ -36,7 +36,7 @@ def _parse_dt(value):
         dt = parse_datetime(value)
         if not dt:
             return None
-            
+        # Naive vs Aware 충돌 방지
         if timezone.is_naive(dt):
             return timezone.make_aware(dt)
         return dt
@@ -111,34 +111,18 @@ def meeting_list_api(request):
             return Response({"detail": "로그인이 필요합니다."}, status=401)
 
         payload = request.data or {}
-        
-        # [안전하게 데이터 파싱]
         book_id = payload.get("book_id")
         title = (payload.get("title") or "").strip()
         members = payload.get("members")
-        
-        # 헬퍼 함수를 통해 시간 변환
         started_at = _parse_dt(payload.get("started_at"))
         finished_at = _parse_dt(payload.get("finished_at"))
 
-        # Validation
         if not (book_id and title and members and started_at and finished_at):
             return Response({"detail": "필수 정보를 모두 입력해주세요."}, status=400)
-
-        # [수정] 에러 방지를 위해 현재 시간도 명시적으로 Aware 상태로 가져옴
-        now = timezone.now()
-
-        # 시간 비교 에러(Naive vs Aware) 방지 로직
-        if started_at < now:
-            # 테스트 환경에서 수 초 차이로 에러가 날 수 있으므로 
-            # 로그만 남기거나, 실제 서비스라면 여기서 차단
-            print(f"Warning: started_at({started_at}) is before now({now})")
-            # 필요 시: return Response({"detail": "시작 시간은 현재보다 이후여야 합니다."}, status=400)
 
         try:
             with transaction.atomic():
                 book = get_object_or_404(Book, pk=book_id)
-                # 1. 모임 생성
                 meeting = Meeting.objects.create(
                     leader_id=request.user,
                     book_id=book,
@@ -148,25 +132,48 @@ def meeting_list_api(request):
                     started_at=started_at,
                     finished_at=finished_at,
                 )
-                # 2. 퀴즈 생성
                 quiz_data = payload.get("quiz") or {}
                 Quiz.objects.create(
                     meeting_id=meeting,
                     question=quiz_data.get("question") or "참여 퀴즈가 없습니다.",
                     answer=quiz_data.get("answer") or "없음"
                 )
-                # 3. 리더 자동 참여 처리
-                Participate.objects.create(
-                    meeting=meeting,
-                    user_id=request.user,
-                    result=True
-                )
+                Participate.objects.create(meeting=meeting, user_id=request.user, result=True)
                 return Response(serialize_meeting(meeting, joined_count=1), status=201)
         except Exception as e:
-            # 여기서 발생하는 Naive vs Aware 에러 메시지를 detail로 던짐
             return Response({"detail": f"저장 실패: {str(e)}"}, status=400)
-        
-        
+
+    # ---------- GET: 리스트 조회 (복구된 부분) ----------
+    now = timezone.now()
+    q = (request.GET.get("q") or "").strip()
+    sort = (request.GET.get("sort") or "soon").strip()
+    limit = request.GET.get("limit")
+
+    qs = (
+        Meeting.objects
+        .filter(finished_at__gt=now)
+        .select_related("book_id", "book_id__category_id", "leader_id")
+        .annotate(joined_count=Count("participations", filter=Q(participations__result=True)))
+    )
+
+    if q:
+        qs = qs.filter(Q(title__icontains=q) | Q(book_id__title__icontains=q))
+
+    if sort == "views":
+        qs = qs.order_by("-views", "-id")
+    else:
+        qs = qs.order_by("started_at", "-id")
+
+    if limit:
+        try:
+            qs = qs[:int(limit)]
+        except (ValueError, TypeError):
+            pass
+
+    data = [serialize_meeting(m, joined_count=getattr(m, 'joined_count', 0)) for m in qs]
+    return Response(data, status=status.HTTP_200_OK)
+
+
 @api_view(["GET", "PATCH", "DELETE"])
 def meeting_detail_api(request, pk):
     meeting = get_object_or_404(Meeting.objects.select_related("book_id", "leader_id"), pk=pk)
@@ -184,7 +191,9 @@ def meeting_detail_api(request, pk):
         data["quiz"] = quiz_obj
         return Response(data)
 
-    # 수정/삭제 권한 체크
+    if not request.user.is_authenticated:
+        return Response({"detail": "로그인이 필요합니다."}, status=401)
+
     if request.user != meeting.leader_id:
         return Response({"detail": "권한이 없습니다."}, status=403)
 
@@ -219,7 +228,6 @@ def meeting_quiz_api(request, pk):
             "locked": (not already_joined and attempts_used >= MAX_ATTEMPTS)
         })
 
-    # POST: 퀴즈 제출
     if already_joined or attempts_used >= MAX_ATTEMPTS:
         return Response({"detail": "더 이상 참여할 수 없습니다."}, status=400)
 
