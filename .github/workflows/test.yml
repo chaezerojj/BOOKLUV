@@ -1,49 +1,46 @@
-name: Django Docker Test CI
+name: Django Docker Test
 
 on:
   push:
-    branches: [ "main", "master" ]
-    paths:
-      - 'backend/**'
+    branches: [ "main" ]
   pull_request:
-    branches: [ "main", "master" ]
-    paths:
-      - 'backend/**'
+    branches: [ "main" ]
 
 jobs:
-  test:
+  test-job:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 체크아웃 코드
+      - name: 코드 가져오기
         uses: actions/checkout@v4
 
-      - name: 테스트용 .env 파일 생성
+      - name: 현재 폴더 구조 확인 (디버깅용)
+        run: ls -R  # 에러 발생 시 폴더 구조가 맞는지 로그에서 확인 가능합니다.
+
+      - name: 임시 .env 생성
         run: |
           cd backend
           echo "POSTGRES_USER=postgres" >> .env
           echo "POSTGRES_PASSWORD=yourpassword" >> .env
           echo "POSTGRES_DB=yourdbname" >> .env
-          # 필요한 다른 환경변수들도 여기에 추가하세요.
 
-      - name: 도커 서비스 시작 (DB, Redis 등)
+      - name: 도커 실행 (docker compose 사용)
         run: |
           cd backend
-          # web 서비스를 제외하고 필요한 인프라(db, redis)만 먼저 띄워도 됩니다.
-          docker-compose up -d db redis
+          # 최신 버전은 하이픈 없이 'docker compose'를 사용합니다.
+          docker compose up -d db redis
 
-      - name: DB 준비 대기
-        run: sleep 10
+      - name: 대기 (15초)
+        run: sleep 15
 
       - name: 테스트 실행
         run: |
           cd backend
-          # 'web' 서비스 환경에서 테스트 명령만 따로 실행합니다.
-          # --rm을 붙이면 테스트 후 일회용 컨테이너가 자동으로 삭제됩니다.
-          docker-compose run --rm web python manage.py test
+          # 여기도 하이픈 없는 'docker compose'로 수정했습니다.
+          docker compose run --rm web python manage.py test
 
-      - name: 컨테이너 종료
+      - name: 정리
         if: always()
         run: |
           cd backend
-          docker-compose down
+          docker compose down
