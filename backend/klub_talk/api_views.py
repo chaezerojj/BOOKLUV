@@ -190,15 +190,19 @@ def meeting_list_api(request):
         members = payload.get("members")
 
         # parse datetimes (defensive)
-        def _parse_dt(value):
-            if not value:
-                return None
-            from django.utils.dateparse import parse_datetime
-            dt = parse_datetime(value)
-            if not dt:
-                return None
-            if timezone.is_naive(dt):
-                dt = timezone.make_aware(dt)
+        # 195번 라인 근처의 _parse_dt 함수를 찾아서 아래처럼 수정하세요.
+
+    def _parse_dt(value):
+        if not value:
+            return None
+        from django.utils.dateparse import parse_datetime
+        dt = parse_datetime(value)
+        if not dt:
+            return None
+    
+        # 시간대 정보가 없는 Naive 객체라면, Django 기본 시간대를 입혀서 Aware 객체로 변환
+        if timezone.is_naive(dt):
+            dt = timezone.make_aware(dt)
             return dt
 
         started_at = _parse_dt(payload.get("started_at"))
@@ -258,7 +262,6 @@ def meeting_list_api(request):
             },
             status=status.HTTP_201_CREATED,
         )
-
     # ---------- GET: 기존 리스트 로직 ----------
     q = (request.GET.get("q") or "").strip()
     sort = (request.GET.get("sort") or "soon").strip()
