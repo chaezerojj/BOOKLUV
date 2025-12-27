@@ -36,7 +36,6 @@ jobs:
       - name: 테스트 실행
         run: |
           cd backend
-          # 여기도 하이픈 없는 'docker compose'로 수정했습니다.
           docker compose run --rm web python manage.py test
 
       - name: 정리
