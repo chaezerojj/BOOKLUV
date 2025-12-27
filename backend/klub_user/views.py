@@ -1,6 +1,6 @@
+import requests
 from datetime import timedelta
 
-import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
@@ -9,25 +9,29 @@ from django.middleware.csrf import get_token
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
+
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from klub_talk.models import Participate
+# 모델 임포트 (프로젝트 구조에 맞게 조정 필요)
+from klub_talk.models import Participate, Meeting
 
 User = get_user_model()
 
+# 환경 변수 및 설정값 로드
 KAKAO_REST_API_KEY = settings.KAKAO_REST_API_KEY
 KAKAO_REDIRECT_URI = settings.KAKAO_REDIRECT_URI
 KAKAO_CLIENT_SECRET = settings.KAKAO_CLIENT_SECRET
+FRONT_URL = getattr(settings, 'FRONT_URL', 'https://bookluv.netlify.app').rstrip('/')
 
+# =========================
+# 1. 카카오 소셜 로그인 (Template & Callback)
+# =========================
 
 def auth_login(request):
-    """
-    로그인 페이지 렌더링
-    - next(또는 state)에 대한 흐름을 유지하기 위해 next 값을 템플릿으로 전달
-    """
+    """로그인 페이지 렌더링"""
     context = {
         "KAKAO_REST_API_KEY": KAKAO_REST_API_KEY,
         "KAKAO_REDIRECT_URI": KAKAO_REDIRECT_URI,
@@ -37,20 +41,13 @@ def auth_login(request):
 
 
 def kakao_callback(request):
-    """
-    카카오 OAuth 콜백
-    - code로 access_token 발급
-    - /v2/user/me로 사용자 정보 조회
-    - kakao_id 기준으로 유저 생성/조회
-    - 세션 로그인
-    - state(프론트에서 next 목적지로 사용) 있으면 그쪽으로 redirect
-      없으면 FRONT_URL + "/"
-    """
+    """카카오 OAuth 콜백 및 유저 처리"""
     code = request.GET.get("code")
     if not code:
         return JsonResponse({"detail": "missing code"}, status=400)
 
     try:
+        # 1. Access Token 발급
         token_res = requests.post(
             "https://kauth.kakao.com/oauth/token",
             data={
@@ -64,18 +61,11 @@ def kakao_callback(request):
         )
 
         if token_res.status_code != 200:
-            return JsonResponse(
-                {"detail": "token exchange failed", "kakao": token_res.text},
-                status=400,
-            )
+            return JsonResponse({"detail": "token exchange failed", "kakao": token_res.text}, status=400)
 
         access_token = token_res.json().get("access_token")
-        if not access_token:
-            return JsonResponse(
-                {"detail": "no access_token", "kakao": token_res.json()},
-                status=400,
-            )
 
+        # 2. 사용자 정보 가져오기
         me_res = requests.get(
             "https://kapi.kakao.com/v2/user/me",
             headers={"Authorization": f"Bearer {access_token}"},
@@ -83,21 +73,18 @@ def kakao_callback(request):
         )
 
         if me_res.status_code != 200:
-            return JsonResponse(
-                {"detail": "user info failed", "kakao": me_res.text},
-                status=400,
-            )
+            return JsonResponse({"detail": "user info failed", "kakao": me_res.text}, status=400)
 
         me = me_res.json()
         kakao_id = me.get("id")
         kakao_account = me.get("kakao_account", {})
-        email = kakao_account.get("email")  # 동의 안 받으면 None
+        email = kakao_account.get("email")
 
         if not kakao_id:
-            return JsonResponse({"detail": "missing kakao id", "me": me}, status=400)
+            return JsonResponse({"detail": "missing kakao id"}, status=400)
 
-        # 유저 생성/조회 (kakao_id 기준)
-        user, _created = User.objects.get_or_create(
+        # 3. 유저 생성 또는 조회
+        user, _ = User.objects.get_or_create(
             kakao_id=kakao_id,
             defaults={
                 "email": email or f"kakao_{kakao_id}@kakao.local",
@@ -105,22 +92,19 @@ def kakao_callback(request):
             },
         )
 
-        # 세션 로그인
+        # 4. 세션 로그인
         login(request, user, backend="django.contrib.auth.backends.ModelBackend")
 
-        # 프론트에서 state를 next_url로 쓴다면 여기서 처리
+        # 5. 리다이렉트 (state에 담긴 next_url 혹은 프론트 홈)
         next_url = request.GET.get("state")
-        if next_url:
-            return redirect(next_url)
-
-        return redirect(settings.FRONT_URL + "/")
+        return redirect(next_url if next_url else f"{FRONT_URL}/")
 
     except Exception as e:
         return JsonResponse({"detail": "callback exception", "error": repr(e)}, status=500)
 
 
 # =========================
-# 프론트용 API (DRF)
+# 2. 사용자 정보 API (DRF)
 # =========================
 
 @api_view(["GET", "PATCH"])
@@ -128,241 +112,87 @@ def kakao_callback(request):
 def me(request):
     user = request.user
 
-    # 조회
     if request.method == "GET":
         return Response({
             "id": user.id,
-            "email": getattr(user, "email", None),
-            "kakao_id": getattr(user, "kakao_id", None),
-            "username": getattr(user, "username", None),
-            "nickname": getattr(user, "nickname", None),
-            "date_joined": getattr(user, "date_joined", None),
+            "email": user.email,
+            "nickname": getattr(user, "nickname", ""),
             "is_authenticated": True,
         })
 
-    # 수정 (PATCH)
-    nickname = request.data.get("nickname", None)
-    if nickname is None:
-        return Response({"detail": "nickname is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-    nickname = str(nickname).strip()
-    if len(nickname) == 0:
-        return Response({"detail": "nickname cannot be empty"}, status=status.HTTP_400_BAD_REQUEST)
-
-    user.nickname = nickname
-    user.save(update_fields=["nickname"])
-
-    return Response({
-        "id": user.id,
-        "email": getattr(user, "email", None),
-        "kakao_id": getattr(user, "kakao_id", None),
-        "username": getattr(user, "username", None),
-        "nickname": getattr(user, "nickname", None),
-        "date_joined": getattr(user, "date_joined", None),
-        "is_authenticated": True,
-    })
+    elif request.method == "PATCH":
+        nickname = request.data.get("nickname", "").strip()
+        if not nickname:
+            return Response({"detail": "nickname is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user.nickname = nickname
+        user.save(update_fields=["nickname"])
+        return Response({"id": user.id, "nickname": user.nickname})
 
 
 @api_view(["POST"])
 def logout_view(request):
-    """
-    세션 로그아웃
-    POST /api/v1/auth/logout/
-    """
     logout(request)
     return Response({"detail": "logged out"})
-
-
-# =========================
-# 기존 템플릿 페이지들
-# =========================
-
-@login_required(login_url="/api/v1/auth/")
-def mypage(request):
-    return render(request, "auth/mypage.html", {"user": request.user})
-
-
-@login_required(login_url="/api/v1/auth/")
-def mypage_edit(request):
-    user = request.user
-
-    if request.method == "POST":
-        nickname = request.POST.get("nickname")
-        if nickname:
-            user.nickname = nickname
-            user.save()
-        return redirect("user:mypage")
-
-    return render(request, "klub_user/mypage_edit.html")
-
-
-@login_required(login_url="/api/v1/auth/")
-def myroom(request):
-    participations = (
-        Participate.objects
-        .filter(user_id=request.user)
-        .select_related("meeting_id", "meeting_id__room")
-    )
-
-    room_infos = []
-    seen_meeting_ids = set()
-    now = timezone.localtime()
-
-    for p in participations:
-        meeting = p.meeting_id
-        if not meeting:
-            continue
-
-        room = getattr(meeting, "room", None)
-        if not room:
-            continue
-
-        # ✅ started_at/finished_at NULL 안전 처리
-        if not meeting.started_at or not meeting.finished_at:
-            is_active = False
-        else:
-            is_active = meeting.started_at <= now <= meeting.finished_at
-
-        room_infos.append(
-            {
-                "room_name": room.name,
-                "started_at": meeting.started_at,
-                "finished_at": meeting.finished_at,
-                "is_active": is_active,
-            }
-        )
-        seen_meeting_ids.add(meeting.id)
-
-    # 또한 사용자가 만든(리더인) 모임도 포함시켜서, 방장도 본인의 모임을 확인할 수 있게 함
-    leader_meetings = (
-        Participate.objects
-        .none()  # placeholder for import-safety; we'll query Meeting directly below
-    )
-    try:
-        from klub_talk.models import Meeting
-        leader_meetings = Meeting.objects.filter(leader_id=request.user).select_related("room")
-    except Exception:
-        leader_meetings = []
-
-    for m in leader_meetings:
-        if not m or m.id in seen_meeting_ids:
-            continue
-        room = getattr(m, "room", None)
-        if not room:
-            continue
-
-        if not m.started_at or not m.finished_at:
-            is_active = False
-        else:
-            is_active = m.started_at <= now <= m.finished_at
-
-        room_infos.append({
-            "room_name": room.name,
-            "started_at": m.started_at,
-            "finished_at": m.finished_at,
-            "is_active": is_active,
-        })
-        seen_meeting_ids.add(m.id)
-
-    return render(request, "auth/myroom.html", {"room_infos": room_infos})
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
 @ensure_csrf_cookie
 def csrf(request):
-    # csrftoken 쿠키를 심고, 토큰 값을 body로도 내려줌
+    """프론트엔드 CSRF 토큰 발급용"""
     return Response({"csrfToken": get_token(request)})
 
 
 # =========================
-# ✅ 마이페이지 "나의 채팅방" JSON API
-# - 진행예정 / 진행전(10분 이내) / 진행중 분류
-# - 시작 10분 전~종료 전이면 Room 자동 생성
-# - ✅ Participate에 result 필드가 없어도 500 안 나게 (result 필터 제거)
-# - ✅ started_at/finished_at NULL 안전 처리
+# 3. 마이룸 / 채팅방 목록 API
 # =========================
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def myroom_api(request):
-    """
-    ✅ 템플릿 myroom.html과 동일한 데이터만 JSON으로 반환
-    - 참여 중인 meeting의 room이 있는 것만
-    - room_name, started_at, finished_at, is_active
-    """
+    """참여 중이거나 방장인 채팅방 목록 JSON 반환"""
     now = timezone.localtime()
-
-    participations = (
-        Participate.objects
-        .filter(user_id=request.user)
-        .select_related("meeting", "meeting__room")
-        .order_by("meeting__started_at")
-    )
+    
+    # 1. 내가 참여한 모임 조회
+    participations = Participate.objects.filter(user_id=request.user).select_related("meeting", "meeting__room")
+    
+    # 2. 내가 방장인 모임 조회
+    leader_meetings = Meeting.objects.filter(leader_id=request.user).select_related("room")
 
     results = []
     seen_meeting_ids = set()
 
-    for p in participations:
-        meeting = p.meeting
-        room = getattr(meeting, "room", None)
-        if not room:
-            continue
-
-        started = meeting.started_at
-        finished = meeting.finished_at
-
-        started_local = timezone.localtime(started) if started else None
-        finished_local = timezone.localtime(finished) if finished else None
-
+    def process_meeting(meeting):
+        if not meeting or not hasattr(meeting, 'room') or meeting.id in seen_meeting_ids:
+            return
+        
+        room = meeting.room
+        started = timezone.localtime(meeting.started_at) if meeting.started_at else None
+        finished = timezone.localtime(meeting.finished_at) if meeting.finished_at else None
+        
         is_active = False
-        if started_local and finished_local:
-            is_active = started_local <= now <= finished_local
+        if started and finished:
+            is_active = started <= now <= finished
 
         results.append({
             "meeting_id": meeting.id,
             "title": meeting.title,
-            "room_name": getattr(room, "name", None),
-            "room_slug": getattr(room, "slug", None),
-            "started_at": started_local.isoformat() if started_local else None,
-            "finished_at": finished_local.isoformat() if finished_local else None,
+            "room_name": getattr(room, "name", "알 수 없는 방"),
+            "room_slug": getattr(room, "slug", ""),
+            "started_at": started.isoformat() if started else None,
+            "finished_at": finished.isoformat() if finished else None,
             "is_active": is_active,
         })
         seen_meeting_ids.add(meeting.id)
 
-    # Include meetings where the user is the leader (so leaders can see their own rooms)
-    try:
-        from klub_talk.models import Meeting
-        leader_meetings = Meeting.objects.filter(leader_id=request.user).select_related("room").order_by("started_at")
-    except Exception:
-        leader_meetings = []
-
+    # 두 쿼리셋 결과 처리
+    for p in participations:
+        process_meeting(p.meeting)
     for m in leader_meetings:
-        if not m or m.id in seen_meeting_ids:
-            continue
-        room = getattr(m, "room", None)
-        if not room:
-            continue
+        process_meeting(m)
 
-        started_local = timezone.localtime(m.started_at) if m.started_at else None
-        finished_local = timezone.localtime(m.finished_at) if m.finished_at else None
-
-        is_active = False
-        if started_local and finished_local:
-            is_active = started_local <= now <= finished_local
-
-        results.append({
-            "meeting_id": m.id,
-            "title": m.title,
-            "room_name": getattr(room, "name", None),
-            "room_slug": getattr(room, "slug", None),
-            "started_at": started_local.isoformat() if started_local else None,
-            "finished_at": finished_local.isoformat() if finished_local else None,
-            "is_active": is_active,
-        })
-        seen_meeting_ids.add(m.id)
-
-    # sort by started_at asc (None -> put at end)
+    # 시작 시간 순 정렬
     results.sort(key=lambda x: x.get("started_at") or "")
 
-    return Response({"results": results}, status=status.HTTP_200_OK)
+    return Response({"results": results})

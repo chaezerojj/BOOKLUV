@@ -4,12 +4,13 @@ from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from klub_talk.models import Book, Category
-from .models import ReadingPreference, RecommendationResult
 from .services.openai_client import get_ai_recommendation
 
 # 1. 페이지 접속용 (기존 유지)
 def quiz_view(request):
     return render(request, "recommend/quiz.html")
+
+
 @api_view(["POST"])
 @renderer_classes([JSONRenderer])
 def result_view(request):

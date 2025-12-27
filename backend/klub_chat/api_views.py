@@ -19,12 +19,7 @@ from klub_talk.models import Meeting, Participate, Book, Meeting, Quiz
 
 from .models import Room, ChatMessage, MeetingAlert 
 
-
-REDIS_URL = os.getenv(
-    "REDIS_URL",
-    "redis://default:bGBSgqYKpfUrphgGUScwxHlFkdvRIKYh@redis.railway.internal:6379"
-)
-
+REDIS_URL = os.getenv('REDIS_URL')
 
 def _safe_nick(user):
     return getattr(user, "nickname", None) or getattr(user, "username", None) or getattr(user, "email", None) or "Unknown"

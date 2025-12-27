@@ -18,8 +18,7 @@ from klub_talk.models import Meeting, Participate
 # =====================
 # Redis 설정 (Railway URL 반영)
 # =====================
-# 환경 변수 REDIS_URL이 있으면 그것을 쓰고, 없으면 보내주신 주소를 기본값으로 사용합니다.
-REDIS_URL = os.getenv('REDIS_URL', 'redis://default:bGBSgqYKpfUrphgGUScwxHlFkdvRIKYh@redis.railway.internal:6379')
+REDIS_URL = os.getenv('REDIS_URL')
 
 # =====================
 # 채팅방 목록 (자동 생성 및 필터링)

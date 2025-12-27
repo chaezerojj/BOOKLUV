@@ -10,33 +10,25 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 3. 보안 설정
-SECRET_KEY = os.getenv(
-    'SECRET_KEY',
-    'django-insecure-v%7qnd++txo72rj^2akf2*)o0(2t7_whrcgcpli6hfp1$g#fvh'
-)
+SECRET_KEY = os.getenv('SECRET_KEY')
 
-# 운영 환경에서는 반드시 False가 되도록 설정 (환경 변수 DEBUG=True 가 아니면 False)
+# 운영 환경에서는 반드시 False가 되도록 설정
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('1', 'true', 'yes')
 
 # 4. 호스트 및 도메인 설정
-# 환경 변수에 ALLOWED_HOSTS가 없으면 기본 도메인들을 사용
-DEFAULT_HOSTS = 'bookluv.railway.app,localhost,127.0.0.1'
-ALLOWED_HOSTS = [
-    'bookluv.com',
-    '.railway.app',  # Railway에서 제공하는 모든 서브도메인 허용
-    'localhost',
-    '127.0.0.1',
-]
+# 환경 변수에서 쉼표로 구분된 문자열을 받아 리스트로 변환
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
 # 서비스 메인 도메인 설정 (리다이렉트 시 활용)
-BASE_URL = os.getenv('DOMAIN_URL', 'https://bookluv-production.up.railway.app/').rstrip('/')
+BASE_URL = os.getenv('BASE_URL', 'http://localhost:8000').rstrip('/')
 
 # 5. 애플리케이션 정의
 INSTALLED_APPS = [
-    'daphne',          # ASGI 처리를 위해 반드시 최상단에 위치
+    'daphne',
     'drf_yasg',
     'django_extensions',
     'corsheaders',
-    'channels',        # 웹소켓용
+    'channels',
     'klub_board',
     'klub_chat',
     'klub_talk',
@@ -55,11 +47,11 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
 ]
 
-# 6. 미들웨어 설정 (순서가 매우 중요함)
+# 6. 미들웨어 설정
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',    # 1순위
-    'corsheaders.middleware.CorsMiddleware',            # CORS
-    'whitenoise.middleware.WhiteNoiseMiddleware',       # 정적 파일 서빙
+    'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -86,11 +78,10 @@ TEMPLATES = [
     },
 ]
 
-# 7. 서버 실행 방식 (WSGI & ASGI)
 WSGI_APPLICATION = 'backend.wsgi.application'
 ASGI_APPLICATION = "backend.asgi.application"
 
-# 8. 데이터베이스 설정 (Railway DATABASE_URL 우선 사용)
+# 8. 데이터베이스 설정 (Railway 등 환경변수 우선)
 DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL:
     DATABASES = {
@@ -104,43 +95,28 @@ else:
         }
     }
 
-# 9. Redis 및 채널 레이어 설정 (웹소켓용)
-REDIS_URL = os.getenv('REDIS_URL', 'redis://default:bGBSgqYKpfUrphgGUScwxHlFkdvRIKYh@redis.railway.internal:6379')
-#-------------------------------------------
+# 9. Redis 및 채널 레이어 설정
+REDIS_URL = os.getenv('REDIS_URL')
 if REDIS_URL:
-    CELERY_BROKER_URL = REDIS_URL
-    CELERY_RESULT_BACKEND = REDIS_URL
-
     CHANNEL_LAYERS = {
         "default": {
             "BACKEND": "channels_redis.core.RedisChannelLayer",
             "CONFIG": {"hosts": [REDIS_URL]},
         }
     }
+    CELERY_BROKER_URL = REDIS_URL
+    CELERY_RESULT_BACKEND = REDIS_URL
 else:
-    # Redis 없으면 개발용으로라도 서버가 죽지 않게
     CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
-#-------------------------------------------
-# CHANNEL_LAYERS = {
-#     "default": {
-#         "BACKEND": "channels_redis.core.RedisChannelLayer",
-#         "CONFIG": {
-#             "hosts": [REDIS_URL], # 여기서 비밀번호가 포함된 URL이 들어가야 합니다.
-#         },
-#     },
-# }
+    CELERY_BROKER_URL = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
 
-# Celery 설정
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', REDIS_URL)
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', CELERY_BROKER_URL)
-
-# 10. 정적 및 미디어 파일 설정
+# 10. 정적 및 미디어 파일
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-# WhiteNoise가 정적 파일을 압축 및 캐싱하도록 설정
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# 11. 인증 및 소셜 로그인 설정
+# 11. 인증 및 소셜 로그인
 AUTH_USER_MODEL = 'klub_user.User'
 SITE_ID = int(os.getenv('SITE_ID', '1'))
 
@@ -149,89 +125,53 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-# 로그인 관련 URL (IP 주소 대신 BASE_URL 사용)
 LOGIN_URL = f"{BASE_URL}/api/v1/auth/"
 LOGIN_REDIRECT_URL = f"{BASE_URL}/api/v1/chat/rooms/"
-
-# 프론트 주소 (OAuth 콜백 후 리다이렉트용)
 FRONT_URL = os.getenv('FRONT_URL', 'https://bookluv.netlify.app').rstrip('/')
 
-# 카카오 로그인 설정
-KAKAO_REST_API_KEY = os.getenv('KAKAO_REST_API_KEY', '4bf9c626d2f496b06164d72b26db4b81')
-KAKAO_CLIENT_SECRET = os.getenv('KAKAO_CLIENT_SECRET', 'Py28EL9FRcSyE0PYtkz0TpKTCAjmdUwZ')
+# 카카오 로그인 (모두 환경변수 처리)
+KAKAO_REST_API_KEY = os.getenv('KAKAO_REST_API_KEY')
+KAKAO_CLIENT_SECRET = os.getenv('KAKAO_CLIENT_SECRET')
 KAKAO_REDIRECT_URI = os.getenv('KAKAO_REDIRECT_URI', f"{BASE_URL}/api/v1/auth/callback/")
 
-# 콜백 URI에 'callback'이 포함되어 있지 않으면 자동으로 추가
-if 'callback' not in KAKAO_REDIRECT_URI:
-    if KAKAO_REDIRECT_URI.endswith('/'):
-        KAKAO_REDIRECT_URI = KAKAO_REDIRECT_URI + 'callback/'
-    else:
-        KAKAO_REDIRECT_URI = KAKAO_REDIRECT_URI + '/callback/'
+# 12. CORS 및 CSRF 설정 (환경변수에서 리스트로 가져오기)
+def get_env_list(var_name, default=""):
+    val = os.getenv(var_name, default)
+    return [i.strip() for i in val.split(",") if i.strip()]
 
+CORS_ALLOWED_ORIGINS = get_env_list('CORS_ALLOWED_ORIGINS')
+CSRF_TRUSTED_ORIGINS = get_env_list('CSRF_TRUSTED_ORIGINS')
 
-# 12. CORS 및 CSRF 신뢰 도메인
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    "https://*.railway.app",
-    "https://bookluv.netlify.app", 
-]
 CORS_ALLOW_CREDENTIALS = True
-
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://bookluv.netlify.app",
-    "https://*.railway.app",
-    "https://*.netlify.app",
-]
-
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https:\/\/.*\.railway\.app$",
-    r"^https:\/\/.*\.netlify\.app$",
-]
-
 WHITENOISE_MANIFEST_STRICT = False
 
-# 13. 국제화 설정
+# 13. 국제화
 LANGUAGE_CODE = 'ko-kr'
 TIME_ZONE = 'Asia/Seoul'
 USE_I18N = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# 14. 실서비스 보안 설정 (HTTPS 전용)
+# 14. 보안 및 HTTPS
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 if not DEBUG:
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = True
-
-    # cross-site cookie 허용 (세션/CSRF)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = "None"
     CSRF_COOKIE_SAMESITE = "None"
 else:
-    # 로컬(http) 개발 편하게
+    SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     SESSION_COOKIE_SAMESITE = "Lax"
     CSRF_COOKIE_SAMESITE = "Lax"
 
-# GMS API 등 외부 서비스 설정
+# 외부 서비스
 GMS_API_KEY = os.getenv("GMS_KEY")
-GMS_OPENAI_URL = os.getenv("GMS_OPENAI_URL", "https://gms.ssafy.io/gmsapi/api.openai.com/v1/chat/completions")
-
-# (선택) 프론트 JS가 csrf 쿠키 읽게 하려면 (기본 False라 대개 OK)
-CSRF_COOKIE_HTTPONLY = False
-
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+GMS_OPENAI_URL = os.getenv("GMS_OPENAI_URL")
 
 REST_FRAMEWORK = {
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.JSONRenderer',
-    ),
-    'DEFAULT_PARSER_CLASSES': (
-        'rest_framework.parsers.JSONParser',
-    ),
+    'DEFAULT_RENDERER_CLASSES': ('rest_framework.renderers.JSONRenderer',),
+    'DEFAULT_PARSER_CLASSES': ('rest_framework.parsers.JSONParser',),
 }
