@@ -1,21 +1,30 @@
 #!/bin/bash
 
 # PYTHONPATH 설정
-export PYTHONPATH=/app:$PYTHONPATH
+export PYTHONPATH=/code:$PYTHONPATH
 
 echo "======================"
 echo "Current working directory: $(pwd)"
+echo "Server Type: $SERVER_TYPE"
 echo "======================"
 
-# start.sh 수정 (예시)
-echo "Running Django migrations..."
-python manage.py migrate --noinput --fake-initial || { echo "Migration failed but continuing..."; }
+if [ "$SERVER_TYPE" = "HTTP" ]; then
+    echo "Running Django migrations..."
+    python manage.py migrate --noinput || { echo "Migration failed"; }
 
-# 2. 정적 파일 수집
-echo "Collecting static files..."
-python manage.py collectstatic --noinput || { echo "Collectstatic failed"; exit 1; }
+    echo "Collecting static files..."
+    python manage.py collectstatic --noinput || { echo "Collectstatic failed"; }
+fi
 
-# 3. 서버 실행 (Gunicorn + Uvicorn worker 조합 또는 Daphne) 
-# 여기서는 웹소켓 처리가 가능한 Daphne를 사용합니다.
-echo "Starting Daphne server for WebSockets..."
-exec daphne -b 0.0.0.0 -p $PORT backend.asgi:application
+if [ "$SERVER_TYPE" = "HTTP" ]; then
+    echo "Starting Gunicorn server for HTTP..."
+    exec gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    
+elif [ "$SERVER_TYPE" = "WS" ]; then
+    echo "Starting Daphne server for WebSockets..."
+    exec daphne -b 0.0.0.0 -p 8001 backend.asgi:application
+    
+else
+    echo "Error: SERVER_TYPE environment variable is not set (HTTP or WS)"
+    exit 1
+fi

@@ -1,4 +1,3 @@
-
 services:
   db:
     image: postgres:13
@@ -9,13 +8,14 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - backend  # backend 네트워크에 연결
+      - backend
     volumes:
-      - postgres_data:/var/lib/postgresql/data  # PostgreSQL 데이터를 외부에 보존
+      - postgres_data:/var/lib/postgresql/data
 
-  web:
+  # 1. HTTP 전용 서버 (Gunicorn)
+  web-http:
     build: .
-    command: bash start.sh  # start.sh 스크립트 실행
+    command: bash start.sh
     volumes:
       - .:/code
     ports:
@@ -26,11 +26,33 @@ services:
     env_file:
       - .env
     environment:
+      - SERVER_TYPE=HTTP
       - TZ=Asia/Seoul
       - DJANGO_SETTINGS_MODULE=backend.settings
       - PYTHONUNBUFFERED=1
     networks:
-      - backend  # backend 네트워크에 연결
+      - backend
+
+  # 2. WebSocket 전용 서버 (Daphne)
+  web-ws:
+    build: .
+    command: bash start.sh
+    volumes:
+      - .:/code
+    ports:
+      - "8001:8001"
+    depends_on:
+      - redis
+      - db
+    env_file:
+      - .env
+    environment:
+      - SERVER_TYPE=WS
+      - TZ=Asia/Seoul
+      - DJANGO_SETTINGS_MODULE=backend.settings
+      - PYTHONUNBUFFERED=1
+    networks:
+      - backend
 
   redis:
     image: redis:7
@@ -39,11 +61,11 @@ services:
     environment:
       - TZ=Asia/Seoul
     networks:
-      - backend  # backend 네트워크에 연결
+      - backend
 
   celery:
     build: .
-    command: celery -A backend worker -l info  # Celery worker 실행
+    command: celery -A backend worker -l info
     volumes:
       - .:/code
     depends_on:
@@ -52,12 +74,13 @@ services:
       - .env
     environment:
       - TZ=Asia/Seoul
+      - DJANGO_SETTINGS_MODULE=backend.settings 
     networks:
-      - backend  # backend 네트워크에 연결
+      - backend
 
   celery-beat:
     build: .
-    command: celery -A backend beat -l info  # Celery Beat 실행
+    command: celery -A backend beat -l info
     volumes:
       - .:/code
     depends_on:
@@ -66,12 +89,13 @@ services:
       - .env
     environment:
       - TZ=Asia/Seoul
+      - DJANGO_SETTINGS_MODULE=backend.settings 
     networks:
-      - backend  # backend 네트워크에 연결
+      - backend
 
 networks:
-  backend:  # 네트워크 정의
-    driver: bridge  # 기본 브리지 네트워크 사용
+  backend:
+    driver: bridge
 
 volumes:
-  postgres_data:  # PostgreSQL 데이터 저장용 볼륨 정의
+  postgres_data:
