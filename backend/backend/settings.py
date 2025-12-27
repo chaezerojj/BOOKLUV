@@ -10,16 +10,16 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 3. 보안 설정
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-key-for-testing')
 
-# 운영 환경에서는 반드시 False가 되도록 설정
+# 운영 환경에서는 반드시 False가 되도록 설정 (레일웨이 변수 DEBUG=False 권장)
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('1', 'true', 'yes')
 
 # 4. 호스트 및 도메인 설정
 # 환경 변수에서 쉼표로 구분된 문자열을 받아 리스트로 변환
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,.railway.app').split(',')
 
-# 서비스 메인 도메인 설정 (리다이렉트 시 활용)
+# 서비스 메인 도메인 설정
 BASE_URL = os.getenv('BASE_URL', 'http://localhost:8000').rstrip('/')
 
 # 5. 애플리케이션 정의
@@ -50,7 +50,7 @@ INSTALLED_APPS = [
 # 6. 미들웨어 설정
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # CommonMiddleware보다 위에 위치
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -129,18 +129,17 @@ LOGIN_URL = f"{BASE_URL}/api/v1/auth/"
 LOGIN_REDIRECT_URL = f"{BASE_URL}/api/v1/chat/rooms/"
 FRONT_URL = os.getenv('FRONT_URL', 'https://bookluv.netlify.app').rstrip('/')
 
-# 카카오 로그인 (모두 환경변수 처리)
+# 카카오 로그인
 KAKAO_REST_API_KEY = os.getenv('KAKAO_REST_API_KEY')
 KAKAO_CLIENT_SECRET = os.getenv('KAKAO_CLIENT_SECRET')
 KAKAO_REDIRECT_URI = os.getenv('KAKAO_REDIRECT_URI', f"{BASE_URL}/api/v1/auth/callback/")
 
-# 12. CORS 및 CSRF 설정 (환경변수에서 리스트로 가져오기)
-def get_env_list(var_name, default=""):
-    val = os.getenv(var_name, default)
-    return [i.strip() for i in val.split(",") if i.strip()]
+# 12. CORS 및 CSRF 설정 (수정됨)
+CORS_ALLOWED_ORIGINS_STR = os.environ.get("CORS_ALLOWED_ORIGINS", "")
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ALLOWED_ORIGINS_STR.split(",") if origin]
 
-CORS_ALLOWED_ORIGINS = get_env_list('CORS_ALLOWED_ORIGINS')
-CSRF_TRUSTED_ORIGINS = get_env_list('CSRF_TRUSTED_ORIGINS')
+# CSRF 신뢰 도메인 - 403 에러 해결의 핵심
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 CORS_ALLOW_CREDENTIALS = True
 WHITENOISE_MANIFEST_STRICT = False
@@ -152,8 +151,9 @@ USE_I18N = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# 14. 보안 및 HTTPS
+# 14. 보안 및 HTTPS 설정
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
@@ -174,4 +174,8 @@ GMS_OPENAI_URL = os.getenv("GMS_OPENAI_URL")
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': ('rest_framework.renderers.JSONRenderer',),
     'DEFAULT_PARSER_CLASSES': ('rest_framework.parsers.JSONParser',),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
 }
