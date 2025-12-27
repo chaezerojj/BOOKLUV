@@ -1,0 +1,49 @@
+name: Django Docker Test CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches: [ "main", "master" ]
+    paths:
+      - 'backend/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 체크아웃 코드
+        uses: actions/checkout@v4
+
+      - name: 테스트용 .env 파일 생성
+        run: |
+          cd backend
+          echo "POSTGRES_USER=postgres" >> .env
+          echo "POSTGRES_PASSWORD=yourpassword" >> .env
+          echo "POSTGRES_DB=yourdbname" >> .env
+          # 필요한 다른 환경변수들도 여기에 추가하세요.
+
+      - name: 도커 서비스 시작 (DB, Redis 등)
+        run: |
+          cd backend
+          # web 서비스를 제외하고 필요한 인프라(db, redis)만 먼저 띄워도 됩니다.
+          docker-compose up -d db redis
+
+      - name: DB 준비 대기
+        run: sleep 10
+
+      - name: 테스트 실행
+        run: |
+          cd backend
+          # 'web' 서비스 환경에서 테스트 명령만 따로 실행합니다.
+          # --rm을 붙이면 테스트 후 일회용 컨테이너가 자동으로 삭제됩니다.
+          docker-compose run --rm web python manage.py test
+
+      - name: 컨테이너 종료
+        if: always()
+        run: |
+          cd backend
+          docker-compose down
