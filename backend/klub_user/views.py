@@ -261,3 +261,17 @@ def myroom_api(request):
 
     results.sort(key=lambda x: x.get("started_at") or "")
     return Response({"results": results}, status=status.HTTP_200_OK)
+
+@login_required(login_url="/api/v1/auth/")
+def mypage_edit(request):
+    user = request.user
+
+    if request.method == "POST":
+        nickname = request.POST.get("nickname")
+        if nickname:
+            user.nickname = nickname
+            user.save()
+        # 'user:mypage' 또는 'mypage' 등 설정된 name으로 리다이렉트
+        return redirect("user:mypage")
+
+    return render(request, "klub_user/mypage_edit.html")
