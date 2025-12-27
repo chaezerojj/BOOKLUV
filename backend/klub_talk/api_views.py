@@ -27,13 +27,14 @@ def normalize_answer(s: str) -> str:
     return s
 
 def _parse_dt(value):
-    """문자열 시간을 Aware Datetime으로 안전하게 변환"""
     if not value:
         return None
     from django.utils.dateparse import parse_datetime
     dt = parse_datetime(value)
     if not dt:
         return None
+        
+    # 만약 시간대 정보가 없다면(Naive), Django 설정(KST 등)을 입혀서 Aware로 만듦
     if timezone.is_naive(dt):
         dt = timezone.make_aware(dt)
     return dt
