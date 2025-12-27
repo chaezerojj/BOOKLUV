@@ -256,7 +256,7 @@ def meeting_list_api(request):
     sort = (request.GET.get("sort") or "soon").strip()
     limit = request.GET.get("limit")
 
-    now = timezone.localtime()
+    now = timezone.now()
 
     qs = (
         Meeting.objects
