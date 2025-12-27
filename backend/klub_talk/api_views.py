@@ -96,28 +96,29 @@ def book_detail_api(request, book_id):
         "book": BookSerializer(book).data,
         "meetings": meetings,
     })
+    
+    
 @api_view(["GET", "POST"])
 def meeting_list_api(request):
     """
     GET: 모임 목록 조회
     POST: 새로운 모임 생성
     """
-    # 내부 헬퍼 함수: 시간 문자열을 Aware Datetime으로 변환
-    def _parse_dt(value):
+    def _force_aware(value):
+        """어떤 시간이 들어와도 강제로 Aware 상태로 만듦"""
         if not value:
             return None
         from django.utils.dateparse import parse_datetime
         from django.utils import timezone
-        try:
-            dt = parse_datetime(value)
-            if not dt:
-                return None
-            # 시간대 정보가 없는 Naive 객체라면, Django 설정 시간대를 입혀서 Aware로 변환
-            if timezone.is_naive(dt):
-                return timezone.make_aware(dt)
-            return dt
-        except Exception:
+        
+        dt = parse_datetime(value) if isinstance(value, str) else value
+        if not dt:
             return None
+            
+        if timezone.is_naive(dt):
+            # Naive라면 Django 설정 시간대(KST)를 입혀서 Aware로 변환
+            return timezone.make_aware(dt)
+        return dt
 
     # ---------- POST: 모임 생성 ----------
     if request.method == "POST":
@@ -125,29 +126,31 @@ def meeting_list_api(request):
             return Response({"detail": "로그인이 필요합니다."}, status=401)
 
         payload = request.data or {}
-        book_id = payload.get("book_id")
-        title = (payload.get("title") or "").strip()
-        members = payload.get("members")
         
-        # 시간 파싱
-        started_at = _parse_dt(payload.get("started_at"))
-        finished_at = _parse_dt(payload.get("finished_at"))
+        # 1. 모든 시간 데이터를 즉시 강제 변환
+        started_at = _force_aware(payload.get("started_at"))
+        finished_at = _force_aware(payload.get("finished_at"))
+        now = timezone.now() # 이것은 항상 Aware임
 
-        # Validation
-        if not (book_id and title and members and started_at and finished_at):
-            return Response({"detail": "필수 정보를 모두 입력해주세요. (책, 제목, 인원, 시간)"}, status=400)
+        # 2. 필수 값 체크
+        if not (started_at and finished_at):
+            return Response({"detail": "시간 정보가 누락되었거나 형식이 잘못되었습니다."}, status=400)
+
+        # 3. 비교 (둘 다 Aware이므로 절대 에러 안 남)
+        if started_at >= finished_at:
+            return Response({"detail": "시작 시간은 종료 시간보다 빨라야 합니다."}, status=400)
 
         try:
             with transaction.atomic():
-                book = get_object_or_404(Book, pk=book_id)
+                book = get_object_or_404(Book, pk=payload.get("book_id"))
                 
-                # 모임 생성 (비교 로직 생략하여 Naive/Aware 충돌 원천 차단)
+                # 모임 생성
                 meeting = Meeting.objects.create(
                     leader_id=request.user,
                     book_id=book,
-                    title=title,
-                    description=payload.get("description", ""),
-                    members=int(members),
+                    title=(payload.get("title") or "").strip(),
+                    description=(payload.get("description") or "").strip(),
+                    members=int(payload.get("members", 2)),
                     started_at=started_at,
                     finished_at=finished_at,
                 )
@@ -160,36 +163,32 @@ def meeting_list_api(request):
                     answer=quiz_data.get("answer") or "없음"
                 )
 
-                # 리더 자동 참여 처리
-                Participate.objects.create(
-                    meeting=meeting,
-                    user_id=request.user,
-                    result=True
-                )
+                # 리더 자동 참여
+                Participate.objects.create(meeting=meeting, user_id=request.user, result=True)
 
                 return Response(serialize_meeting(meeting, joined_count=1), status=201)
         except Exception as e:
-            # 에러 메시지를 detail에 담아 프론트에서 확인 가능하게 함
+            # 여기서 에러가 난다면 필드명 불일치일 확률이 높음
             return Response({"detail": f"저장 실패: {str(e)}"}, status=400)
 
     # ---------- GET: 리스트 조회 ----------
-    from django.utils import timezone
     now = timezone.now()
-    q = (request.GET.get("q") or "").strip()
     sort = (request.GET.get("sort") or "soon").strip()
     limit = request.GET.get("limit")
 
-    # 종료되지 않은 모임만 필터링
     qs = (
         Meeting.objects
-        .filter(finished_at__gt=now)
-        .select_related("book_id", "book_id__category_id", "leader_id")
+        .filter(finished_at__gt=now) # Aware vs Aware 비교라 안전함
+        .select_related("book_id", "leader_id")
         .annotate(joined_count=Count("participations", filter=Q(participations__result=True)))
     )
 
+    # 검색 처리
+    q = (request.GET.get("q") or "").strip()
     if q:
         qs = qs.filter(Q(title__icontains=q) | Q(book_id__title__icontains=q))
 
+    # 정렬 처리
     if sort == "views":
         qs = qs.order_by("-views", "-id")
     else:
@@ -198,12 +197,11 @@ def meeting_list_api(request):
     if limit:
         try:
             qs = qs[:int(limit)]
-        except (ValueError, TypeError):
+        except:
             pass
 
     data = [serialize_meeting(m, joined_count=getattr(m, 'joined_count', 0)) for m in qs]
-    return Response(data, status=status.HTTP_200_OK)
-
+    return Response(data)
 
 @api_view(["GET", "PATCH", "DELETE"])
 def meeting_detail_api(request, pk):
