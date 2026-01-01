@@ -36,19 +36,20 @@ def check_and_create_rooms():
     )
 
     meetings_today = Meeting.objects.filter(
-        started_at__range=(today_start, today_end)
+        started_at__date=now.date()
     )
 
     for meeting in meetings_today:
+        # 방이 없으면 생성
         if not hasattr(meeting, "room") or not meeting.room:
-            try:
-                Room.objects.create(
-                    name=meeting.title,
-                    meeting=meeting,
-                    slug=generate_unique_slug(meeting.title)
-                )
-            except IntegrityError:
-                pass
+            # 중복 생성 방지를 위한 get_or_create 권장
+            Room.objects.get_or_create(
+                meeting=meeting,
+                defaults={
+                    "name": meeting.title,
+                    "slug": generate_unique_slug(meeting.title)
+                }
+            )
 
 
 # =========================
