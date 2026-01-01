@@ -124,18 +124,28 @@ def meeting_list_api(request):
 
         payload = request.data or {}
         
-        # 1. 모든 시간을 Aware 상태로 정렬
         started_at = _force_aware(payload.get("started_at"))
         finished_at = _force_aware(payload.get("finished_at"))
-        now = timezone.now() # Django의 now()는 기본적으로 Aware임
+        
+        # [핵심 수정] 비교 직전에 now를 가져오고 상태를 강제 정렬합니다.
+        now = timezone.now()
+        
+        # 만약 now가 naive라면 aware로 변환 (보통 Django now는 aware이지만 방어적 코딩)
+        if timezone.is_naive(now):
+            now = timezone.make_aware(now)
+            
+        # started_at이 naive라면 aware로 변환
+        if started_at and timezone.is_naive(started_at):
+            started_at = timezone.make_aware(started_at)
 
-        # 2. 유효성 검사 (Aware vs Aware 비교)
+        # 2. 유효성 검사
         if not (started_at and finished_at):
             return Response({"detail": "시간 정보 형식이 잘못되었습니다."}, status=400)
 
         if started_at >= finished_at:
             return Response({"detail": "시작 시간은 종료 시간보다 빨라야 합니다."}, status=400)
 
+        # 이제 두 대상이 모두 Aware이므로 에러 없이 비교 가능합니다.
         if started_at < now:
             return Response({"detail": "과거 시간으로 모임을 생성할 수 없습니다."}, status=400)
 
