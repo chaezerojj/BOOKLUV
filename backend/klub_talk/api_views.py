@@ -104,16 +104,9 @@ def meeting_list_api(request):
     GET: 모임 목록 조회
     POST: 새로운 모임 생성
     """
-
-    def _force_aware(value):
-        """문자열이나 datetime을 받아 확실한 Aware 객체로 반환"""
-        if not value:
-            return None
-        dt = parse_datetime(value) if isinstance(value, str) else value
-        if not dt:
-            return None
-        # Naive일 경우 현재 설정된 시간대(KST 등)를 부여
-        if timezone.is_naive(dt):
+    # 헬퍼 함수: Naive 시간을 현재 설정된 시간대(KST 등)의 Aware 시간으로 변환
+    def _make_aware(dt):
+        if dt and timezone.is_naive(dt):
             return timezone.make_aware(dt, timezone.get_current_timezone())
         return dt
 
@@ -124,33 +117,22 @@ def meeting_list_api(request):
 
         payload = request.data or {}
         
-        # 1. 시간 데이터 파싱 (함수 상단에서 가져온 parse_datetime 사용)
-        raw_start = payload.get("started_at")
-        raw_finish = payload.get("finished_at")
-        
-        started_at = parse_datetime(raw_start) if raw_start else None
-        finished_at = parse_datetime(raw_finish) if raw_finish else None
-
-        # [해결 핵심] Django의 timezone.now()와 비교하기 위해 모두 Aware로 통일
-        def ensure_aware(dt):
-            if dt and timezone.is_naive(dt):
-                return timezone.make_aware(dt, timezone.get_current_timezone())
-            return dt
-
-        started_at = ensure_aware(started_at)
-        finished_at = ensure_aware(finished_at)
-        now = timezone.now() # Django 설정에 따라 보통 Aware 상태임
+        # 1. 시간 데이터 파싱 및 시간대 부여
+        started_at = _make_aware(parse_datetime(payload.get("started_at")))
+        finished_at = _make_aware(parse_datetime(payload.get("finished_at")))
+        now = timezone.now()
 
         # 2. 유효성 검사
         if not (started_at and finished_at):
             return Response({"detail": "시간 정보 형식이 잘못되었습니다."}, status=400)
 
-        # 이제 둘 다 확실히 Aware 상태이므로 에러 없이 비교 가능합니다.
+        # 이제 모두 Aware 상태이므로 비교 에러가 발생하지 않습니다.
         if started_at >= finished_at:
             return Response({"detail": "시작 시간은 종료 시간보다 빨라야 합니다."}, status=400)
 
         if started_at < now:
             return Response({"detail": "과거 시간으로 모임을 생성할 수 없습니다."}, status=400)
+
         # 3. DB 저장 로직
         try:
             with transaction.atomic():
@@ -180,7 +162,6 @@ def meeting_list_api(request):
             return Response({"detail": f"저장 실패: {str(e)}"}, status=400)
 
     # ---------- GET: 리스트 조회 ----------
-    # POST가 아닐 때만 실행되도록 들여쓰기 주의
     now = timezone.now()
     sort = (request.GET.get("sort") or "soon").strip()
     limit = request.GET.get("limit")
