@@ -14,9 +14,9 @@ if [ "$SERVER_TYPE" = "HTTP" ]; then
     exec gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT --workers 3
 
 elif [ "$SERVER_TYPE" = "WS" ]; then
-    echo "Starting Celery (Worker + Beat) in background..."
-    # &를 붙여 백그라운드 실행, 로그는 celery.log에 기록
-    celery -A backend worker -l info -B > celery.log 2>&1 &
+    echo "Starting Celery..."
+    # 로그를 파일로 돌리지 않고 바로 출력 (stdout/stderr)
+    celery -A backend worker -l info -B & 
     
     echo "Starting Daphne..."
     exec daphne -b 0.0.0.0 -p $PORT backend.asgi:application

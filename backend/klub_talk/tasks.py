@@ -8,41 +8,47 @@ from django.utils.text import slugify
 from datetime import datetime, time, timedelta
 
 
-# =========================
-# 채팅방 자동 생성 (KST 기준 오늘)
+from celery import shared_task
+from django.utils import timezone
+from django.utils.text import slugify
+
 @shared_task
 def check_and_create_rooms():
-    from klub_chat.models import Room
     from klub_talk.models import Meeting
-    from django.utils import timezone
-    from django.utils.text import slugify
-
-    now = timezone.localtime()
+    from klub_chat.models import Room
     
-    # ✅ 방법 1: 오늘 날짜인 것들 중 룸이 없는 것 다 가져오기
-    # .filter(room__isnull=True)를 쓰면 더 정확합니다.
-    meetings_today = Meeting.objects.filter(
-        started_at__date=now.date(),
+    now = timezone.now()
+    # 시작 시간이 현재보다 이전인데, 방이 연결되지 않은 미팅들
+    pending_meetings = Meeting.objects.filter(
+        started_at__lte=now,
         room__isnull=True
     )
 
-    print(f"[{now}] 룸 생성 체크 시작: 대상 {meetings_today.count()}건")
+    if not pending_meetings.exists():
+        return "생성할 방이 없습니다."
 
-    for meeting in meetings_today:
+    results = []
+    for meeting in pending_meetings:
         try:
-            # ✅ 방법 2: get_or_create로 중복 방지 및 안전하게 생성
-            base_slug = slugify(meeting.title) or f"meeting-{meeting.id}"
-            
-            Room.objects.get_or_create(
+            room, created = Room.objects.get_or_create(
                 meeting=meeting,
                 defaults={
-                    "name": meeting.title,
-                    "slug": base_slug
+                    'name': meeting.title,
+                    'slug': slugify(meeting.title) or f"room-{meeting.id}"
                 }
             )
-            print(f"✅ 룸 생성 완료: {meeting.title}")
+            if created:
+                msg = f"✅ 룸 생성 완료: {meeting.title}"
+            else:
+                msg = f"ℹ️ 이미 룸이 존재함: {meeting.title}"
+            print(msg)
+            results.append(msg)
         except Exception as e:
-            print(f"❌ 룸 생성 실패 ({meeting.id}): {str(e)}")
+            error_msg = f"❌ 룸 생성 실패 ({meeting.id}): {str(e)}"
+            print(error_msg)
+            results.append(error_msg)
+            
+    return "\n".join(results)
 
 # =========================
 # 미팅 시작 알람 (웹소켓)
