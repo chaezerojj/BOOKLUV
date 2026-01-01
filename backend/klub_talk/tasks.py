@@ -15,41 +15,29 @@ from datetime import datetime, time, timedelta
 def check_and_create_rooms():
     from klub_chat.models import Room
     from klub_talk.models import Meeting
-
-    def generate_unique_slug(name):
-        base_slug = slugify(name) or "room"
-        slug = base_slug
-        counter = 1
-        while Room.objects.filter(slug=slug).exists():
-            slug = f"{base_slug}-{counter}"
-            counter += 1
-        return slug
+    import logging
+    logger = logging.getLogger(__name__)
 
     now = timezone.localtime()
-    today_start = timezone.make_aware(
-        datetime.combine(now.date(), time.min),
-        timezone.get_current_timezone()
-    )
-    today_end = timezone.make_aware(
-        datetime.combine(now.date(), time.max),
-        timezone.get_current_timezone()
-    )
-
+    # ✅ 오늘 하루(00:00 ~ 23:59) 동안 시작되는 모든 미팅 대상
     meetings_today = Meeting.objects.filter(
         started_at__date=now.date()
     )
 
+    logger.info(f"Checking rooms for {len(meetings_today)} meetings today.")
+
     for meeting in meetings_today:
-        # 방이 없으면 생성
+        # ✅ 'room' 속성이 없거나 None인 경우 생성
         if not hasattr(meeting, "room") or not meeting.room:
-            # 중복 생성 방지를 위한 get_or_create 권장
-            Room.objects.get_or_create(
+            room, created = Room.objects.get_or_create(
                 meeting=meeting,
                 defaults={
                     "name": meeting.title,
-                    "slug": generate_unique_slug(meeting.title)
+                    "slug": slugify(meeting.title) or f"room-{meeting.id}"
                 }
             )
+            if created:
+                logger.info(f"✅ Created room for meeting: {meeting.title}")
 
 
 # =========================
