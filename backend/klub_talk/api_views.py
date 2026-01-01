@@ -50,7 +50,12 @@ def serialize_meeting(m, joined_count=None):
         "joined_count": joined_count,
         "started_at": m.started_at.isoformat() if m.started_at else None,
         "finished_at": m.finished_at.isoformat() if m.finished_at else None,
-        "book": book_obj,
+        "book_id": m.book_id.id if m.book_id else None,  # ✅ 이 숫자 ID가 반드시 필요함!
+        "book": { # 상세 정보용 객체
+            "id": m.book_id.id,
+            "title": m.book_id.title,
+            "cover_url": getattr(m.book_id, "cover_url", None),
+        } if m.book_id else None,
         # ✅ 프론트엔드 본인 확인을 위한 ID값
         "leader_id": m.leader_id.id if m.leader_id else None,
         "leader_name": getattr(m.leader_id, "nickname", "익명") if m.leader_id else "Unknown",
