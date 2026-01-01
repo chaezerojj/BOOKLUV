@@ -28,7 +28,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 is_authenticated = True
             self.user = MockUser()
             # await self.close()
-            return
+            # return
 
         # 1. 방 정보 가져오기
         try:
