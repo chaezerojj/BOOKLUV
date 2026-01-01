@@ -106,14 +106,16 @@ def meeting_list_api(request):
     """
 
     def _force_aware(value):
+        """문자열이나 datetime을 받아 확실한 Aware 객체로 반환"""
         if not value:
             return None
         dt = parse_datetime(value) if isinstance(value, str) else value
         if not dt:
             return None
+        # Naive일 경우 현재 설정된 시간대(KST 등)를 부여
         if timezone.is_naive(dt):
             return timezone.make_aware(dt, timezone.get_current_timezone())
-        return timezone.localtime(dt)
+        return dt
 
     # ---------- POST: 모임 생성 ----------
     if request.method == "POST":
@@ -122,12 +124,12 @@ def meeting_list_api(request):
 
         payload = request.data or {}
         
-        # 1. 시간을 Aware 객체로 변환 (정의한 유틸리티 함수 사용)
+        # 1. 모든 시간을 Aware 상태로 정렬
         started_at = _force_aware(payload.get("started_at"))
         finished_at = _force_aware(payload.get("finished_at"))
-        now = timezone.now()
+        now = timezone.now() # Django의 now()는 기본적으로 Aware임
 
-        # 2. 유효성 검사
+        # 2. 유효성 검사 (Aware vs Aware 비교)
         if not (started_at and finished_at):
             return Response({"detail": "시간 정보 형식이 잘못되었습니다."}, status=400)
 
@@ -137,12 +139,11 @@ def meeting_list_api(request):
         if started_at < now:
             return Response({"detail": "과거 시간으로 모임을 생성할 수 없습니다."}, status=400)
 
-        # 3. 데이터베이스 저장
+        # 3. DB 저장 로직
         try:
             with transaction.atomic():
                 book = get_object_or_404(Book, pk=payload.get("book_id"))
                 
-                # 모임 생성
                 meeting = Meeting.objects.create(
                     leader_id=request.user,
                     book_id=book,
@@ -153,7 +154,6 @@ def meeting_list_api(request):
                     finished_at=finished_at,
                 )
 
-                # 퀴즈 생성
                 quiz_data = payload.get("quiz") or {}
                 Quiz.objects.create(
                     meeting_id=meeting,
@@ -161,16 +161,14 @@ def meeting_list_api(request):
                     answer=quiz_data.get("answer") or "없음"
                 )
 
-                # 리더 자동 참여
                 Participate.objects.create(meeting=meeting, user_id=request.user, result=True)
-
                 return Response(serialize_meeting(meeting, joined_count=1), status=201)
         
         except Exception as e:
             return Response({"detail": f"저장 실패: {str(e)}"}, status=400)
 
     # ---------- GET: 리스트 조회 ----------
-    # (POST 조건문이 끝난 뒤 실행됨)
+    # POST가 아닐 때만 실행되도록 들여쓰기 주의
     now = timezone.now()
     sort = (request.GET.get("sort") or "soon").strip()
     limit = request.GET.get("limit")
@@ -182,12 +180,10 @@ def meeting_list_api(request):
         .annotate(joined_count=Count("participations", filter=Q(participations__result=True)))
     )
 
-    # 검색 처리
     q = (request.GET.get("q") or "").strip()
     if q:
         qs = qs.filter(Q(title__icontains=q) | Q(book_id__title__icontains=q))
 
-    # 정렬 처리
     if sort == "views":
         qs = qs.order_by("-views", "-id")
     else:
@@ -201,6 +197,7 @@ def meeting_list_api(request):
 
     data = [serialize_meeting(m, joined_count=getattr(m, 'joined_count', 0)) for m in qs]
     return Response(data)
+
 
 @api_view(["GET", "PATCH", "DELETE"])
 def meeting_detail_api(request, pk):
