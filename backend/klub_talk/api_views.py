@@ -202,7 +202,6 @@ def meeting_list_api(request):
     data = [serialize_meeting(m, joined_count=getattr(m, 'joined_count', 0)) for m in qs]
     return Response(data)
 
-
 @api_view(["GET", "PATCH", "DELETE"])
 def meeting_detail_api(request, pk):
     meeting = get_object_or_404(Meeting.objects.select_related("book_id", "leader_id"), pk=pk)
