@@ -128,8 +128,7 @@ def send_meeting_system_messages():
     channel_layer = get_channel_layer()
     now = timezone.localtime()
 
-    meetings = Meeting.objects.select_related("room").all()
-
+    meetings = Meeting.objects.filter(room__isnull=False).select_related("room")
     for meeting in meetings:
         if not meeting.room:
             continue
