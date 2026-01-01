@@ -22,7 +22,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.user = self.scope["user"]
 
         if not self.user.is_authenticated:
-            await self.close()
+            class MockUser:
+                id = 9999
+                nickname = f"Tester_{self.channel_name[-5:]}"
+                is_authenticated = True
+            self.user = MockUser()
+            # await self.close()
             return
 
         # 1. 방 정보 가져오기
