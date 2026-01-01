@@ -89,6 +89,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         message = data.get("message")
+        ts = data.get("ts")
 
         # if not await self.is_meeting_active():
         #     await self.send(text_data=json.dumps({
@@ -104,7 +105,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 "message": message,
                 "username": self.user.nickname,
                 "timestamp": timezone.localtime().isoformat(),
-                "user_id": self.user.id
+                "user_id": self.user.id,
+                "ts": ts
             }
         )
 
@@ -115,6 +117,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "username": event["username"],
             "timestamp": event["timestamp"],
             "user_id": event["user_id"],
+            "ts": event.get("ts")
         }))
 
     async def system_message(self, event):
