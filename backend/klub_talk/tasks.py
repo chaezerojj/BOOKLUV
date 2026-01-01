@@ -10,35 +10,39 @@ from datetime import datetime, time, timedelta
 
 # =========================
 # 채팅방 자동 생성 (KST 기준 오늘)
-# =========================
 @shared_task
 def check_and_create_rooms():
     from klub_chat.models import Room
     from klub_talk.models import Meeting
-    import logging
-    logger = logging.getLogger(__name__)
+    from django.utils import timezone
+    from django.utils.text import slugify
 
     now = timezone.localtime()
-    # ✅ 오늘 하루(00:00 ~ 23:59) 동안 시작되는 모든 미팅 대상
+    
+    # ✅ 방법 1: 오늘 날짜인 것들 중 룸이 없는 것 다 가져오기
+    # .filter(room__isnull=True)를 쓰면 더 정확합니다.
     meetings_today = Meeting.objects.filter(
-        started_at__date=now.date()
+        started_at__date=now.date(),
+        room__isnull=True
     )
 
-    logger.info(f"Checking rooms for {len(meetings_today)} meetings today.")
+    print(f"[{now}] 룸 생성 체크 시작: 대상 {meetings_today.count()}건")
 
     for meeting in meetings_today:
-        # ✅ 'room' 속성이 없거나 None인 경우 생성
-        if not hasattr(meeting, "room") or not meeting.room:
-            room, created = Room.objects.get_or_create(
+        try:
+            # ✅ 방법 2: get_or_create로 중복 방지 및 안전하게 생성
+            base_slug = slugify(meeting.title) or f"meeting-{meeting.id}"
+            
+            Room.objects.get_or_create(
                 meeting=meeting,
                 defaults={
                     "name": meeting.title,
-                    "slug": slugify(meeting.title) or f"room-{meeting.id}"
+                    "slug": base_slug
                 }
             )
-            if created:
-                logger.info(f"✅ Created room for meeting: {meeting.title}")
-
+            print(f"✅ 룸 생성 완료: {meeting.title}")
+        except Exception as e:
+            print(f"❌ 룸 생성 실패 ({meeting.id}): {str(e)}")
 
 # =========================
 # 미팅 시작 알람 (웹소켓)
