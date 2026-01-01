@@ -103,12 +103,6 @@ def meeting_list_api(request):
     GET: 모임 목록 조회
     POST: 새로운 모임 생성
     """
-    # 헬퍼 함수: Naive 시간을 현재 설정된 시간대(KST 등)의 Aware 시간으로 변환
-    def _make_aware(dt):
-        if dt and timezone.is_naive(dt):
-            return timezone.make_aware(dt, timezone.get_current_timezone())
-        return dt
-
     # ---------- POST: 모임 생성 ----------
     if request.method == "POST":
         if not request.user.is_authenticated:
@@ -116,27 +110,35 @@ def meeting_list_api(request):
 
         payload = request.data or {}
         
-        # 수정된 유틸리티 함수를 사용하여 확실한 Aware 객체 생성
+        # 1. 상단의 유틸리티 함수(_parse_dt)를 사용하여 'Aware' 객체로 파싱
+        # 이 과정에서 Naive 시간은 서버 설정 시간대(KST 등)가 부여됩니다.
         started_at = _parse_dt(payload.get("started_at"))
         finished_at = _parse_dt(payload.get("finished_at"))
-        now = timezone.now()
+        now = timezone.now() # Django의 현재 시간 (Aware 상태)
 
-        # 유효성 검사
+        # 2. 유효성 검사
         if not (started_at and finished_at):
             return Response({"detail": "시간 정보 형식이 잘못되었습니다."}, status=400)
 
-        # 이제 둘 다 Aware 상태이므로 절대 TypeError가 나지 않습니다.
+        # 3. 시간대 비교 (이제 둘 다 Aware이므로 TypeError가 발생하지 않음)
         if started_at >= finished_at:
             return Response({"detail": "시작 시간은 종료 시간보다 빨라야 합니다."}, status=400)
 
-        if started_at < now:
+        # 서버와의 미세한 시간 차이를 고려해 1분 정도의 오차는 허용 (선택 사항)
+        if started_at < now - timezone.timedelta(minutes=1):
             return Response({"detail": "과거 시간으로 모임을 생성할 수 없습니다."}, status=400)
 
-        # DB 저장 로직 (이후 동일)
+        # 4. DB 저장 로직
         try:
             with transaction.atomic():
-                book = get_object_or_404(Book, pk=payload.get("book_id"))
+                # 책 존재 여부 확인
+                book_id = payload.get("book_id")
+                if not book_id:
+                    return Response({"detail": "책 정보가 없습니다."}, status=400)
                 
+                book = get_object_or_404(Book, pk=book_id)
+                
+                # 모임 생성
                 meeting = Meeting.objects.create(
                     leader_id=request.user,
                     book_id=book,
@@ -147,6 +149,7 @@ def meeting_list_api(request):
                     finished_at=finished_at,
                 )
 
+                # 퀴즈 생성
                 quiz_data = payload.get("quiz") or {}
                 Quiz.objects.create(
                     meeting_id=meeting,
@@ -154,10 +157,18 @@ def meeting_list_api(request):
                     answer=quiz_data.get("answer") or "없음"
                 )
 
-                Participate.objects.create(meeting=meeting, user_id=request.user, result=True)
+                # 개설자 자동 참여 처리
+                Participate.objects.create(
+                    meeting=meeting, 
+                    user_id=request.user, 
+                    result=True
+                )
+
+                # 생성된 모임 정보 반환 (상세 페이지 이동을 위해 ID 포함)
                 return Response(serialize_meeting(meeting, joined_count=1), status=201)
+                
         except Exception as e:
-            return Response({"detail": f"저장 실패: {str(e)}"}, status=400)
+            return Response({"detail": f"모임 생성 중 오류가 발생했습니다: {str(e)}"}, status=400)
 
     # ---------- GET: 리스트 조회 ----------
     now = timezone.now()
@@ -175,11 +186,13 @@ def meeting_list_api(request):
     if q:
         qs = qs.filter(Q(title__icontains=q) | Q(book_id__title__icontains=q))
 
+    # 정렬 조건
     if sort == "views":
         qs = qs.order_by("-views", "-id")
     else:
         qs = qs.order_by("started_at", "-id")
 
+    # 개수 제한
     if limit:
         try:
             qs = qs[:int(limit)]
