@@ -90,12 +90,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         message = data.get("message")
 
-        if not await self.is_meeting_active():
-            await self.send(text_data=json.dumps({
-                "type": "error",
-                "message": "회의 시간이 아닙니다."
-            }))
-            return
+        # if not await self.is_meeting_active():
+        #     await self.send(text_data=json.dumps({
+        #         "type": "error",
+        #         "message": "회의 시간이 아닙니다."
+        #     }))
+        #     return
 
         await self.channel_layer.group_send(
             self.room_group_name,
