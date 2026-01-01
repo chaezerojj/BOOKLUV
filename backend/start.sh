@@ -1,4 +1,6 @@
+#!/bin/bash
 
+# 변수가 없으면 기본값 WS
 SERVER_TYPE=${SERVER_TYPE:-WS}
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
@@ -12,7 +14,8 @@ if [ "$SERVER_TYPE" = "HTTP" ]; then
     exec gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT --workers 3
 
 elif [ "$SERVER_TYPE" = "WS" ]; then
-    echo "Starting Celery (Worker + Beat)..."
+    echo "Starting Celery Worker & Beat..."
+    export PYTHONUNBUFFERED=1
     celery -A backend worker -l info -B --schedule=/tmp/celerybeat-schedule --pidfile= & 
     
     echo "Starting Daphne..."
