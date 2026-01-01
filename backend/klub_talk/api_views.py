@@ -81,6 +81,23 @@ def book_search_api(request):
             Q(category_id__name__icontains=q)
         )
     return Response(BookSerializer(qs, many=True).data)
+
+@api_view(["GET"])
+def book_detail_api(request, book_id):
+    book = get_object_or_404(Book, pk=book_id)
+    now = timezone.now()
+    meetings_qs = Meeting.objects.filter(
+        book_id=book_id,
+        finished_at__gt=now
+    ).select_related("leader_id").order_by("-id")
+
+    meetings = [serialize_meeting(m) for m in meetings_qs]
+    return Response({
+        "book": BookSerializer(book).data,
+        "meetings": meetings,
+    })
+    
+    
 @api_view(["GET", "POST"])
 def meeting_list_api(request):
     """
