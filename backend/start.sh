@@ -1,6 +1,4 @@
-#!/bin/bash
 
-# 변수가 없으면 기본값 WS
 SERVER_TYPE=${SERVER_TYPE:-WS}
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
@@ -15,14 +13,12 @@ if [ "$SERVER_TYPE" = "HTTP" ]; then
 
 elif [ "$SERVER_TYPE" = "WS" ]; then
     echo "Starting Celery (Worker + Beat)..."
-    # ✅ 에러를 유발하던 --broker 옵션을 삭제했습니다. 
-    # 이제 settings.py의 CELERY_BROKER_URL을 자동으로 읽어옵니다.
-    celery -A backend worker -l info -B & 
+    celery -A backend worker -l info -B --schedules=/tmp/celerybeat-schedule --pidfile= & 
     
     echo "Starting Daphne..."
     exec daphne -b 0.0.0.0 -p $PORT backend.asgi:application
     
 elif [ "$SERVER_TYPE" = "CELERY" ]; then
     echo "Starting Celery Worker with Beat..."
-    exec celery -A backend worker -l info -B
+    exec celery -A backend worker -l info -B --schedules=/tmp/celerybeat-schedule --pidfile=
 fi
