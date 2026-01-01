@@ -14,9 +14,10 @@ if [ "$SERVER_TYPE" = "HTTP" ]; then
     exec gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT --workers 3
 
 elif [ "$SERVER_TYPE" = "WS" ]; then
-    echo "Starting Celery..."
-    # ✅ --broker 옵션을 사용하여 Railway의 REDIS_URL을 직접 전달합니다.
-    celery -A backend worker -l info -B --broker=$REDIS_URL & 
+    echo "Starting Celery (Worker + Beat)..."
+    # ✅ 에러를 유발하던 --broker 옵션을 삭제했습니다. 
+    # 이제 settings.py의 CELERY_BROKER_URL을 자동으로 읽어옵니다.
+    celery -A backend worker -l info -B & 
     
     echo "Starting Daphne..."
     exec daphne -b 0.0.0.0 -p $PORT backend.asgi:application
