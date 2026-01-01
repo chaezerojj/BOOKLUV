@@ -13,12 +13,12 @@ if [ "$SERVER_TYPE" = "HTTP" ]; then
 
 elif [ "$SERVER_TYPE" = "WS" ]; then
     echo "Starting Celery (Worker + Beat)..."
-    celery -A backend worker -l info -B --schedules=/tmp/celerybeat-schedule --pidfile= & 
+    celery -A backend worker -l info -B --schedule=/tmp/celerybeat-schedule --pidfile= & 
     
     echo "Starting Daphne..."
     exec daphne -b 0.0.0.0 -p $PORT backend.asgi:application
     
 elif [ "$SERVER_TYPE" = "CELERY" ]; then
     echo "Starting Celery Worker with Beat..."
-    exec celery -A backend worker -l info -B --schedules=/tmp/celerybeat-schedule --pidfile=
+    exec celery -A backend worker -l info -B --schedule=/tmp/celerybeat-schedule --pidfile=
 fi
