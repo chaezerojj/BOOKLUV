@@ -81,44 +81,32 @@ def book_search_api(request):
             Q(category_id__name__icontains=q)
         )
     return Response(BookSerializer(qs, many=True).data)
-
-@api_view(["GET"])
-def book_detail_api(request, book_id):
-    book = get_object_or_404(Book, pk=book_id)
-    now = timezone.now()
-    meetings_qs = Meeting.objects.filter(
-        book_id=book_id,
-        finished_at__gt=now
-    ).select_related("leader_id").order_by("-id")
-
-    meetings = [serialize_meeting(m) for m in meetings_qs]
-    return Response({
-        "book": BookSerializer(book).data,
-        "meetings": meetings,
-    })
-    
-    
 @api_view(["GET", "POST"])
 def meeting_list_api(request):
     """
     GET: 모임 목록 조회
     POST: 새로운 모임 생성
     """
+
     def _force_aware(value):
-        """어떤 시간이 들어와도 강제로 Aware 상태로 만듦"""
+        """
+        프론트엔드에서 넘어온 Naive 시간(timezone 정보 없음)을 
+        Django 설정 시간대에 맞춘 Aware 상태로 강제 변환합니다.
+        """
         if not value:
             return None
-        from django.utils.dateparse import parse_datetime
-        from django.utils import timezone
         
+        # 1. 문자열인 경우 datetime 객체로 파싱
         dt = parse_datetime(value) if isinstance(value, str) else value
         if not dt:
             return None
             
+        # 2. Naive(offset-naive)인 경우 설정된 시간대(Asia/Seoul 등)를 입힘
         if timezone.is_naive(dt):
-            # Naive라면 Django 설정 시간대(KST)를 입혀서 Aware로 변환
-            return timezone.make_aware(dt)
-        return dt
+            return timezone.make_aware(dt, timezone.get_current_timezone())
+        
+        # 3. 이미 Aware(offset-aware)인 경우 일관성을 위해 로컬 시간대로 변환
+        return timezone.localtime(dt)
 
     # ---------- POST: 모임 생성 ----------
     if request.method == "POST":
@@ -127,18 +115,21 @@ def meeting_list_api(request):
 
         payload = request.data or {}
         
-        # 1. 모든 시간 데이터를 즉시 강제 변환
+        # 1. 시간 데이터 강제 Aware 변환 (여기서 비교 에러 원천 차단)
         started_at = _force_aware(payload.get("started_at"))
         finished_at = _force_aware(payload.get("finished_at"))
-        now = timezone.now() # 이것은 항상 Aware임
+        now = timezone.now() # Django 설정에 따라 항상 Aware임
 
-        # 2. 필수 값 체크
+        # 2. 필수 값 및 유효성 체크
         if not (started_at and finished_at):
             return Response({"detail": "시간 정보가 누락되었거나 형식이 잘못되었습니다."}, status=400)
 
-        # 3. 비교 (둘 다 Aware이므로 절대 에러 안 남)
+        # 3. 시간 비교 (둘 다 Aware이므로 에러가 발생하지 않음)
         if started_at >= finished_at:
             return Response({"detail": "시작 시간은 종료 시간보다 빨라야 합니다."}, status=400)
+        
+        if started_at < now:
+            return Response({"detail": "과거 시간으로 모임을 생성할 수 없습니다."}, status=400)
 
         try:
             with transaction.atomic():
@@ -166,9 +157,10 @@ def meeting_list_api(request):
                 # 리더 자동 참여
                 Participate.objects.create(meeting=meeting, user_id=request.user, result=True)
 
+                # serialize_meeting은 프로젝트 내 정의된 함수를 사용하세요
                 return Response(serialize_meeting(meeting, joined_count=1), status=201)
+        
         except Exception as e:
-            # 여기서 에러가 난다면 필드명 불일치일 확률이 높음
             return Response({"detail": f"저장 실패: {str(e)}"}, status=400)
 
     # ---------- GET: 리스트 조회 ----------
@@ -178,7 +170,7 @@ def meeting_list_api(request):
 
     qs = (
         Meeting.objects
-        .filter(finished_at__gt=now) # Aware vs Aware 비교라 안전함
+        .filter(finished_at__gt=now) # Aware vs Aware 비교
         .select_related("book_id", "leader_id")
         .annotate(joined_count=Count("participations", filter=Q(participations__result=True)))
     )
@@ -192,12 +184,13 @@ def meeting_list_api(request):
     if sort == "views":
         qs = qs.order_by("-views", "-id")
     else:
+        # 곧 시작하는 순서
         qs = qs.order_by("started_at", "-id")
 
     if limit:
         try:
             qs = qs[:int(limit)]
-        except:
+        except ValueError:
             pass
 
     data = [serialize_meeting(m, joined_count=getattr(m, 'joined_count', 0)) for m in qs]
