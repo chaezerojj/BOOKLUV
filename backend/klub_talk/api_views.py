@@ -29,14 +29,13 @@ def normalize_answer(s: str) -> str:
 def _parse_dt(value):
     if not value:
         return None
-    from django.utils.dateparse import parse_datetime
-    from django.utils import timezone
     try:
         dt = parse_datetime(value)
         if not dt:
             return None
+        # Naive(시간대 없음)인 경우 현재 서버 설정 시간대를 강제로 입힘
         if timezone.is_naive(dt):
-            return timezone.make_aware(dt)
+            return timezone.make_aware(dt, timezone.get_current_timezone())
         return dt
     except Exception:
         return None
@@ -117,23 +116,23 @@ def meeting_list_api(request):
 
         payload = request.data or {}
         
-        # 1. 시간 데이터 파싱 및 시간대 부여
-        started_at = _make_aware(parse_datetime(payload.get("started_at")))
-        finished_at = _make_aware(parse_datetime(payload.get("finished_at")))
+        # 수정된 유틸리티 함수를 사용하여 확실한 Aware 객체 생성
+        started_at = _parse_dt(payload.get("started_at"))
+        finished_at = _parse_dt(payload.get("finished_at"))
         now = timezone.now()
 
-        # 2. 유효성 검사
+        # 유효성 검사
         if not (started_at and finished_at):
             return Response({"detail": "시간 정보 형식이 잘못되었습니다."}, status=400)
 
-        # 이제 모두 Aware 상태이므로 비교 에러가 발생하지 않습니다.
+        # 이제 둘 다 Aware 상태이므로 절대 TypeError가 나지 않습니다.
         if started_at >= finished_at:
             return Response({"detail": "시작 시간은 종료 시간보다 빨라야 합니다."}, status=400)
 
         if started_at < now:
             return Response({"detail": "과거 시간으로 모임을 생성할 수 없습니다."}, status=400)
 
-        # 3. DB 저장 로직
+        # DB 저장 로직 (이후 동일)
         try:
             with transaction.atomic():
                 book = get_object_or_404(Book, pk=payload.get("book_id"))
@@ -157,7 +156,6 @@ def meeting_list_api(request):
 
                 Participate.objects.create(meeting=meeting, user_id=request.user, result=True)
                 return Response(serialize_meeting(meeting, joined_count=1), status=201)
-        
         except Exception as e:
             return Response({"detail": f"저장 실패: {str(e)}"}, status=400)
 
