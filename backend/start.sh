@@ -15,8 +15,8 @@ if [ "$SERVER_TYPE" = "HTTP" ]; then
 
 elif [ "$SERVER_TYPE" = "WS" ]; then
     echo "Starting Celery..."
-    # 로그를 파일로 돌리지 않고 바로 출력 (stdout/stderr)
-    celery -A backend worker -l info -B & 
+    # ✅ --broker 옵션을 사용하여 Railway의 REDIS_URL을 직접 전달합니다.
+    celery -A backend worker -l info -B --broker=$REDIS_URL & 
     
     echo "Starting Daphne..."
     exec daphne -b 0.0.0.0 -p $PORT backend.asgi:application
