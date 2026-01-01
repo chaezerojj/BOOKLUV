@@ -11,15 +11,15 @@ app.autodiscover_tasks(['klub_talk'])
 # Beat 스케줄 설정
 app.conf.beat_schedule = {
     'create-rooms-every-minute': {
-        'task': 'backend.klub_talk.tasks.check_and_create_rooms',
+        'task': 'klub_talk.tasks.check_and_create_rooms',
         'schedule': 10.0,
     },
     'send_today_meeting_alarms_for_today': {
-        'task': 'backend.klub_talk.tasks.send_today_meeting_alarms_for_today',
+        'task': 'klub_talk.tasks.send_today_meeting_alarms_for_today',
         'schedule': 10.0,
     },
     "send_meeting_system_messages": {
-        "task": "backend.klub_talk.tasks.send_meeting_system_messages",
+        "task": "klub_talk.tasks.send_meeting_system_messages",
         'schedule': 10.0,
     },
 }
