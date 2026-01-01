@@ -17,16 +17,18 @@ def check_and_create_rooms():
     from klub_talk.models import Meeting
     from klub_chat.models import Room
     
-    # ✅ 현재 시간으로부터 10분 뒤의 시점을 계산합니다.
-    # 예: 지금이 11:00이면 target_time은 11:10이 됩니다.
-    target_time = timezone.now() + timedelta(minutes=10)
+    # ✅ 로컬 시간(한국 시간)을 기준으로 타겟 시간을 잡습니다.
+    now = timezone.localtime() 
+    target_time = now + timedelta(minutes=10)
     
-    # 시작 시간이 11:10보다 이전(lte)인 모든 미팅을 가져옵니다.
-    # 즉, 지금부터 10분 뒤에 시작할 미팅까지 미리 방을 만듭니다.
+    print(f"DEBUG: 현재 로컬 시간: {now}")
+    print(f"DEBUG: 타겟 시간(10분뒤): {target_time}")
+
+    # 필터 조건에 시간대 정보를 명확히 포함합니다.
     pending_meetings = Meeting.objects.filter(
         started_at__lte=target_time,
         room__isnull=True
-    )
+    ).order_by('started_at')
 
     results = []
     for meeting in pending_meetings:
