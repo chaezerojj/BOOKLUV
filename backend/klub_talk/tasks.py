@@ -17,19 +17,21 @@ def check_and_create_rooms():
     from klub_talk.models import Meeting
     from klub_chat.models import Room
     
-    now = timezone.now()
-    # 시작 시간이 현재보다 이전인데, 방이 연결되지 않은 미팅들
+    # ✅ 현재 시간으로부터 10분 뒤의 시점을 계산합니다.
+    # 예: 지금이 11:00이면 target_time은 11:10이 됩니다.
+    target_time = timezone.now() + timedelta(minutes=10)
+    
+    # 시작 시간이 11:10보다 이전(lte)인 모든 미팅을 가져옵니다.
+    # 즉, 지금부터 10분 뒤에 시작할 미팅까지 미리 방을 만듭니다.
     pending_meetings = Meeting.objects.filter(
-        started_at__lte=now,
+        started_at__lte=target_time,
         room__isnull=True
     )
-
-    if not pending_meetings.exists():
-        return "생성할 방이 없습니다."
 
     results = []
     for meeting in pending_meetings:
         try:
+            # 룸 생성 또는 가져오기
             room, created = Room.objects.get_or_create(
                 meeting=meeting,
                 defaults={
@@ -38,7 +40,7 @@ def check_and_create_rooms():
                 }
             )
             if created:
-                msg = f"✅ 룸 생성 완료: {meeting.title}"
+                msg = f"✅ [10분 전 생성] 룸 생성 완료: {meeting.title}"
             else:
                 msg = f"ℹ️ 이미 룸이 존재함: {meeting.title}"
             print(msg)
@@ -48,8 +50,7 @@ def check_and_create_rooms():
             print(error_msg)
             results.append(error_msg)
             
-    return "\n".join(results)
-
+    return "\n".join(results) if results else "생성할 방이 없습니다."
 # =========================
 # 미팅 시작 알람 (웹소켓)
 # =========================
