@@ -110,24 +110,24 @@ def meeting_list_api(request):
 
         payload = request.data or {}
         
-        # 1. 상단의 유틸리티 함수(_parse_dt)를 사용하여 'Aware' 객체로 파싱
-        # 이 과정에서 Naive 시간은 서버 설정 시간대(KST 등)가 부여됩니다.
+        # [수정] 현재 시간을 확실한 Aware 객체로 생성
+        now = timezone.now() 
+
+        # [수정] 입력받은 시간을 파싱하고, 만약 Naive라면 현재 시간대(KST 등)를 강제 주입
         started_at = _parse_dt(payload.get("started_at"))
         finished_at = _parse_dt(payload.get("finished_at"))
-        now = timezone.now() # Django의 현재 시간 (Aware 상태)
 
-        # 2. 유효성 검사
+        # 유효성 검사
         if not (started_at and finished_at):
             return Response({"detail": "시간 정보 형식이 잘못되었습니다."}, status=400)
 
-        # 3. 시간대 비교 (이제 둘 다 Aware이므로 TypeError가 발생하지 않음)
+        # [중요] 이제 모든 변수가 Aware 상태이므로 비교 연산이 가능합니다.
         if started_at >= finished_at:
             return Response({"detail": "시작 시간은 종료 시간보다 빨라야 합니다."}, status=400)
 
-        # 서버와의 미세한 시간 차이를 고려해 1분 정도의 오차는 허용 (선택 사항)
-        if started_at < now - timezone.timedelta(minutes=1):
+        # 서버와 클라이언트 간의 찰나의 시간 차를 고려해 1분의 여유를 둡니다.
+        if started_at < (now - timezone.timedelta(minutes=1)):
             return Response({"detail": "과거 시간으로 모임을 생성할 수 없습니다."}, status=400)
-
         # 4. DB 저장 로직
         try:
             with transaction.atomic():
