@@ -133,3 +133,8 @@ REST_FRAMEWORK = {
 KAKAO_REST_API_KEY = os.getenv('KAKAO_REST_API_KEY')
 KAKAO_CLIENT_SECRET = os.getenv('KAKAO_CLIENT_SECRET')
 KAKAO_REDIRECT_URI = os.getenv('KAKAO_REDIRECT_URI')
+
+LANGUAGE_CODE = 'ko-kr'
+TIME_ZONE = 'Asia/Seoul'  # 한국 시간대 설정
+USE_I18N = True
+USE_TZ = True  # True여야 Django가 내부적으로 시간대(Aware)를 인식합니다.

@@ -33,10 +33,13 @@ def _parse_dt(value):
         dt = parse_datetime(value)
         if not dt:
             return None
-        # Naive(시간대 없음)인 경우 현재 서버 설정 시간대를 강제로 입힘
-        if timezone.is_naive(dt):
-            return timezone.make_aware(dt, timezone.get_current_timezone())
-        return dt
+        
+        # 1. 이미 Aware 상태라면 그대로 반환
+        if timezone.is_aware(dt):
+            return dt
+        
+        # 2. Naive 상태라면 서버의 현재 시간대(Asia/Seoul 등)를 적용
+        return timezone.make_aware(dt, timezone.get_current_timezone())
     except Exception:
         return None
 
@@ -113,10 +116,21 @@ def meeting_list_api(request):
         # [수정] 현재 시간을 확실한 Aware 객체로 생성
         now = timezone.now() 
 
-        # [수정] 입력받은 시간을 파싱하고, 만약 Naive라면 현재 시간대(KST 등)를 강제 주입
         started_at = _parse_dt(payload.get("started_at"))
         finished_at = _parse_dt(payload.get("finished_at"))
 
+        # 유효성 검사
+        if not (started_at and finished_at):
+            return Response({"detail": "시간 정보 형식이 잘못되었습니다."}, status=400)
+
+    # 비교 직전에 한 번 더 체크 (방어적 프로그래밍)
+        if timezone.is_naive(started_at):
+            started_at = timezone.make_aware(started_at)
+        if timezone.is_naive(finished_at):
+            finished_at = timezone.make_aware(finished_at)  
+        # 이제 에러 없이 비교 가능
+        if started_at >= finished_at:
+            return Response({"detail": "시작 시간은 종료 시간보다 빨라야 합니다."}, status=400)
         # 유효성 검사
         if not (started_at and finished_at):
             return Response({"detail": "시간 정보 형식이 잘못되었습니다."}, status=400)
