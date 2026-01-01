@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export PYTHONPATH=$PYTHONPATH:$(pwd)
-
+SERVER_TYPE=${SERVER_TYPE:-WS}
 echo "======================"
 echo "Current working directory: $(pwd)"
 echo "Server Type: $SERVER_TYPE"
