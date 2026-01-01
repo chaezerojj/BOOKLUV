@@ -127,6 +127,12 @@ def meeting_list_api(request):
         # 1. 시간 데이터 파싱
         started_at = parse_datetime(payload.get("started_at"))
         finished_at = parse_datetime(payload.get("finished_at"))
+        
+        if started_at and timezone.is_naive(started_at):
+            started_at = timezone.make_aware(started_at)
+        if finished_at and timezone.is_naive(finished_at):
+            finished_at = timezone.make_aware(finished_at)
+
         now = timezone.now()
 
         # [핵심] 만약 파싱된 시간이 Naive(시간대 정보 없음)라면 
