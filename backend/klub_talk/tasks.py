@@ -16,39 +16,36 @@ from django.utils.text import slugify
 def check_and_create_rooms():
     from klub_talk.models import Meeting
     from klub_chat.models import Room
+    from django.utils.text import slugify
     
-    # ✅ 로컬 시간(한국 시간)을 기준으로 타겟 시간을 잡습니다.
-    now = timezone.localtime() 
-    target_time = now + timedelta(minutes=10)
-    
-    print(f"DEBUG: 현재 로컬 시간: {now}")
-    print(f"DEBUG: 타겟 시간(10분뒤): {target_time}")
-
-    # 필터 조건에 시간대 정보를 명확히 포함합니다.
+    target_time = timezone.now() + timedelta(minutes=10)
     pending_meetings = Meeting.objects.filter(
         started_at__lte=target_time,
         room__isnull=True
-    ).order_by('started_at')
+    )
 
     results = []
     for meeting in pending_meetings:
         try:
-            # 룸 생성 또는 가져오기
+            # ✅ 슬러그에 미팅 ID를 붙여서 절대 중복되지 않게 합니다.
+            # 예: "미팅-제목-240"
+            unique_slug = f"{slugify(meeting.title) or 'room'}-{meeting.id}"
+            
             room, created = Room.objects.get_or_create(
                 meeting=meeting,
                 defaults={
                     'name': meeting.title,
-                    'slug': slugify(meeting.title) or f"room-{meeting.id}"
+                    'slug': unique_slug
                 }
             )
             if created:
-                msg = f"✅ [10분 전 생성] 룸 생성 완료: {meeting.title}"
+                msg = f"✅ 방 생성 성공: {meeting.title} (ID: {meeting.id})"
             else:
-                msg = f"ℹ️ 이미 룸이 존재함: {meeting.title}"
+                msg = f"ℹ️ 이미 존재: {meeting.title}"
             print(msg)
             results.append(msg)
         except Exception as e:
-            error_msg = f"❌ 룸 생성 실패 ({meeting.id}): {str(e)}"
+            error_msg = f"❌ 생성 실패 ({meeting.id}): {str(e)}"
             print(error_msg)
             results.append(error_msg)
             
