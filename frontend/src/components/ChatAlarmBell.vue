@@ -243,44 +243,71 @@ onBeforeUnmount(() => {
   margin: 12px 0 0;
   font-size: 12px;
   color: #888;
+  text-align: center;
 }
 
 .logs-head {
-  margin-top: 14px;
+  margin-top: 2rem;
+  margin-bottom: 10px;
+  margin-left: 0.5rem;
   font-weight: 900;
-  font-size: 13px;
+  font-size: 15px;
+  color: #333;
 }
 
 .logs {
-  margin-top: 8px;
+  margin-top: 0;
 }
 
 .log-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 10px;
+}
+
+.log-list a {
+  text-decoration: none;
 }
 
 .log-item,
 .log-row {
   display: flex;
-  gap: 10px;
   align-items: center;
-  padding: 8px 10px;
-  border-radius: 10px;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
   background: #fff;
-  border: 1px solid #f0f0f0;
+  border: 1px solid #eee;
+  border-left: 4px solid #e0e0e0;
+  margin-left: 0.5rem;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.log-item {
+  cursor: pointer;
+}
+
+.log-item:hover {
+  background: #fafafa;
+  border-left-color: #bbb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .log-time {
-  color: #888;
+  color: #999;
   font-size: 12px;
-  width: 120px;
+  min-width: 100px;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  margin-right: 0.5rem;
 }
 
 .log-title {
   font-weight: 700;
+  font-size: 14px;
+  color: #444;
 }
 </style>
