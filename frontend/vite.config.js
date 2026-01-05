@@ -1,14 +1,26 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import path from "path";
+import { visualizer } from "rollup-plugin-visualizer";
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    visualizer({
+      filename: "dist/stats.html",
+      template: "treemap",
+      gzipSize: true,
+      brotliSize: true,
+      open: true,
+    }),
+  ],
+
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
+
   server: {
     proxy: {
       "/api": {
@@ -16,8 +28,6 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         ws: true,
-        // If backend sets cookies with a different domain (e.g. ngrok),
-        // rewrite cookie domain to localhost so the browser accepts them during dev.
         cookieDomainRewrite: "localhost",
       },
     },
