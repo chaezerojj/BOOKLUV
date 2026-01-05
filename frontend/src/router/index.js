@@ -1,39 +1,14 @@
 import { createRouter, createWebHistory } from "vue-router";
 
-import HomeView from "@/views/Home/HomeView.vue";
-
-import AiRecommendView from "@/views/AI/AiRecommendView.vue";
-import AiTestView from "@/views/AI/AiTestView.vue";
-import AiTestResultView from "@/views/AI/AiTestResultView.vue";
-
-import LoginView from "@/views/Auth/LoginView.vue";
-import SignUpView from "@/views/Auth/SignUpView.vue";
-import AuthCallBackView from "@/views/Auth/AuthCallBackView.vue";
-
-import BoardListView from "@/views/Board/BoardListView.vue";
-import BoardCreateView from "@/views/Board/BoardCreateView.vue";
-import BoardDetailView from "@/views/Board/BoardDetailView.vue";
-import BoardUpdateView from "@/views/Board/BoardUpdateView.vue";
-
-import SearchResultView from "@/views/Search/SearchResultView.vue";
-
-import ChatAlarmBell from "@/components/ChatAlarmBell.vue";
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    // -----------------------------
-    // Home
-    // -----------------------------
     {
       path: "/",
       name: "home",
-      component: HomeView,
+      component: () => import("@/views/Home/HomeView.vue"),
     },
 
-    // -----------------------------
-    // Auth
-    // -----------------------------
     {
       path: "/login",
       alias: "/auth/login",
@@ -50,40 +25,31 @@ const router = createRouter({
       // 백엔드에서 redirect로 보내는 곳
       path: "/auth/callback",
       name: "auth-callback",
-      component: AuthCallBackView,
+      component: () => import("@/views/Auth/AuthCallBackView.vue"),
     },
 
-    // -----------------------------
-    // Search
-    // -----------------------------
     {
       path: "/search",
       name: "search",
-      component: SearchResultView,
+      component: () => import("@/views/Search/SearchResultView.vue"),
     },
 
-    // -----------------------------
-    // AI
-    // -----------------------------
     {
       path: "/ai",
       name: "ai-recommend",
-      component: AiRecommendView,
+      component: () => import("@/views/AI/AiRecommendView.vue"),
     },
     {
       path: "/ai/test",
       name: "ai-test",
-      component: AiTestView,
+      component: () => import("@/views/AI/AiTestView.vue"),
     },
     {
       path: "/ai/result",
       name: "ai-result",
-      component: AiTestResultView,
+      component: () => import("@/views/AI/AiTestResultView.vue"),
     },
 
-    // -----------------------------
-    // KluvTalk (고정 경로 먼저, :id는 마지막)
-    // -----------------------------
     {
       path: "/kluvtalk",
       name: "kluvtalk-list",
@@ -100,7 +66,6 @@ const router = createRouter({
       component: () => import("@/views/KluvTalk/KluvTalkCreateView.vue"),
       props: true,
     },
-
     {
       path: "/kluvtalk/chat/:roomSlug",
       name: "kluvtalk-chat-room",
@@ -120,45 +85,36 @@ const router = createRouter({
       props: true,
     },
 
-    // -----------------------------
-    // Board
-    // -----------------------------
     {
       path: "/board",
       name: "board",
-      component: BoardListView,
+      component: () => import("@/views/Board/BoardListView.vue"),
     },
     {
       path: "/board/create",
       name: "board-create",
-      component: BoardCreateView,
+      component: () => import("@/views/Board/BoardCreateView.vue"),
     },
     {
       path: "/board/:id",
       name: "board-detail",
-      component: BoardDetailView,
+      component: () => import("@/views/Board/BoardDetailView.vue"),
       props: true,
     },
     {
       path: "/board/:id/update",
       name: "board-update",
-      component: BoardUpdateView,
+      component: () => import("@/views/Board/BoardUpdateView.vue"),
       props: true,
     },
 
-    // -----------------------------
-    // Books
-    // -----------------------------
     {
       path: "/books/:id",
       name: "book-detail",
       component: () => import("@/views/Books/BookDetailView.vue"),
-      props: true, // BookDetailView에서 route.params.id 쓰기보다 이게 편함
+      props: true,
     },
 
-    // -----------------------------
-    // MyPage
-    // -----------------------------
     {
       path: "/mypage",
       name: "mypage",
@@ -177,18 +133,12 @@ const router = createRouter({
       ],
     },
 
-    // -----------------------------
-    // Alarm (chat meeting alerts)
-    // -----------------------------
     {
       path: "/alarm",
       name: "alarm",
-      component: ChatAlarmBell,
+      component: () => import("@/components/ChatAlarmBell.vue"),
     },
 
-    // -----------------------------
-    // 404 (선택)
-    // -----------------------------
     // {
     //   path: "/:pathMatch(.*)*",
     //   name: "not-found",
