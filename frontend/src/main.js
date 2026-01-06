@@ -10,6 +10,17 @@ import router from "./router";
 import { http } from "@/api/http";
 import { useAuthStore } from "@/stores/auth";
 
+import { initGA, trackPageView } from "@/lib/ga";
+
+import { initWebVitals } from "./lib/webVitals";
+
+initGA();
+initWebVitals();
+
+router.afterEach((to) => {
+  trackPageView(to.fullPath);
+});
+
 async function bootstrap() {
   const app = createApp(App);
 
